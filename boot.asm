@@ -101,20 +101,55 @@ prepare_print:
 checkName:
     mov al, [si]
     cmp al, 110
-    jne print_loop
+    jne endCheckName
     inc si
     mov al, [si]
     cmp al, 97
-    jne print_loop
+    jne endCheckName
     inc si
     mov al, [si]
     cmp al, 109
-    jne print_loop
+    jne endCheckName
     inc si
     mov al, [si]
     cmp al, 101
-    jne print_loop
+    jne endCheckName
     jmp printOSU
+endCheckName:
+    lea si, [data] 
+    mov ah, 0x0e
+    
+checkHelp:
+    mov al, [si]
+    cmp al, 104
+    jne endCheckHelp
+    inc si
+    mov al, [si]
+    cmp al, 101
+    jne endCheckHelp
+    inc si
+    mov al, [si]
+    cmp al, 108
+    jne endCheckHelp
+    inc si
+    mov al, [si]
+    cmp al, 112
+    jne endCheckHelp
+    jmp printHelp
+endCheckHelp:
+    lea si, [data] 
+    mov ah, 0x0e
+
+
+jmp print_loop
+
+printHelp:
+    lea si, [osDescription] 
+    jmp print_loop
+
+printOSU:
+    lea si, [nameOs] 
+    jmp print_loop
 
 
 
@@ -128,11 +163,6 @@ print_loop:
     int 0x10
     mov al, 13
     int 0x10
-
-
-printOSU:
-    lea si, [nameOs] 
-    jmp print_loop
 
 newLine:
     mov al, 10
@@ -162,17 +192,8 @@ remove_all:
     mov byte [di], 0
     jmp remove_all
 
-nameFunc:
-    db 'name', 0
-
 data:
     times 64 db 0
-
-wordLong:
-    times 10 db 0
-
-char:
-    db 0
 
 nameOs:
     db 'OSU', 0
