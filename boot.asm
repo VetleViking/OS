@@ -1,6 +1,3 @@
-
-
-
 [org 0x7c00]
 mov ah, 0x0e
 
@@ -75,78 +72,104 @@ int 0x10
 mov al, 13
 int 0x10
 
-mov bl, 10
-test: 
-    mov ax, 0
-    int 0x16
+cld
+lea di, [data] 
+type:
+    mov ah, 0
+    int 0x16 
+    mov [bx], al 
+    cmp al, 13
+    je prepare_print
+    cmp al, 8
+    je remove_byte
     mov ah, 0x0e
     int 0x10
-    dec bl
-    cmp bl, 0
-    jg test
+    jmp store_byte 
+store_byte:
+    lea si, [bx]
+    movsb
+    jmp type
 
-mov al, 10
-int 0x10
-mov al, 13
-int 0x10
-
-mov ax, 0
-int 0x16
-
-mov [char], al
-
-mov ah, 0x0e
-int 0x10
-
-mov al, 10
-int 0x10
-mov al, 13
-int 0x10
-
-endFunc:
-
-
-mov ax, 0
-int 0x16
-mov ah, 0x0e
-int 0x10
-
-cmp al, 13
-je newLine
-
-cmp al, 97
-je aFunc
-
-cmp al, 110
-je nFunc
-
-jne endFunc
-    
-aFunc:
+prepare_print:
+    lea si, [data] 
     mov ah, 0x0e
-    mov al, [char]
+    mov al, 10
+    int 0x10 
+    mov al, 13
     int 0x10
-    
-    jmp endFunc  
 
-nFunc: 
-    mov ah, 0x0e
-    mov bx, nameOs
-printName:
-    mov al, [bx]
+checkName:
+    mov al, [si]
+    cmp al, 110
+    jne print_loop
+    inc si
+    mov al, [si]
+    cmp al, 97
+    jne print_loop
+    inc si
+    mov al, [si]
+    cmp al, 109
+    jne print_loop
+    inc si
+    mov al, [si]
+    cmp al, 101
+    jne print_loop
+    jmp printOSU
+
+
+
+print_loop:
+    lodsb 
     cmp al, 0
-    je endFunc
+    je newLine
     int 0x10
-    inc bx
-    jmp printName
-
-newLine:
-    mov ah, 0x0e
+    jmp print_loop
     mov al, 10
     int 0x10
     mov al, 13
     int 0x10
-    jmp endFunc
+
+
+printOSU:
+    lea si, [nameOs] 
+    jmp print_loop
+
+newLine:
+    mov al, 10
+    int 0x10
+    mov al, 13
+    int 0x10
+    jmp remove_all
+
+remove_byte:
+    cmp di, data
+    je type
+    dec di 
+    mov byte [di], 0
+    mov ah, 0x0e
+    mov al, 0x08
+    int 0x10
+    mov al, ' '
+    int 0x10
+    mov al, 0x08
+    int 0x10
+    jmp type
+
+remove_all:
+    cmp di, data
+    je type
+    dec di 
+    mov byte [di], 0
+    jmp remove_all
+
+nameFunc:
+    db 'name', 0
+
+data:
+    times 64 db 0
+
+wordLong:
+    times 10 db 0
 
 char:
     db 0
