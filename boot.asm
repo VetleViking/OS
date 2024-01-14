@@ -1,79 +1,9 @@
 [org 0x7c00]
 mov ah, 0x0e
 
-mov bl, 40
-mov al, 61
-loop:
-    int 0x10
-    dec bl
-    cmp bl, 0
-    jne loop
-mov al, 10
-int 0x10
-mov al, 13
-int 0x10
-
-mov al, 32
-mov bl, 18
-loop1:
-    int 0x10
-    dec bl
-    cmp bl, 0
-    jne loop1
-
-mov bx, nameOs
-printOSName:
-    mov al, [bx]
-    cmp al, 0
-    je printOSNameStop
-    int 0x10
-    inc bx
-    jmp printOSName
-printOSNameStop:
-    mov al, 10
-    int 0x10
-    mov al, 13
-    int 0x10
-
-
-mov al, 32
-mov bl, 5
-loop3:
-    int 0x10
-    dec bl
-    cmp bl, 0
-    jne loop3
-
-
-mov bx, osDescription
-printOsDesc:
-    mov al, [bx]
-    cmp al, 0
-    je osDescStop
-    int 0x10
-    inc bx
-    jmp printOsDesc
-osDescStop:
-    mov al, 10
-    int 0x10
-    mov al, 13
-    int 0x10
-
-
-mov bl, 40
-mov al, 61
-loop2:
-    int 0x10
-    dec bl
-    cmp bl, 0
-    jne loop2
-mov al, 10
-int 0x10
-mov al, 13
-int 0x10
-
 cld
 lea di, [data] 
+jmp newLine
 type:
     mov ah, 0
     int 0x16 
@@ -140,34 +70,91 @@ endCheckHelp:
     lea si, [data] 
     mov ah, 0x0e
 
+checkPrint:
+    mov al, [si]
+    cmp al, 112
+    jne endCheckPrint
+    inc si
+    mov al, [si]
+    cmp al, 114
+    jne endCheckPrint
+    inc si
+    mov al, [si]
+    cmp al, 105
+    jne endCheckPrint
+    inc si
+    mov al, [si]
+    cmp al, 110
+    jne endCheckPrint
+    inc si
+    mov al, [si]
+    cmp al, 116
+    jne endCheckPrint
+    jmp print_input
+endCheckPrint:
+    lea si, [data] 
+    mov ah, 0x0e
 
-jmp print_loop
+jmp error_message
 
 printHelp:
-    lea si, [osDescription] 
+    lea si, [help] 
     jmp print_loop
 
 printOSU:
     lea si, [nameOs] 
     jmp print_loop
 
+print_input:
+    lea si, [data] 
+    jmp print_find_start
+print_find_start:
+    lodsb 
+    cmp al, 0
+    je newLine
+    cmp al, 32
+    je print_loop
+    jmp print_find_start
+
+error_message:
+    lea si, [error] 
+    jmp print_error
+print_error:
+    lodsb 
+    cmp al, 0
+    je print_error_end
+    int 0x10
+    jmp print_error
+print_error_end:
+    lea si, [data]
+    jmp print_loop
 
 
 print_loop:
     lodsb 
     cmp al, 0
     je newLine
+    cmp al, 47
+    je print_loop_nl
     int 0x10
     jmp print_loop
     mov al, 10
     int 0x10
     mov al, 13
     int 0x10
+print_loop_nl:
+    mov al, 10
+    int 0x10
+    mov al, 13
+    int 0x10
+    jmp print_loop
 
 newLine:
     mov al, 10
     int 0x10
     mov al, 13
+    int 0x10
+    mov al, 62
     int 0x10
     jmp remove_all
 
@@ -195,11 +182,14 @@ remove_all:
 data:
     times 64 db 0
 
+error:
+    db 'Error: did not find the function ', 0
+
+help:
+    db 'name - displays OS name/help - displays help message/print [string] - prints given string', 0
+
 nameOs:
     db 'OSU', 0
-
-osDescription:
-    db 'En OS laget av Kasper og Vetle', 0
 
 jmp $
 times 510-($-$$) db 0
