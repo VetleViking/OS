@@ -12,7 +12,7 @@ We will start with WSL, so that we can download the other stuff there:
 wsl --install
 ```
 After this you will need to restart, then open the wsl terminal. Now we will download all of the other tools. 
-The other tools can be easily downloaded by using the file from [this github page](https://github.com/mell-o-tron/MellOs/blob/main/A_Setup/setup-gcc-debian.sh) in WSL by navigating to the file, and then running 
+The other tools can be easily downloaded by downloading the linked file from [this github page](https://github.com/mell-o-tron/MellOs/blob/main/A_Setup/setup-gcc-debian.sh), then navigating to the file in WSL and running 
 ```bash
 ./setup-gcc-debian.sh
 ```
