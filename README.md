@@ -29,7 +29,7 @@ Go to the bottom, and add
 export PATH="$PATH:/usr/local/i386elfgcc/bin"
 ```
 Its way too much to explain here how vim works, so eiter search it up or use an editor you already know.
-Save the file, then navigate to the folder where you have the project downloaded, still in WSL, and run the command
+Save the file, close and reopen WSL then navigate to the folder where you have the project downloaded, and run the command
 ```bash
 make
 ```
