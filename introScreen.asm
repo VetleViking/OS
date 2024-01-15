@@ -74,3 +74,39 @@ mov al, 13
 
 osDescription:
     db 'En OS laget av Kasper og Vetle', 0
+
+
+
+
+
+loop:
+    mov al, ' '
+    mov ah, 0xdf
+    mov [edi], ax
+    add edi, 2
+    inc dx
+    cmp dx, 998
+    jne loop
+
+mov al, 'O'
+mov ah, 0xdf
+mov [edi], ax
+add edi, 2
+mov al, 'S'
+mov ah, 0xdf
+mov [edi], ax
+add edi, 2
+mov al, 'U'
+mov ah, 0xdf
+mov [edi], ax
+add edi, 2
+
+mov dx, 0
+loop2:
+    mov al, ' '
+    mov ah, 0xdf
+    mov [edi], ax
+    add edi, 2
+    inc dx
+    cmp dx, 999
+    jne loop2
