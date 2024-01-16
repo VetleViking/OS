@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 int test(char string[]);
 int test2();
 int i = 0;
