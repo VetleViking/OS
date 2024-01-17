@@ -7,4 +7,4 @@
 /test/*.o
 /test/*.bin
 /test/*.iso
-/test/isodir/*.bin
+/test/isodir/boot/*.bin
