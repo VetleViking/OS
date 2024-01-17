@@ -1,0 +1,5 @@
+step2: step1
+	cd test && qemu-system-x86_64 boot.bin
+
+step1:
+	cd test && nasm -f bin boot.asm -o boot.bin

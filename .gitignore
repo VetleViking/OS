@@ -4,3 +4,5 @@
 /src/*.bin
 /old/*.o
 /old/*.bin
+/test/*.o
+/test/*.bin
