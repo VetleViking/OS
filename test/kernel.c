@@ -53,7 +53,7 @@ void terminal_initialize(void)
 {
 	terminal_row = 0;
 	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK);
 	terminal_buffer = (uint16_t*) 0xB8000;
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -94,11 +94,32 @@ void terminal_writestring(const char* data)
 {
 	terminal_write(data, strlen(data));
 }
+
+void newline()
+{
+	terminal_row++;
+	terminal_column = 0;
+}
  
 void kernel_main(void) 
 {
 	terminal_initialize();
- 
-	terminal_writestring("Hello World!");
-	terminal_writestring("Hello World!2");
+	terminal_writestring("  _____");
+	newline();
+    terminal_writestring(" |     |___ ___ _ _ _                 |\\__/,|   (`\\");
+    newline();
+    terminal_writestring(" | | | | -_| . | | | |              _.|o o  |_   ) )");
+    newline();
+    terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------");
+
+	
+	// Cat (Meow)
+	// 
+	//         |\__/,|   (`\
+  	//	     _.|o o  |_   ) )
+	//	   -(((---(((--------
+	//  _____               
+	// |     |___ ___ _ _ _ 
+    // | | | | -_| . | | | |
+	// |_|_|_|___|___|_____|
 }
