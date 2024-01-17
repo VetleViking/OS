@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
  
+
+
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
 	VGA_COLOR_BLUE = 1,
@@ -97,5 +99,6 @@ void kernel_main(void)
 {
 	terminal_initialize();
  
-	terminal_writestring("Hello, kernel World!\n");
+	terminal_writestring("Hello World!");
+	terminal_writestring("Hello World!2");
 }

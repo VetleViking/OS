@@ -6,3 +6,5 @@
 /old/*.bin
 /test/*.o
 /test/*.bin
+/test/*.iso
+/test/isodir/*.bin
