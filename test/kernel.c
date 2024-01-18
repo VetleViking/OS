@@ -152,10 +152,32 @@ void newline() {
 }
 
 bool should_print = true;
+bool is_writing_command = false;
+
+void new_kernel_line() {
+	newline();
+	is_writing_command = false;
+	terminal_writestring("> ");
+	is_writing_command = true;
+}
+
+char* command = "";
+
+void check_for_command() {
+	newline();
+	terminal_writestring(command);
+
+	command[0] = '\0';
+	new_kernel_line();
+}
+
+
 
 void keyboard_handler(unsigned char c) {
 	if (c == 0) {
-	} else if (c == '\n') {
+	} else if (c == '\n' && is_writing_command) {
+		check_for_command();
+	} else if (c == '\n' && !is_writing_command) {
 		newline();
 	} else if (c == '\t') {
 		terminal_column += 4;
@@ -184,6 +206,12 @@ void terminal_putchar(unsigned char c) {
 		if (c >= 'a' && c <= 'z') {
 			c -= 32;
 		}
+	}
+
+	if (is_writing_command) {
+		int len = strlen(command);
+		command[len] = c;
+		command[len + 1] = '\0';		
 	}
 
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
@@ -275,6 +303,7 @@ void kernel_main(void) {
 	// |_|_|_|___|___|_____|
 
 
+	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
 	unsigned char c = 0;
 	init_pics(0x20, 0x28);
