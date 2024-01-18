@@ -1,8 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
- 
-
 
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
@@ -73,7 +71,24 @@ void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
 	const size_t index = y * VGA_WIDTH + x;
 	terminal_buffer[index] = vga_entry(c, color);
 }
- 
+
+void my_memmove(void* dst, const void* src, size_t count) {
+    char* dst_byte = (char*)dst;
+    const char* src_byte = (const char*)src;
+
+    if (dst_byte > src_byte && dst_byte < src_byte + count) {
+        dst_byte += count;
+        src_byte += count;
+        while (count--) {
+            *--dst_byte = *--src_byte;
+        }
+    } else {
+        while (count--) {
+            *dst_byte++ = *src_byte++;
+        }
+    }
+}
+
 void terminal_putchar(char c) 
 {
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
@@ -82,7 +97,18 @@ void terminal_putchar(char c)
 		if (++terminal_row == VGA_HEIGHT)
 			terminal_row = 0;
 	}
+
+	if (terminal_row == VGA_HEIGHT - 1) {
+		my_memmove(terminal_buffer, terminal_buffer + VGA_WIDTH, VGA_WIDTH * (VGA_HEIGHT - 1) * 2);
+		for (size_t x = 0; x < VGA_WIDTH; x++) {
+			const size_t index = (VGA_HEIGHT - 1) * VGA_WIDTH + x;
+			terminal_buffer[index] = vga_entry(' ', terminal_color);
+		}
+		terminal_row--;
+	}
 }
+
+
  
 void terminal_write(const char* data, size_t size) 
 {
@@ -99,6 +125,15 @@ void newline()
 {
 	terminal_row++;
 	terminal_column = 0;
+
+	if (terminal_row == VGA_HEIGHT - 1) {
+		my_memmove(terminal_buffer, terminal_buffer + VGA_WIDTH, VGA_WIDTH * (VGA_HEIGHT - 1) * 2);
+		for (size_t x = 0; x < VGA_WIDTH; x++) {
+			const size_t index = (VGA_HEIGHT - 1) * VGA_WIDTH + x;
+			terminal_buffer[index] = vga_entry(' ', terminal_color);
+		}
+		terminal_row--;
+	}
 }
  
 void kernel_main(void) 
@@ -111,8 +146,9 @@ void kernel_main(void)
     terminal_writestring(" | | | | -_| . | | | |              _.|o o  |_   ) )");
     newline();
     terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------");
+	newline();
 
-	
+
 	// Cat (Meow)
 	// 
 	//         |\__/,|   (`\
