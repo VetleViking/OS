@@ -12,13 +12,13 @@
 
 static bool shift_pressed = false;
 
-char kbd_US [128] =
+char kbd_US [256] =
 {
-    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',   
+    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', /* <-- Backspace */   
   '\t', /* <-- Tab */
-  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',     
+  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', /* <-- Enter key */     
    	0, /* <-- control key */
-  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',  42, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0,
+  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',  42, /* <-- left shift */ '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   54, /* <-- right shift */
   '*',
     0,  /* Alt */
   ' ',  /* Space bar */
@@ -29,7 +29,7 @@ char kbd_US [128] =
     0,  /* 69 - Num lock*/
     0,  /* Scroll Lock */
     0,  /* Home key */
-    0,  /* Up Arrow */
+    72,  /* Up Arrow */
     0,  /* Page Up */
   '-',
     0,  /* Left Arrow */
@@ -37,14 +37,24 @@ char kbd_US [128] =
     0,  /* Right Arrow */
   '+',
     0,  /* 79 - End key*/
-    0,  /* Down Arrow */
+    80,  /* Down Arrow */
     0,  /* Page Down */
     0,  /* Insert Key */
     0,  /* Delete Key */
     0,   0,   0,
     0,  /* F11 Key */
     0,  /* F12 Key */
-    0,  /* All other keys are undefined */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 100 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 110 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 120 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 130, key releases after number 128 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 140 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 150 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 160 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 170, /* 170, 170 - left shift */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 180 */
+	0, 182, 0, 0, 0, 0, 0, 0, 0, 0, /* 190, 182 - right shift */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0 /* 200, rest are added if needed. */
 };
 
 
@@ -161,11 +171,35 @@ void new_kernel_line() {
 	is_writing_command = true;
 }
 
+void strcpy(char* dest, const char* src) {
+    int i = 0;
+    while (src[i] != '\0') {
+        dest[i] = src[i];
+        i++;
+    }
+    dest[i] = '\0'; // Don't forget to add the null terminator
+}
+
+#define MAX_COMMANDS 100
+#define MAX_COMMAND_LENGTH 256
+
+char previous_commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
+int num_commands = 0;
+int at_command = 0;
 char* command = "";
 
 void check_for_command() {
 	newline();
+
+	if (num_commands < MAX_COMMANDS) {
+        strcpy(previous_commands[num_commands], command);
+        num_commands++;
+		at_command = num_commands;
+    }
+
+	is_writing_command = false;
 	terminal_writestring(command);
+	is_writing_command = true;
 
 	command[0] = '\0';
 	new_kernel_line();
@@ -174,24 +208,57 @@ void check_for_command() {
 
 
 void keyboard_handler(unsigned char c) {
-	if (c == 0) {
-	} else if (c == '\n' && is_writing_command) {
+	if (c == 0) {} else if (c == '\n' && is_writing_command) { // enter and writing command
 		check_for_command();
-	} else if (c == '\n' && !is_writing_command) {
+	} else if (c == '\n' && !is_writing_command) { // enter and not writing command
 		newline();
-	} else if (c == '\t') {
-		terminal_column += 4;
-	} else if (c == 42) {
-		shift_pressed = true;
-	} else if (c == 42 + 0x80) {
-		shift_pressed = false;
+	} else if (c == '\t') { // tab
+		terminal_column += 4; 
+	} else if (c == 42 || c == 54) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
+		shift_pressed = true; 
+	} else if (c == 170 || c == 182) { // shift released
+		shift_pressed = false; 
+	} else if (c == '\b') { // backspace
+		size_t len = strlen(command);
+		if (len > 0) {
+			command[len - 1] = '\0';
+			terminal_column--;
+			terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+		}
+	} else if (c == 72) { // up arrow pressed
+		if (at_command > 0) {
+			at_command--;
+			size_t len = strlen(command);
+			for (size_t i = 0; i < len; i++) {
+				terminal_column--;
+				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+			}
+			command[0] = '\0';
+            terminal_writestring(previous_commands[at_command]);
+        }
+	} else if (c == 80) { // down arrow pressed
+		if (at_command < num_commands) {
+			at_command++;
+			size_t len = strlen(command);
+			for (size_t i = 0; i < len; i++) {
+				terminal_column--;
+				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+			}
+			command[0] = '\0';
+		         
+			if (!(at_command == num_commands - 1)) {
+				terminal_writestring(previous_commands[at_command]);
+			}
+        }
+		
 	}
 	
-	else {
+
+	else { // any other key
 		should_print = true;
 		return;
 	}
-	should_print = false;
+	should_print = false; // if any of the above is true, then it should not print
 	return;
 }
 
@@ -303,6 +370,7 @@ void kernel_main(void) {
 	// |_|_|_|___|___|_____|
 
 
+	new_kernel_line();
 	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
 	unsigned char c = 0;
@@ -311,10 +379,6 @@ void kernel_main(void) {
 	while (c != 1) { // ESC to exit writing loop (does not work yet)
 		
 		if (inb(0x60) != c) { // if key pressed
-
-			if (c == 42 + 0x80) {
-				shift_pressed = false;
-			}
 
 			c = inb(0x60);
 			if (c > 0) {
