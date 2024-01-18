@@ -10,8 +10,8 @@
 #define ICW1 0x11
 #define ICW4 0x01
 
-static bool shift_pressed = false;
 
+// english keyboard layout TODO: add norwegian keyboard layout
 char kbd_US [256] =
 {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', /* <-- Backspace */   
@@ -22,14 +22,14 @@ char kbd_US [256] =
   '*',
     0,  /* Alt */
   ' ',  /* Space bar */
-    0,  /* Caps lock */
+    58,  /* Caps lock */
     0,  /* 59 - F1 key ... > */
     0,   0,   0,   0,   0,   0,   0,   0,
     0,  /* < ... F10 */
     0,  /* 69 - Num lock*/
     0,  /* Scroll Lock */
     0,  /* Home key */
-    72,  /* Up Arrow */
+   72,  /* Up Arrow */
     0,  /* Page Up */
   '-',
     0,  /* Left Arrow */
@@ -37,7 +37,7 @@ char kbd_US [256] =
     0,  /* Right Arrow */
   '+',
     0,  /* 79 - End key*/
-    80,  /* Down Arrow */
+   80,  /* Down Arrow */
     0,  /* Page Down */
     0,  /* Insert Key */
     0,  /* Delete Key */
@@ -58,7 +58,7 @@ char kbd_US [256] =
 };
 
 
-
+// Colors used by the kernel, used so that colors are easier to use
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
 	VGA_COLOR_BLUE = 1,
@@ -78,18 +78,15 @@ enum vga_color {
 	VGA_COLOR_WHITE = 15,
 };
  
-static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) 
-{
+static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
 	return fg | bg << 4;
 }
  
-static inline uint16_t vga_entry(unsigned char uc, uint8_t color) 
-{
+static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
 	return (uint16_t) uc | (uint16_t) color << 8;
 }
- 
-size_t strlen(const char* str) 
-{
+
+size_t strlen(const char* str) {
 	size_t len = 0;
 	while (str[len])
 		len++;
@@ -104,6 +101,8 @@ size_t terminal_column;
 uint8_t terminal_color;
 uint16_t* terminal_buffer;
  
+
+// called at the start of the kernel
 void terminal_initialize(void) {
 	terminal_row = 0;
 	terminal_column = 0;
@@ -117,15 +116,21 @@ void terminal_initialize(void) {
 	}
 }
  
+
+// Sets the color of the kernel
 void terminal_setcolor(uint8_t color) {
 	terminal_color = color;
 }
  
+
+// Puts a character at a specific location in the kernel
 void terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y) {
 	const size_t index = y * VGA_WIDTH + x;
 	terminal_buffer[index] = vga_entry(c, color);
 }
 
+
+// Copies memory from src to dst, used mainly for scrolling
 void my_memmove(void* dst, const void* src, size_t count) {
     char* dst_byte = (char*)dst;
     const char* src_byte = (const char*)src;
@@ -143,6 +148,8 @@ void my_memmove(void* dst, const void* src, size_t count) {
     }
 }
 
+
+// Checks if the kernel should scroll and scrolls if needed
 void check_kernel_scroll() {
 	if (terminal_row == VGA_HEIGHT - 1) {
 		my_memmove(terminal_buffer, terminal_buffer + VGA_WIDTH, VGA_WIDTH * (VGA_HEIGHT - 1) * 2);
@@ -154,6 +161,8 @@ void check_kernel_scroll() {
 	}
 }
 
+
+// Creates a new line in the kernel
 void newline() {
 	terminal_row++;
 	terminal_column = 0;
@@ -163,7 +172,10 @@ void newline() {
 
 bool should_print = true;
 bool is_writing_command = false;
+static bool shift_pressed = false;
 
+
+// calls newline and prints "> " to indicate that the user can write a command
 void new_kernel_line() {
 	newline();
 	is_writing_command = false;
@@ -171,13 +183,15 @@ void new_kernel_line() {
 	is_writing_command = true;
 }
 
+
+// Copies a string from src to dest
 void strcpy(char* dest, const char* src) {
     int i = 0;
     while (src[i] != '\0') {
         dest[i] = src[i];
         i++;
     }
-    dest[i] = '\0'; // Don't forget to add the null terminator
+    dest[i] = '\0';
 }
 
 #define MAX_COMMANDS 100
@@ -188,6 +202,8 @@ int num_commands = 0;
 int at_command = 0;
 char* command = "";
 
+
+// Checks if the command is valid and executes it
 void check_for_command() {
 	newline();
 
@@ -206,7 +222,7 @@ void check_for_command() {
 }
 
 
-
+// Checks if the key is special (like enter, backspace, etc.)
 void keyboard_handler(unsigned char c) {
 	if (c == 0) {} else if (c == '\n' && is_writing_command) { // enter and writing command
 		check_for_command();
@@ -218,39 +234,40 @@ void keyboard_handler(unsigned char c) {
 		shift_pressed = true; 
 	} else if (c == 170 || c == 182) { // shift released
 		shift_pressed = false; 
+	} else if (c == 58) { // caps lock
+		shift_pressed = !shift_pressed; // TODO: add more elegant solution later
 	} else if (c == '\b') { // backspace
 		size_t len = strlen(command);
-		if (len > 0) {
+		if (len > 0) { // if there is a command being written, delete last character
 			command[len - 1] = '\0';
 			terminal_column--;
 			terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
 		}
 	} else if (c == 72) { // up arrow pressed
-		if (at_command > 0) {
+		if (at_command > 0) { // if there is commands above
 			at_command--;
 			size_t len = strlen(command);
-			for (size_t i = 0; i < len; i++) {
+			for (size_t i = 0; i < len; i++) { // delete current command
 				terminal_column--;
 				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
 			}
 			command[0] = '\0';
-            terminal_writestring(previous_commands[at_command]);
+            terminal_writestring(previous_commands[at_command]); // write command
         }
 	} else if (c == 80) { // down arrow pressed
-		if (at_command < num_commands) {
+		if (at_command < num_commands) { // if there is commands below
 			at_command++;
 			size_t len = strlen(command);
-			for (size_t i = 0; i < len; i++) {
+			for (size_t i = 0; i < len; i++) { // delete current command
 				terminal_column--;
 				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
 			}
 			command[0] = '\0';
 		         
-			if (!(at_command == num_commands - 1)) {
-				terminal_writestring(previous_commands[at_command]);
+			if (!(at_command == num_commands - 1)) { 
+				terminal_writestring(previous_commands[at_command]); // if not last and empty command, write command
 			}
         }
-		
 	}
 	
 
@@ -262,6 +279,8 @@ void keyboard_handler(unsigned char c) {
 	return;
 }
 
+
+// Puts a character in the kernel, used by terminal_write
 void terminal_putchar(unsigned char c) {
 	keyboard_handler(c);
 
@@ -292,21 +311,26 @@ void terminal_putchar(unsigned char c) {
 	check_kernel_scroll();
 }
 
-
+// Writes a string to the kernel, by looping through string and calling terminal_putchar
 void terminal_write(const char* data, size_t size) {
 	for (size_t i = 0; i < size; i++)
 		terminal_putchar(data[i]);
 }
  
+
+// Writes a string to the kernel, most used write function
 void terminal_writestring(const char* data) {
 	terminal_write(data, strlen(data));
 }
 
 
+// Sends a byte to a port
 void outb( unsigned short port, unsigned char val ) {
    asm volatile("outb %0, %1" : : "a"(val), "Nd"(port) );
 }
 
+
+// Reads a byte from a port
 static __inline unsigned char inb (unsigned short int port) {
   unsigned char _v;
 
@@ -314,6 +338,8 @@ static __inline unsigned char inb (unsigned short int port) {
   return _v;
 }
 
+
+// Initializes the PICs
 void init_pics(int pic1, int pic2) {
    /* send ICW1 */
    outb(PIC1, ICW1);
@@ -335,6 +361,8 @@ void init_pics(int pic1, int pic2) {
    outb(PIC1 + 1, 0xFF);
 }
 
+
+// Moves the cursor to a specific location, used to move cursor when writing commands
 void move_cursor(int x, int y) {
     uint16_t pos = y * VGA_WIDTH + x;
     outb(0x3D4, 14);
@@ -343,6 +371,8 @@ void move_cursor(int x, int y) {
     outb(0x3D5, pos);
 }
 
+
+// idk, does not do what i wanted it to do, but my fans are not going crazy anymore
 void idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_it_does_not_pause_though(int ticks) {
 	int i;
 	for (i = 0; i < ticks; i++) {
@@ -350,9 +380,13 @@ void idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_
 	}
 }
 
+
+// The main function, called at the start of the kernel, calls all the other functions
 void kernel_main(void) {
 
 	terminal_initialize();
+
+	// Prints the cat
 	terminal_writestring("  _____\n");
     terminal_writestring(" |     |___ ___ _ _ _                 |\\__/,|   (`\\\n");
     terminal_writestring(" | | | | -_| . | | | |              _.|o o  |_   ) )\n");
@@ -370,13 +404,15 @@ void kernel_main(void) {
 	// |_|_|_|___|___|_____|
 
 
+	// start of kernel
 	new_kernel_line();
 	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
 	unsigned char c = 0;
 	init_pics(0x20, 0x28);
 
-	while (c != 1) { // ESC to exit writing loop (does not work yet)
+	// input loop
+	while (c != 1) { // ESC to exit writing loop (does not work yet, at least i think so)
 		
 		if (inb(0x60) != c) { // if key pressed
 
