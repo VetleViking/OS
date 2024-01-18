@@ -2,6 +2,49 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define INT_DISABLE 0
+#define INT_ENABLE  0x200
+#define PIC1 0x20
+#define PIC2 0xA0
+
+#define ICW1 0x11
+#define ICW4 0x01
+
+char kbd_US [128] =
+{
+    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',   
+  '\t', /* <-- Tab */
+  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',     
+    0, /* <-- control key */
+  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',  0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0,
+  '*',
+    0,  /* Alt */
+  ' ',  /* Space bar */
+    0,  /* Caps lock */
+    0,  /* 59 - F1 key ... > */
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,  /* < ... F10 */
+    0,  /* 69 - Num lock*/
+    0,  /* Scroll Lock */
+    0,  /* Home key */
+    0,  /* Up Arrow */
+    0,  /* Page Up */
+  '-',
+    0,  /* Left Arrow */
+    0,
+    0,  /* Right Arrow */
+  '+',
+    0,  /* 79 - End key*/
+    0,  /* Down Arrow */
+    0,  /* Page Down */
+    0,  /* Insert Key */
+    0,  /* Delete Key */
+    0,   0,   0,
+    0,  /* F11 Key */
+    0,  /* F12 Key */
+    0,  /* All other keys are undefined */
+};
+
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
 	VGA_COLOR_BLUE = 1,
@@ -136,69 +179,21 @@ void newline()
 	}
 }
 
-char kbd_US [128] =
-{
-    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',   
-  '\t', /* <-- Tab */
-  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',     
-    0, /* <-- control key */
-  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',  0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0,
-  '*',
-    0,  /* Alt */
-  ' ',  /* Space bar */
-    0,  /* Caps lock */
-    0,  /* 59 - F1 key ... > */
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,  /* < ... F10 */
-    0,  /* 69 - Num lock*/
-    0,  /* Scroll Lock */
-    0,  /* Home key */
-    0,  /* Up Arrow */
-    0,  /* Page Up */
-  '-',
-    0,  /* Left Arrow */
-    0,
-    0,  /* Right Arrow */
-  '+',
-    0,  /* 79 - End key*/
-    0,  /* Down Arrow */
-    0,  /* Page Down */
-    0,  /* Insert Key */
-    0,  /* Delete Key */
-    0,   0,   0,
-    0,  /* F11 Key */
-    0,  /* F12 Key */
-    0,  /* All other keys are undefined */
-};
 
-#if !defined(__cplusplus)
-#include <stdbool.h> /* C doesn't have booleans by default. */
-#endif
-#include <stddef.h>
-#include <stdint.h>
-#define INT_DISABLE 0
-#define INT_ENABLE  0x200
-#define PIC1 0x20
-#define PIC2 0xA0
 
-#define ICW1 0x11
-#define ICW4 0x01
 
-void outb( unsigned short port, unsigned char val )
-{
+void outb( unsigned short port, unsigned char val ) {
    asm volatile("outb %0, %1" : : "a"(val), "Nd"(port) );
 }
 
-static __inline unsigned char inb (unsigned short int port)
-{
+static __inline unsigned char inb (unsigned short int port) {
   unsigned char _v;
 
   __asm__ __volatile__ ("inb %w1,%0":"=a" (_v):"Nd" (port));
   return _v;
 }
 
-void init_pics(int pic1, int pic2)
-{
+void init_pics(int pic1, int pic2) {
    /* send ICW1 */
    outb(PIC1, ICW1);
    outb(PIC2, ICW1);
@@ -217,6 +212,14 @@ void init_pics(int pic1, int pic2)
 
    /* disable all IRQs */
    outb(PIC1 + 1, 0xFF);
+}
+
+void move_cursor(int x, int y) {
+    uint16_t pos = y * VGA_WIDTH + x;
+    outb(0x3D4, 14);
+    outb(0x3D5, pos >> 8);
+    outb(0x3D4, 15);
+    outb(0x3D5, pos);
 }
 
 void idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_it_does_not_pause_though(int ticks) {
@@ -248,7 +251,7 @@ void kernel_main(void) {
     // | | | | -_| . | | | |
 	// |_|_|_|___|___|_____|
 
-
+	move_cursor(terminal_column, terminal_row);
 	char c = 0;
 	init_pics(0x20, 0x28);
 
@@ -259,6 +262,7 @@ void kernel_main(void) {
 			c = inb(0x60);
 			if (c > 0) {
 					terminal_putchar(kbd_US[c]);
+					move_cursor(terminal_column, terminal_row);
 			}
 		}
 		
