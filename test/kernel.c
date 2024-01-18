@@ -219,8 +219,14 @@ void init_pics(int pic1, int pic2)
    outb(PIC1 + 1, 0xFF);
 }
 
-void kernel_main(void) 
-{
+void idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_it_does_not_pause_though(int ticks) {
+	int i;
+	for (i = 0; i < ticks; i++) {
+		asm volatile("nop");
+	}
+}
+
+void kernel_main(void) {
 	terminal_initialize();
 	terminal_writestring("  _____");
 	newline();
@@ -242,22 +248,20 @@ void kernel_main(void)
     // | | | | -_| . | | | |
 	// |_|_|_|___|___|_____|
 
+
 	char c = 0;
 	init_pics(0x20, 0x28);
-	do {
 
-		if(inb(0x60)!=c) // if key pressed
-		{
-		c = inb(0x60);
-		if(c>0)
-			{
-				//convert to ascii
+	while (c != 1) { // ESC to exit writing loop
+		
+		if (inb(0x60) != c) { // if key pressed
 
-				terminal_putchar(kbd_US[c]);
-
+			c = inb(0x60);
+			if (c > 0) {
+					terminal_putchar(kbd_US[c]);
 			}
 		}
-
-
-	} while(c!=1); // 1= ESCAPE
+		
+		idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_it_does_not_pause_though(1000);
+	};
 }
