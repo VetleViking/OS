@@ -10,13 +10,15 @@
 #define ICW1 0x11
 #define ICW4 0x01
 
+static bool shift_pressed = false;
+
 char kbd_US [128] =
 {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',   
   '\t', /* <-- Tab */
   'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',     
-    0, /* <-- control key */
-  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',  0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0,
+   	0, /* <-- control key */
+  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',  42, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0,
   '*',
     0,  /* Alt */
   ' ',  /* Space bar */
@@ -44,6 +46,8 @@ char kbd_US [128] =
     0,  /* F12 Key */
     0,  /* All other keys are undefined */
 };
+
+
 
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
@@ -90,8 +94,7 @@ size_t terminal_column;
 uint8_t terminal_color;
 uint16_t* terminal_buffer;
  
-void terminal_initialize(void) 
-{
+void terminal_initialize(void) {
 	terminal_row = 0;
 	terminal_column = 0;
 	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK);
@@ -104,13 +107,11 @@ void terminal_initialize(void)
 	}
 }
  
-void terminal_setcolor(uint8_t color) 
-{
+void terminal_setcolor(uint8_t color) {
 	terminal_color = color;
 }
  
-void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) 
-{
+void terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y) {
 	const size_t index = y * VGA_WIDTH + x;
 	terminal_buffer[index] = vga_entry(c, color);
 }
@@ -132,15 +133,7 @@ void my_memmove(void* dst, const void* src, size_t count) {
     }
 }
 
-void terminal_putchar(char c) 
-{
-	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
-	if (++terminal_column == VGA_WIDTH) {
-		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
-	}
-
+void check_kernel_scroll() {
 	if (terminal_row == VGA_HEIGHT - 1) {
 		my_memmove(terminal_buffer, terminal_buffer + VGA_WIDTH, VGA_WIDTH * (VGA_HEIGHT - 1) * 2);
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -151,35 +144,68 @@ void terminal_putchar(char c)
 	}
 }
 
+void newline() {
+	terminal_row++;
+	terminal_column = 0;
 
- 
-void terminal_write(const char* data, size_t size) 
-{
+	check_kernel_scroll();
+}
+
+bool should_print = true;
+
+void keyboard_handler(unsigned char c) {
+	if (c == 0) {
+	} else if (c == '\n') {
+		newline();
+	} else if (c == '\t') {
+		terminal_column += 4;
+	} else if (c == 42) {
+		shift_pressed = true;
+	} else if (c == 42 + 0x80) {
+		shift_pressed = false;
+	}
+	
+	else {
+		should_print = true;
+		return;
+	}
+	should_print = false;
+	return;
+}
+
+void terminal_putchar(unsigned char c) {
+	keyboard_handler(c);
+
+	if (!should_print) {
+		return;
+	}
+	
+	if (shift_pressed) {
+		if (c >= 'a' && c <= 'z') {
+			c -= 32;
+		}
+	}
+
+	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
+
+	if (++terminal_column == VGA_WIDTH) {
+		terminal_column = 0;
+		if (terminal_row++ == VGA_HEIGHT)
+			terminal_row = 0;
+	}
+
+	check_kernel_scroll();
+}
+
+
+void terminal_write(const char* data, size_t size) {
 	for (size_t i = 0; i < size; i++)
 		terminal_putchar(data[i]);
 }
  
-void terminal_writestring(const char* data) 
-{
+void terminal_writestring(const char* data) {
 	terminal_write(data, strlen(data));
 }
-
-void newline()
-{
-	terminal_row++;
-	terminal_column = 0;
-
-	if (terminal_row == VGA_HEIGHT - 1) {
-		my_memmove(terminal_buffer, terminal_buffer + VGA_WIDTH, VGA_WIDTH * (VGA_HEIGHT - 1) * 2);
-		for (size_t x = 0; x < VGA_WIDTH; x++) {
-			const size_t index = (VGA_HEIGHT - 1) * VGA_WIDTH + x;
-			terminal_buffer[index] = vga_entry(' ', terminal_color);
-		}
-		terminal_row--;
-	}
-}
-
-
 
 
 void outb( unsigned short port, unsigned char val ) {
@@ -230,15 +256,12 @@ void idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_
 }
 
 void kernel_main(void) {
+
 	terminal_initialize();
-	terminal_writestring("  _____");
-	newline();
-    terminal_writestring(" |     |___ ___ _ _ _                 |\\__/,|   (`\\");
-    newline();
-    terminal_writestring(" | | | | -_| . | | | |              _.|o o  |_   ) )");
-    newline();
-    terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------");
-	newline();
+	terminal_writestring("  _____\n");
+    terminal_writestring(" |     |___ ___ _ _ _                 |\\__/,|   (`\\\n");
+    terminal_writestring(" | | | | -_| . | | | |              _.|o o  |_   ) )\n");
+    terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------\n");
 
 
 	// Cat (Meow)
@@ -251,18 +274,23 @@ void kernel_main(void) {
     // | | | | -_| . | | | |
 	// |_|_|_|___|___|_____|
 
+
 	move_cursor(terminal_column, terminal_row);
-	char c = 0;
+	unsigned char c = 0;
 	init_pics(0x20, 0x28);
 
-	while (c != 1) { // ESC to exit writing loop
+	while (c != 1) { // ESC to exit writing loop (does not work yet)
 		
 		if (inb(0x60) != c) { // if key pressed
 
+			if (c == 42 + 0x80) {
+				shift_pressed = false;
+			}
+
 			c = inb(0x60);
 			if (c > 0) {
-					terminal_putchar(kbd_US[c]);
-					move_cursor(terminal_column, terminal_row);
+				terminal_putchar(kbd_US[c]);
+				move_cursor(terminal_column, terminal_row);
 			}
 		}
 		
