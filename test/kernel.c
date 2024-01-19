@@ -32,9 +32,9 @@ char kbd_US [256] =
    72,  /* Up Arrow */
     0,  /* Page Up */
   '-',
-    0,  /* Left Arrow */
+   75,  /* Left Arrow */
     0,
-    0,  /* Right Arrow */
+   77,  /* Right Arrow */
   '+',
     0,  /* 79 - End key*/
    80,  /* Down Arrow */
@@ -217,6 +217,7 @@ void check_for_command() {
 	terminal_writestring(command);
 	is_writing_command = true;
 
+	at_command = num_commands;
 	command[0] = '\0';
 	new_kernel_line();
 }
@@ -268,7 +269,17 @@ void keyboard_handler(unsigned char c) {
 				terminal_writestring(previous_commands[at_command]); // if not last and empty command, write command
 			}
         }
+	} else if (c == 75) { // left arrow pressed
+		if (terminal_column > 2 && is_writing_command) {
+			terminal_column--;
+		}
+	} else if (c == 77) { // right arrow pressed
+		if (terminal_column < strlen(command) && is_writing_command) {
+			terminal_column++;
+		}
+
 	}
+	
 	
 
 	else { // any other key
@@ -294,10 +305,14 @@ void terminal_putchar(unsigned char c) {
 		}
 	}
 
-	if (is_writing_command) {
+	if (is_writing_command) { 
 		int len = strlen(command);
-		command[len] = c;
-		command[len + 1] = '\0';		
+		if (terminal_column == len + 2) {
+			command[len] = c;
+			command[len + 1] = '\0';
+		} else if (terminal_column < len + 2) {
+			command[terminal_column - 2] = c;
+		}		
 	}
 
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
