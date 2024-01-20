@@ -184,6 +184,16 @@ void new_kernel_line() {
 }
 
 
+// Compares two strings, used to check if the command is valid
+int strcmp(const char *str1, const char *str2) {
+    while (*str1 && (*str1 == *str2)) {
+        str1++;
+        str2++;
+    }
+    return *(unsigned char *)str1 - *(unsigned char *)str2;
+}
+
+
 // Copies a string from src to dest
 void strcpy(char* dest, const char* src) {
     int i = 0;
@@ -194,13 +204,37 @@ void strcpy(char* dest, const char* src) {
     dest[i] = '\0';
 }
 
+
 #define MAX_COMMANDS 100
 #define MAX_COMMAND_LENGTH 256
 
 char previous_commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
 int num_commands = 0;
 int at_command = 0;
-char* command = "";
+char command[MAX_COMMAND_LENGTH];
+
+
+// Rock, paper, scissors game (the pc always wins)
+void rock_paper_scissors() {
+	if (strcmp(command, "game") == 0) {
+		terminal_writestring("Lets play a game!\n");
+		terminal_writestring("Rock, paper, scissors, you go first!\n");
+		terminal_writestring("Type rock, paper or scissors");
+		return;
+	} else if (strcmp(command, "rock") == 0) {
+		terminal_writestring("I choose paper, You lose!");
+		return;
+	} else if (strcmp(command, "paper") == 0) {
+		terminal_writestring("I choose scissors, You lose!");
+		return;
+	} else if (strcmp(command, "scissors") == 0) {
+		terminal_writestring("I choose rock, You lose!");
+		return;
+	} else {
+		terminal_writestring("That is not a valid move, You lose!");
+		return;
+	}	
+}
 
 
 // Checks if the command is valid and executes it
@@ -214,7 +248,38 @@ void check_for_command() {
     }
 
 	is_writing_command = false;
-	terminal_writestring(command);
+	 if (strcmp(command, "game") == 0 || strcmp(previous_commands[num_commands - 2], "game") == 0) {
+		rock_paper_scissors();
+	} else if (strcmp(command, "clear") == 0) {
+		for (size_t y = 0; y < VGA_HEIGHT; y++) {
+			for (size_t x = 0; x < VGA_WIDTH; x++) {
+				const size_t index = y * VGA_WIDTH + x;
+				terminal_buffer[index] = vga_entry(' ', terminal_color);
+			}
+		}
+		terminal_row = 0;
+		terminal_column = 0;
+	} else if (strcmp(command, "help") == 0) {
+		terminal_writestring("Commands:\n");
+		terminal_writestring("clear - clears the screen\n");
+		terminal_writestring("help - shows this message\n");
+		terminal_writestring("cat - prints the cat");
+	} else if (strcmp(command, "cat") == 0) {
+		terminal_writestring("  _____\n");
+		terminal_writestring(" |     |___ ___ _ _ _                 |\\__/,|   (`\\\n");
+		terminal_writestring(" | | | | -_| . | | | |              _.|o o  |_   ) )\n");
+		terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------");
+	}  else if (strcmp(command, "meow") == 0) {
+		terminal_writestring("meow! :3\n");
+	}
+	
+	
+	
+	
+	else {
+		terminal_writestring("Unknown command: ");
+		terminal_writestring(command);
+	}
 	is_writing_command = true;
 
 	at_command = num_commands;
@@ -231,11 +296,11 @@ void keyboard_handler(unsigned char c) {
 		newline();
 	} else if (c == '\t') { // tab
 		terminal_column += 4; 
-	} else if (c == 42 || c == 54) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
+	} else if ((c == 42 || c == 54) && is_writing_command) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
 		shift_pressed = true; 
-	} else if (c == 170 || c == 182) { // shift released
+	} else if ((c == 170 || c == 182) && is_writing_command) { // shift released
 		shift_pressed = false; 
-	} else if (c == 58) { // caps lock
+	} else if (c == 58 && is_writing_command) { // caps lock
 		shift_pressed = !shift_pressed; // TODO: add more elegant solution later
 	} else if (c == '\b') { // backspace
 		size_t len = strlen(command);
@@ -396,6 +461,26 @@ void idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_
 }
 
 
+// Starts an input loop, used to get input from the user
+void input_loop() {
+	unsigned char c = 0;
+	while (c != 1) { // ESC to exit writing loop (does not work yet, at least i think so)
+		
+		if (inb(0x60) != c) { // if key pressed
+
+			c = inb(0x60);
+			if (c > 0) {
+				terminal_putchar(kbd_US[c]);
+				move_cursor(terminal_column, terminal_row);
+			}
+		}
+		
+		idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_it_does_not_pause_though(1000);
+	};
+}
+
+
+
 // The main function, called at the start of the kernel, calls all the other functions
 void kernel_main(void) {
 
@@ -420,24 +505,10 @@ void kernel_main(void) {
 
 
 	// start of kernel
+	command[0] = '\0';
 	new_kernel_line();
 	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
-	unsigned char c = 0;
 	init_pics(0x20, 0x28);
-
-	// input loop
-	while (c != 1) { // ESC to exit writing loop (does not work yet, at least i think so)
-		
-		if (inb(0x60) != c) { // if key pressed
-
-			c = inb(0x60);
-			if (c > 0) {
-				terminal_putchar(kbd_US[c]);
-				move_cursor(terminal_column, terminal_row);
-			}
-		}
-		
-		idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_it_does_not_pause_though(1000);
-	};
+	input_loop();
 }
