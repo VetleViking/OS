@@ -1,16 +1,17 @@
-startQemu: compileEverything
-	cd src && qemu-system-x86_64 everything.bin
+startQemu: setupGrub
+	qemu-system-i386 -cdrom test/myos.iso
 
-combineEverything: compileBoot
-	cd src && cat "boot.bin" "full_kernel.bin" > "everything.bin"
+setupGrub: combineFiles
+	cd test && mkdir -p isodir/boot/grub
+	cd test && cp myos.bin isodir/boot/myos.bin
+	cd test && cp grub.cfg isodir/boot/grub/grub.cfg
+	cd test && grub-mkrescue -o myos.iso isodir
 
-compileBoot: combineKernel
-	cd src && nasm "boot2.asm" -f bin -o "boot.bin"
+combineFiles: compileKernel
+	cd test && i386-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o kernel.o -lgcc
 
-combineKernel: compileKernel
-	cd src && i386-elf-ld -o "full_kernel.bin" -Ttext 0x1000 "kernel_entry.o" "kernel.o" "kernel2.o" --oformat binary
+compileKernel: compileBoot
+	cd test && i386-elf-gcc -c kernel.c -o kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
 
-compileKernel: 
-	cd src && i386-elf-gcc -ffreestanding -m32 -g -c "kernel.c" -o "kernel.o"
-	cd src && nasm "kernel.asm" -f elf -o "kernel2.o"
-	cd src && nasm "kernel_entry.asm" -f elf -o "kernel_entry.o"
+compileBoot:
+	cd test && i386-elf-as boot.asm -o boot.o
