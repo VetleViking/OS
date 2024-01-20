@@ -233,7 +233,7 @@ void rock_paper_scissors() {
 	} else {
 		terminal_writestring("That is not a valid move, You lose!");
 		return;
-	}	
+	}
 }
 
 
@@ -263,18 +263,17 @@ void check_for_command() {
 		terminal_writestring("Commands:\n");
 		terminal_writestring("clear - clears the screen\n");
 		terminal_writestring("help - shows this message\n");
-		terminal_writestring("cat - prints the cat");
+		terminal_writestring("cat - prints the cat\n");	
+		terminal_writestring("game - plays a game of rock, paper, scissors \n");
+		terminal_writestring("meow - prints meow :3");
 	} else if (strcmp(command, "cat") == 0) {
 		terminal_writestring("  _____\n");
 		terminal_writestring(" |     |___ ___ _ _ _                 |\\__/,|   (`\\\n");
 		terminal_writestring(" | | | | -_| . | | | |              _.|o o  |_   ) )\n");
 		terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------");
 	}  else if (strcmp(command, "meow") == 0) {
-		terminal_writestring("meow! :3\n");
+		terminal_writestring("meow! :3");
 	}
-	
-	
-	
 	
 	else {
 		terminal_writestring("Unknown command: ");
