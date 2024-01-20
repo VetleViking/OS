@@ -1,5 +1,5 @@
 startQemu: setupGrub
-	qemu-system-i386 -kernel test/myos.bin
+	qemu-system-i386 -cdrom test/myos.iso
 
 setupGrub: combineFiles
 	cd test && mkdir -p isodir/boot/grub
