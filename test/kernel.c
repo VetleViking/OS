@@ -212,27 +212,60 @@ char previous_commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
 int num_commands = 0;
 int at_command = 0;
 char command[MAX_COMMAND_LENGTH];
+bool in_game = false;
+char game[MAX_COMMAND_LENGTH];
+int game_round = 1;
 
 
 // Rock, paper, scissors game (the pc always wins)
 void rock_paper_scissors() {
-	if (strcmp(command, "game") == 0) {
+	if (game_round == 1) {
 		terminal_writestring("Lets play a game!\n");
 		terminal_writestring("Rock, paper, scissors, you go first!\n");
 		terminal_writestring("Type rock, paper or scissors");
+		game_round++;
 		return;
-	} else if (strcmp(command, "rock") == 0) {
-		terminal_writestring("I choose paper, You lose!");
+
+	} else if (game_round == 2) {
+		if (strcmp(command, "rock") == 0) {
+			terminal_writestring("I choose paper, You lose!");
+		} else if (strcmp(command, "paper") == 0) {
+			terminal_writestring("I choose scissors, You lose!");
+		} else if (strcmp(command, "scissors") == 0) {
+			terminal_writestring("I choose rock, You lose!");
+		} else {
+			terminal_writestring("That is not a valid move, You lose!");
+		}
+		game_round = 1;
+		in_game = false;
 		return;
-	} else if (strcmp(command, "paper") == 0) {
-		terminal_writestring("I choose scissors, You lose!");
-		return;
-	} else if (strcmp(command, "scissors") == 0) {
-		terminal_writestring("I choose rock, You lose!");
-		return;
+	}
+}
+
+
+// Handles the game command, and calls the correct game
+void game_handler() {
+	in_game = true;
+	
+	if (game_round == 1) {
+		if (strlen(command) > 5) {
+			for (int i = 0; i < strlen(command) - 5; i++) {
+				game[i] = command[i + 5];
+			}
+		} else {
+			terminal_writestring("please specify a game");
+			in_game = false;
+			return;
+		}
+		game[strlen(command) - 5] = '\0';
+	}
+	
+	if (strcmp(game, "rock, paper, scissors") == 0) {
+		rock_paper_scissors();
 	} else {
-		terminal_writestring("That is not a valid move, You lose!");
-		return;
+		terminal_writestring("Unknown game: ");
+		terminal_writestring(game);
+		in_game = false;
 	}
 }
 
@@ -248,9 +281,28 @@ void check_for_command() {
     }
 
 	is_writing_command = false;
-	 if (strcmp(command, "game") == 0 || strcmp(previous_commands[num_commands - 2], "game") == 0) {
-		rock_paper_scissors();
-	} else if (strcmp(command, "clear") == 0) {
+
+
+	// checks if the command is a game command
+	char is_game[5];
+	for (int i = 0; i < 5; i++) {
+		is_game[i] = command[i];
+	}
+	is_game[4] = '\0';
+
+	if (strcmp(is_game, "game") == 0 && !in_game) {
+		game_handler(game_round);
+		end_check_for_command();
+		return;
+	} else if (in_game) {
+		game_handler(game_round);
+		end_check_for_command();
+		return;
+	}
+	
+
+	// checks if the command is a normal command
+	if (strcmp(command, "clear") == 0) {
 		for (size_t y = 0; y < VGA_HEIGHT; y++) {
 			for (size_t x = 0; x < VGA_WIDTH; x++) {
 				const size_t index = y * VGA_WIDTH + x;
@@ -279,8 +331,14 @@ void check_for_command() {
 		terminal_writestring("Unknown command: ");
 		terminal_writestring(command);
 	}
-	is_writing_command = true;
 
+	end_check_for_command();
+}
+
+
+// Ends the check for command, used to make the code more readable and shorter
+void end_check_for_command() {
+	is_writing_command = true;
 	at_command = num_commands;
 	command[0] = '\0';
 	new_kernel_line();
