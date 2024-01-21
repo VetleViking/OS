@@ -205,6 +205,41 @@ void strcpy(char* dest, const char* src) {
 }
 
 
+// Converts an int to a string
+void itoa(int value, char* str, int base) {
+    char* ptr = str, *ptr1 = str, tmp_char;
+    int tmp_value;
+
+    do {
+        tmp_value = value;
+        value /= base;
+        *ptr++ = "0123456789abcdef"[tmp_value % base];
+    } while (value);
+
+    // Apply negative sign
+    if (tmp_value < 0) *ptr++ = '-';
+    *ptr-- = '\0';
+    while(ptr1 < ptr) {
+        tmp_char = *ptr;
+        *ptr--= *ptr1;
+        *ptr1++ = tmp_char;
+    }
+}
+
+
+void clear_screen() {
+	for (size_t y = 0; y < VGA_HEIGHT; y++) {
+		for (size_t x = 0; x < VGA_WIDTH; x++) {
+			const size_t index = y * VGA_WIDTH + x;
+			terminal_buffer[index] = vga_entry(' ', terminal_color);
+		}
+	}
+	terminal_row = 0;
+	terminal_column = 0;
+}
+
+
+
 #define MAX_COMMANDS 100
 #define MAX_COMMAND_LENGTH 256
 
@@ -448,12 +483,47 @@ void game_handler() {
 		tic_tac_toe();
 	}
 	
-	
 	else {
 		terminal_writestring("Unknown game: ");
 		terminal_writestring(game);
 		in_game = false;
 	}
+}
+
+
+bool in_text_editor = false;
+char text_editor_text[77][25] = {
+	0
+};
+
+// Opens a text editor
+void text_editor() {
+	in_text_editor = true;
+	clear_screen();
+	char line_number[10];
+	
+	for (size_t i = 0; i < 25; i++) {
+		text_editor_text[0][i] = '\0';
+		if (i < 9) {
+			itoa(i + 1, line_number, 10);
+			terminal_writestring(line_number);
+			terminal_writestring(" |");
+		} else {
+			itoa(i + 1, line_number, 10);
+			terminal_writestring(line_number);
+			terminal_writestring("|");
+		}
+		terminal_writestring(text_editor_text[0]);
+		if (i < 24) {
+			terminal_row++;
+			terminal_column = 0;
+		}
+	}
+	terminal_row = 0;
+	terminal_column = 3;
+	input_loop(!in_text_editor);
+	terminal_writestring("done");
+	kernel_main();
 }
 
 
@@ -490,14 +560,7 @@ void check_for_command() {
 
 	// checks if the command is a normal command
 	if (strcmp(command, "clear") == 0) {
-		for (size_t y = 0; y < VGA_HEIGHT; y++) {
-			for (size_t x = 0; x < VGA_WIDTH; x++) {
-				const size_t index = y * VGA_WIDTH + x;
-				terminal_buffer[index] = vga_entry(' ', terminal_color);
-			}
-		}
-		terminal_row = 0;
-		terminal_column = 0;
+		clear_screen();
 	} else if (strcmp(command, "help") == 0) {
 		terminal_writestring("Commands:\n");
 		terminal_writestring("clear - clears the screen\n");
@@ -512,7 +575,10 @@ void check_for_command() {
 		terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------");
 	}  else if (strcmp(command, "meow") == 0) {
 		terminal_writestring("meow! :3");
+	} else if (strcmp(command, "write") == 0) {
+		text_editor();
 	}
+	
 	
 	else {
 		terminal_writestring("Unknown command: ");
@@ -534,18 +600,34 @@ void end_check_for_command() {
 
 // Checks if the key is special (like enter, backspace, etc.)
 void keyboard_handler(unsigned char c) {
-	if (c == 0) {} else if (c == '\n' && is_writing_command) { // enter and writing command
-		check_for_command();
-	} else if (c == '\n' && !is_writing_command) { // enter and not writing command
-		newline();
+
+	if (c == 0) {
+	} else if (c == 27){
+		in_text_editor = false;	
+		clear_screen();
+		new_kernel_line();
+	} else if (c == '\n') { // enter and writing command
+		if (in_text_editor) {
+			// TODO: make lower lines move down and delete last line, or something like that
+		} else if (!is_writing_command) {
+			newline();
+		} else {
+			check_for_command();
+		}
 	} else if (c == '\t') { // tab
 		terminal_column += 4; 
-	} else if ((c == 42 || c == 54) && is_writing_command) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
-		shift_pressed = true; 
-	} else if ((c == 170 || c == 182) && is_writing_command) { // shift released
-		shift_pressed = false; 
-	} else if (c == 58 && is_writing_command) { // caps lock
-		shift_pressed = !shift_pressed; // TODO: add more elegant solution later
+	} else if (c == 42) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
+		if (is_writing_command || in_text_editor) {
+			shift_pressed = true;
+		}
+	} else if (c == 170) { // shift released
+		if (is_writing_command || in_text_editor) {
+			shift_pressed = false; 
+		}
+	} else if (c == 58) { // caps lock
+		if (is_writing_command || in_text_editor) {
+			shift_pressed = !shift_pressed; // TODO: add more elegant solution
+		}
 	} else if (c == '\b') { // backspace
 		size_t len = strlen(command);
 		if (len > 0) { // if there is a command being written, delete last character
@@ -558,39 +640,64 @@ void keyboard_handler(unsigned char c) {
 			terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
 		}
 	} else if (c == 72) { // up arrow pressed
-		if (at_command > 0) { // if there is commands above
-			at_command--;
-			size_t len = strlen(command);
-			for (size_t i = 0; i < len; i++) { // delete current command
-				terminal_column--;
-				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+	 	if (in_text_editor) {
+			if (terminal_row > 0) {
+				terminal_row--;
+				terminal_column = 3;
 			}
-			command[0] = '\0';
-            terminal_writestring(previous_commands[at_command]); // write command
-        }
+		} else {	
+			if (at_command > 0) { // if there is commands above
+				at_command--;
+				size_t len = strlen(command);
+				for (size_t i = 0; i < len; i++) { // delete current command
+					terminal_column--;
+					terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+				}
+				command[0] = '\0';
+				terminal_writestring(previous_commands[at_command]); // write command
+			}
+		}
 	} else if (c == 80) { // down arrow pressed
-		if (at_command < num_commands) { // if there is commands below
-			at_command++;
-			size_t len = strlen(command);
-			for (size_t i = 0; i < len; i++) { // delete current command
-				terminal_column--;
-				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+		if (in_text_editor) {
+			if (terminal_row < 24) {
+				terminal_row++;
+				terminal_column = 3;
 			}
-			command[0] = '\0';
-		         
-			if (!(at_command == num_commands - 1)) { 
-				terminal_writestring(previous_commands[at_command]); // if not last and empty command, write command
+		} else {
+			if (at_command < num_commands) { // if there is commands below
+				at_command++;
+				size_t len = strlen(command);
+				for (size_t i = 0; i < len; i++) { // delete current command
+					terminal_column--;
+					terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+				}
+				command[0] = '\0';
+					
+				if (!(at_command == num_commands - 1)) { 
+					terminal_writestring(previous_commands[at_command]); // if not last and empty command, write command
+				}
 			}
-        }
+		}
 	} else if (c == 75) { // left arrow pressed
-		if (terminal_column > 2 && is_writing_command) {
-			terminal_column--;
+		if (in_text_editor) {
+			if (terminal_column > 3) {
+				terminal_column--;
+			}
+		} else if (is_writing_command) {
+			if (terminal_column > 2) {
+				terminal_column--;
+			}
 		}
 	} else if (c == 77) { // right arrow pressed
-		if (terminal_column < strlen(command) + 2 && is_writing_command) {
-			terminal_column++;
+		if (in_text_editor) {
+			if (terminal_column < 77) {
+				terminal_column++;
+			}
+		} else if (is_writing_command) {
+			if (terminal_column < strlen(command) + 2) {
+				terminal_column++;
+			}
 		}
-
 	}
 	
 	
@@ -632,11 +739,11 @@ void terminal_putchar(unsigned char c) {
 
 	if (++terminal_column == VGA_WIDTH) {
 		terminal_column = 0;
-		if (terminal_row++ == VGA_HEIGHT)
-			terminal_row = 0;
 	}
 
-	check_kernel_scroll();
+	if (!in_text_editor) {
+		check_kernel_scroll();
+	}
 }
 
 // Writes a string to the kernel, by looping through string and calling terminal_putchar
@@ -710,9 +817,9 @@ void idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_
 
 
 // Starts an input loop, used to get input from the user
-void input_loop() {
+void input_loop(bool exit_flag) {
 	unsigned char c = 0;
-	while (c != 1) { // ESC to exit writing loop (does not work yet, at least i think so)
+	while (!exit_flag) { // loop until exit_flag is true
 		
 		if (inb(0x60) != c) { // if key pressed
 
@@ -728,10 +835,10 @@ void input_loop() {
 }
 
 
+bool main_exit_flag = false;
 
 // The main function, called at the start of the kernel, calls all the other functions
 void kernel_main(void) {
-
 	terminal_initialize();
 
 	// Prints the cat
@@ -758,5 +865,5 @@ void kernel_main(void) {
 	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
 	init_pics(0x20, 0x28);
-	input_loop();
+	input_loop(main_exit_flag);
 }
