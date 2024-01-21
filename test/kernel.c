@@ -295,7 +295,6 @@ void tic_tac_toe() {
 		end_tic_tac_toe();
 		return;
 	}
-
 }
 
 
@@ -448,7 +447,11 @@ void keyboard_handler(unsigned char c) {
 	} else if (c == '\b') { // backspace
 		size_t len = strlen(command);
 		if (len > 0) { // if there is a command being written, delete last character
-			command[len - 1] = '\0';
+			if (terminal_column < len + 2) {
+				command[terminal_column - 3] = ' ';
+			} else {
+				command[len - 1] = '\0';
+			}
 			terminal_column--;
 			terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
 		}
@@ -482,7 +485,7 @@ void keyboard_handler(unsigned char c) {
 			terminal_column--;
 		}
 	} else if (c == 77) { // right arrow pressed
-		if (terminal_column < strlen(command) && is_writing_command) {
+		if (terminal_column < strlen(command) + 2 && is_writing_command) {
 			terminal_column++;
 		}
 
