@@ -224,6 +224,14 @@ char tic_tac_toe_board[5][5] = {
 	{' ', '|', ' ', '|', ' '}
 };
 
+int tic_tac_toe_occupied[5][5] = {
+	{0, 1, 0, 1, 0},
+	{1, 1, 1, 1, 1},
+	{0, 1, 0, 1, 0},
+	{1, 1, 1, 1, 1},
+	{0, 1, 0, 1, 0}
+};
+
 
 void print_tic_tac_toe_board() {
 	for (int i = 0; i < 5; i++) {
@@ -243,6 +251,9 @@ void end_tic_tac_toe() {
 		tic_tac_toe_board[i][0] = ' ';
 		tic_tac_toe_board[i][2] = ' ';
 		tic_tac_toe_board[i][4] = ' ';
+		tic_tac_toe_occupied[i][0] = 0;
+		tic_tac_toe_occupied[i][2] = 0;
+		tic_tac_toe_occupied[i][4] = 0;
 	}
 
 	game_round = 1;
@@ -260,9 +271,11 @@ void tic_tac_toe() {
 		game_round++;
 		return;
 
-	} else if (game_round == 2) {
+	} else {
 		int x = command[0] - '0';
 		int y = command[2] - '0';
+
+		
 
 		if (x == 1) {
 			x = 0;
@@ -283,16 +296,37 @@ void tic_tac_toe() {
 			end_tic_tac_toe();
 			return;
 		}
-		tic_tac_toe_board[x][y] = 'X';
 
-		tic_tac_toe_board[0][0] = 'O';
-		tic_tac_toe_board[2][2] = 'O';
-		tic_tac_toe_board[4][4] = 'O';		
+		if (tic_tac_toe_occupied[x][y] == 1) {
+			terminal_writestring("That is not a valid move, Try again.");
+			return;
+		}
+		tic_tac_toe_board[x][y] = 'X';
+		tic_tac_toe_occupied[x][y] = 1;
+
+
+		bool placed = false;
+		for (size_t i = 0; i < 5; i = i + 2) {
+			for (size_t j = 0; j < 5; j = j + 2) {
+				if (tic_tac_toe_occupied[i][j] == 0) {
+					tic_tac_toe_board[i][j] = 'O';
+					tic_tac_toe_occupied[i][j] = 1;
+					placed = true;					
+				}
+				if (placed) {
+					break;
+				}
+			}
+			if (placed) {
+				break;
+			}
+		}
 
 		print_tic_tac_toe_board();
 
-		terminal_writestring("\nThree in a row, you lose!");
-		end_tic_tac_toe();
+		newline();
+		terminal_writestring("Your turn.");
+		game_round++;
 		return;
 	}
 }
@@ -340,9 +374,9 @@ void game_handler() {
 		game[strlen(command) - 5] = '\0';
 	}
 	
-	if (strcmp(game, "rock, paper, scissors") == 0) {
+	if (strcmp(game, "rock paper scissors") == 0 || strcmp(game, "RPS") == 0) {
 		rock_paper_scissors();
-	} else if (strcmp(game, "tic tac toe") == 0) {
+	} else if (strcmp(game, "tic tac toe") == 0 || strcmp(game, "TTT") == 0) {
 		tic_tac_toe();
 	}
 	
@@ -510,7 +544,7 @@ void terminal_putchar(unsigned char c) {
 		return;
 	}
 	
-	if (shift_pressed) {
+	if (shift_pressed && is_writing_command) {
 		if (c >= 'a' && c <= 'z') {
 			c -= 32;
 		}
