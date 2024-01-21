@@ -216,11 +216,92 @@ bool in_game = false;
 char game[MAX_COMMAND_LENGTH];
 int game_round = 1;
 
+char tic_tac_toe_board[5][5] = {
+	{' ', '|', ' ', '|', ' '},
+	{'-', '+', '-', '+', '-'},
+	{' ', '|', ' ', '|', ' '},
+	{'-', '+', '-', '+', '-'},
+	{' ', '|', ' ', '|', ' '}
+};
+
+
+void print_tic_tac_toe_board() {
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 5; j++) {	
+			char str[2] = {tic_tac_toe_board[i][j], '\0'};
+			terminal_writestring(str);
+		}
+		if (i != 4) {
+			newline();
+		}
+	}
+}
+
+
+void end_tic_tac_toe() {
+	for (int i = 0; i < 5; i = i + 2) {
+		tic_tac_toe_board[i][0] = ' ';
+		tic_tac_toe_board[i][2] = ' ';
+		tic_tac_toe_board[i][4] = ' ';
+	}
+
+	game_round = 1;
+	in_game = false;
+}
+
+// Tic tac toe game (not finished)
+void tic_tac_toe() {
+	if (game_round == 1) {
+		terminal_writestring("Tic tac toe, you go first!\n");
+		terminal_writestring("Type the coordinates of the square you want to place your X in \n(for example 1,1 for upper left)\n");
+		terminal_writestring("Current board:\n");
+		print_tic_tac_toe_board();
+
+		game_round++;
+		return;
+
+	} else if (game_round == 2) {
+		int x = command[0] - '0';
+		int y = command[2] - '0';
+
+		if (x == 1) {
+			x = 0;
+		} else if (x == 3) {
+			x = 4;
+		} else if (x != 2) {
+			terminal_writestring("That is not a valid move, You lose!");
+			end_tic_tac_toe();
+			return;
+		}
+
+		if (y == 1) {
+			y = 0;
+		} else if (y == 3) {
+			y = 4;
+		} else if (y != 2) {
+			terminal_writestring("That is not a valid move, You lose!");
+			end_tic_tac_toe();
+			return;
+		}
+		tic_tac_toe_board[x][y] = 'X';
+
+		tic_tac_toe_board[0][0] = 'O';
+		tic_tac_toe_board[2][2] = 'O';
+		tic_tac_toe_board[4][4] = 'O';		
+
+		print_tic_tac_toe_board();
+
+		terminal_writestring("\nThree in a row, you lose!");
+		end_tic_tac_toe();
+		return;
+	}
+
+}
+
 
 // Rock, paper, scissors game (the pc always wins)
 void rock_paper_scissors() {
 	if (game_round == 1) {
-		terminal_writestring("Lets play a game!\n");
 		terminal_writestring("Rock, paper, scissors, you go first!\n");
 		terminal_writestring("Type rock, paper or scissors");
 		game_round++;
@@ -262,7 +343,12 @@ void game_handler() {
 	
 	if (strcmp(game, "rock, paper, scissors") == 0) {
 		rock_paper_scissors();
-	} else {
+	} else if (strcmp(game, "tic tac toe") == 0) {
+		tic_tac_toe();
+	}
+	
+	
+	else {
 		terminal_writestring("Unknown game: ");
 		terminal_writestring(game);
 		in_game = false;
