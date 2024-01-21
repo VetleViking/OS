@@ -603,9 +603,11 @@ void keyboard_handler(unsigned char c) {
 
 	if (c == 0) {
 	} else if (c == 27){
-		in_text_editor = false;	
-		clear_screen();
-		new_kernel_line();
+		if (in_text_editor) {
+			in_text_editor = false;	
+			clear_screen();
+			new_kernel_line();
+		}
 	} else if (c == '\n') { // enter and writing command
 		if (in_text_editor) {
 			// TODO: make lower lines move down and delete last line, or something like that
