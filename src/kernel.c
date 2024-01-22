@@ -749,8 +749,17 @@ void keyboard_handler(unsigned char c) {
 				}
 				command[0] = '\0';
 					
-				if (!(at_command == num_commands - 1)) { 
+				if (!(at_command == num_commands)) { 
+
+					len = strlen(previous_commands[at_command]);
+					for (size_t i = 0; i < len; i++) {
+						command[i] = previous_commands[at_command][i];
+					}
+					command[len] = '\0';
+
+					is_writing_command = false;
 					terminal_writestring(previous_commands[at_command]); // if not last and empty command, write command
+					is_writing_command = true;
 				}
 			}
 		}
