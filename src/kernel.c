@@ -567,8 +567,6 @@ char text_editor_text[25][77] = {
 	'\0',
 	'\0',
 	'\0',
-	'\0',
-	'\0',
 };
 
 // Opens a text editor
@@ -578,27 +576,43 @@ void text_editor() {
 	text_editor_exit_flag = false;
 	clear_screen();
 	char line_number[10];
-	
-	for (size_t i = 0; i < 25; i++) {
+	terminal_putchar(201);
+	for (size_t i = 0; i < 78; i++) {
+		terminal_putchar(205);
+	}
+	terminal_putchar(187);
+	terminal_putchar(186);
+	terminal_writestring(" Text editor ------------------------- ESC to exit, arrow keys to move around ");
+	terminal_putchar(186);
+	terminal_putchar(200);
+	terminal_putchar(205);
+	terminal_putchar(203);
+	for (size_t i = 0; i < 76; i++) {
+		terminal_putchar(205);
+	}
+	terminal_putchar(188);
+
+	for (size_t i = 0; i < 22; i++) {
 		if (i < 9) {
 			itoa(i + 1, line_number, 10);
 			terminal_writestring(line_number);
-			terminal_writestring(" |");
+			terminal_writestring(" ");
+			terminal_putchar(186);
 		} else {
 			itoa(i + 1, line_number, 10);
 			terminal_writestring(line_number);
-			terminal_writestring("|");
+			terminal_putchar(186);
 		}
 
 		terminal_writestring(text_editor_text[i]);
 
-		if (i < 24) {
+		if (i < 21) {
 			terminal_row++;
 			terminal_column = 0;
 		}
 	}
 	in_text_editor = true;
-	terminal_row = 0;
+	terminal_row = 3;
 	terminal_column = 3;
 	input_loop(&text_editor_exit_flag);
 }
@@ -648,6 +662,11 @@ void check_for_command() {
 		terminal_writestring("cat - prints the cat");	
 		newline();
 		terminal_writestring("game [game name] - starts the specified game");
+		newline();
+		terminal_writestring("gamelist - lists all the games");
+		newline();
+		terminal_writestring("write - opens a text editor");
+		newline();
 		terminal_writestring("meow - prints meow :3");
 	} else if (strcmp(command, "cat") == 0) {
 		terminal_writestring("  _____");
@@ -661,6 +680,12 @@ void check_for_command() {
 		terminal_writestring("meow! :3");
 	} else if (strcmp(command, "write") == 0) {
 		text_editor();
+	} else if (strcmp(command, "gamelist") == 0) {
+		terminal_writestring("Games:");
+		newline();
+		terminal_writestring("rock paper scissors - RPS");
+		newline();
+		terminal_writestring("tic tac toe - TTT");
 	}
 	
 	
@@ -762,7 +787,7 @@ void keyboard_handler(unsigned char c) {
 		}
 	} else if (c == 72) { // up arrow pressed
 	 	if (in_text_editor) {
-			if (terminal_row > 0) {
+			if (terminal_row > 3) {
 				terminal_row--;
 				terminal_column = 3;
 			}
@@ -887,12 +912,12 @@ void terminal_putchar(unsigned char c) {
 			return;
 		}
 
-		int len = strlen(text_editor_text[terminal_row]);
+		int len = strlen(text_editor_text[terminal_row - 3]);
 		if (terminal_column == len + 3) {
-			text_editor_text[terminal_row][len] = c;
-			text_editor_text[terminal_row][len + 1] = '\0';
+			text_editor_text[terminal_row - 3][len] = c;
+			text_editor_text[terminal_row - 3][len + 1] = '\0';
 		} else if (terminal_column < len + 3) {
-			text_editor_text[terminal_row][terminal_column - 3] = c;
+			text_editor_text[terminal_row - 3][terminal_column - 3] = c;
 		}
 	}
 
