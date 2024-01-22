@@ -674,7 +674,15 @@ void keyboard_handler(unsigned char c) {
 			check_for_command();
 		}
 	} else if (c == 15) { // tab
-		terminal_column += 4; 
+		terminal_column += 4;
+		int len = strlen(command);
+		if (len + 4 < MAX_COMMAND_LENGTH) { // assuming COMMAND_MAX_LENGTH is the size of your command buffer
+			command[len] = ' ';
+			command[len + 1] = ' ';
+			command[len + 2] = ' ';
+			command[len + 3] = ' ';
+			command[len + 4] = '\0';
+    	}
 	} else if (c == 42) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
 		if (is_writing_command || in_text_editor) {
 			shift_pressed = true;
