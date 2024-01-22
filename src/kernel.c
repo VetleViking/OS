@@ -14,7 +14,7 @@
 // english keyboard layout TODO: add norwegian keyboard layout
 char kbd_US [256] = {
     0,  0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', /* <-- Backspace */   
-  '\t', /* <-- Tab */
+ '\t', /* <-- Tab */
   'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', /* <-- Enter key */     
    	0, /* <-- control key */
   'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',  0, /* <-- left shift */ '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0, /* <-- right shift */
@@ -28,15 +28,15 @@ char kbd_US [256] = {
     0,  /* 69 - Num lock*/
     0,  /* Scroll Lock */
     0,  /* Home key */
-   0,  /* Up Arrow */
+    0,  /* Up Arrow */
     0,  /* Page Up */
   '-',
-   0,  /* Left Arrow */
+    0,  /* Left Arrow */
     0,
-   0,  /* Right Arrow */
+    0,  /* Right Arrow */
   '+',
     0,  /* 79 - End key*/
-   0,  /* Down Arrow */
+    0,  /* Down Arrow */
     0,  /* Page Down */
     0,  /* Insert Key */
     0,  /* Delete Key */
@@ -58,12 +58,12 @@ char kbd_US [256] = {
 
 char kbd_special_characters[256] = {
     0,  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* <-- Backspace */
-    15, /* <-- Tab */
-    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, /* <-- Enter key */
+   15, /* <-- Tab */
+   16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, /* <-- Enter key */
     0, /* <-- control key */
-    30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, /* <-- left shift */
-    43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, /* <-- right shift */
-    55,
+   30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, /* <-- left shift */
+   43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, /* <-- right shift */
+   55,
     0,  /* Alt */
    57,  /* Space bar */
    58,  /* Caps lock */
@@ -540,6 +540,127 @@ void game_handler() {
 	}
 }
 
+
+int chosen_color = 13;
+int chosen_bg_color = 0;
+
+void color_command() {
+	int at_length = 6;
+	int len = strlen(command);
+
+	char extra_parameter[10];
+	char extra_parameter2[10];
+
+	for (int i = 0; i < 10; i++) {
+		if (command[at_length] == ' ') {
+			at_length++;
+			extra_parameter[i] = '\0';
+			
+			for (int j = 0; j < 10; j++) {
+				if (command[at_length] == ' ') {
+					at_length++;
+					extra_parameter2[j] = '\0';
+					break;
+				}
+				extra_parameter2[j] = command[at_length];
+				at_length++;
+			}
+			break;
+		}
+		extra_parameter[i] = command[at_length];
+		at_length++;
+	} 
+	int extra_parameter_length = strlen(extra_parameter);
+
+	bool all = false;
+	bool bg = false;
+	if (strcmp(extra_parameter, "all") == 0 || strcmp(extra_parameter2, "all") == 0) {
+		all = true;
+	}
+
+	if (strcmp(extra_parameter, "bg") == 0 || strcmp(extra_parameter2, "bg") == 0) {
+		bg = true;
+	}
+
+	if ((all && !bg) || (!all && bg)) {
+		at_length = 6 + extra_parameter_length + 1;
+	} else if (!all && !bg) {
+		at_length = 6;
+	}
+
+	
+	char change_color[20];
+	
+	for (int i = 0; i < 20; i++) {
+		if (command[at_length] == '\0') {
+			change_color[i] = '\0';
+			break;
+		}
+		change_color[i] = command[at_length];
+		at_length++;
+	}
+
+	int chosen_new_color = 0;
+
+	if (strcmp(change_color, "black") == 0) {
+		chosen_new_color = VGA_COLOR_BLACK;
+	} else if (strcmp(change_color, "blue") == 0) {
+		chosen_new_color = VGA_COLOR_BLUE;
+	} else if (strcmp(change_color, "green") == 0) {
+		chosen_new_color = VGA_COLOR_GREEN;
+	} else if (strcmp(change_color, "cyan") == 0) {
+		chosen_new_color = VGA_COLOR_CYAN;
+	} else if (strcmp(change_color, "red") == 0) {
+		chosen_new_color = VGA_COLOR_RED;
+	} else if (strcmp(change_color, "magenta") == 0) {
+		chosen_new_color = VGA_COLOR_MAGENTA;
+	} else if (strcmp(change_color, "brown") == 0) {
+		chosen_new_color = VGA_COLOR_BROWN;
+	} else if (strcmp(change_color, "light grey") == 0) {
+		chosen_new_color = VGA_COLOR_LIGHT_GREY;
+	} else if (strcmp(change_color, "dark grey") == 0) {
+		chosen_new_color = VGA_COLOR_DARK_GREY;
+	} else if (strcmp(change_color, "light blue") == 0) {
+		chosen_new_color = VGA_COLOR_LIGHT_BLUE;
+	} else if (strcmp(change_color, "light green") == 0) {
+		chosen_new_color = VGA_COLOR_LIGHT_GREEN;
+	} else if (strcmp(change_color, "light cyan") == 0) {
+		chosen_new_color = VGA_COLOR_LIGHT_CYAN;
+	} else if (strcmp(change_color, "light red") == 0) {
+		chosen_new_color = VGA_COLOR_LIGHT_RED;
+	} else if (strcmp(change_color, "light magenta") == 0) {
+		chosen_new_color = VGA_COLOR_LIGHT_MAGENTA;
+	} else if (strcmp(change_color, "light brown") == 0) {
+		chosen_new_color = VGA_COLOR_LIGHT_BROWN;
+	} else if (strcmp(change_color, "white") == 0) {
+		chosen_new_color = VGA_COLOR_WHITE;
+	} else {
+		terminal_writestring("Unknown color: ");
+		terminal_writestring(change_color);
+		return;
+	}
+
+	if (bg) {
+		chosen_bg_color = chosen_new_color;
+	} else {
+		chosen_color = chosen_new_color;
+	}
+
+	terminal_color = vga_entry_color(chosen_color, chosen_bg_color);
+
+	if (all) {
+		for (size_t y = 0; y < VGA_HEIGHT; y++) {
+			for (size_t x = 0; x < VGA_WIDTH; x++) {
+				const size_t index = y * VGA_WIDTH + x;
+				terminal_buffer[index] = vga_entry(terminal_buffer[index], terminal_color);
+			}
+		}
+	}
+
+	terminal_writestring("Color changed :)");
+}
+
+
 bool check_scroll = true;
 bool in_text_editor = false;
 bool text_editor_exit_flag = false;
@@ -632,13 +753,13 @@ void check_for_command() {
 
 
 	// checks if the command is a game command
-	char is_game[5];
-	for (int i = 0; i < 5; i++) {
+	char is_game[6];
+	for (int i = 0; i < 6; i++) {
 		is_game[i] = command[i];
 	}
-	is_game[4] = '\0';
+	is_game[5] = '\0';
 
-	if (strcmp(is_game, "game") == 0 && !in_game) {
+	if (strcmp(is_game, "game ") == 0 && !in_game) {
 		game_handler(game_round);
 		end_check_for_command();
 		return;
@@ -650,7 +771,17 @@ void check_for_command() {
 	
 
 	// checks if the command is a normal command
-	if (strcmp(command, "clear") == 0) {
+	char color[7];
+	for (int i = 0; i < 6; i++) {
+		color[i] = command[i];
+	}
+	color[6] = '\0';
+
+	if (strcmp(color, "color ") == 0) {
+		color_command();
+		end_check_for_command();
+		return;
+	} else if (strcmp(command, "clear") == 0) {
 		clear_screen();
 	} else if (strcmp(command, "help") == 0) {
 		terminal_writestring("Commands:");
@@ -686,6 +817,17 @@ void check_for_command() {
 		terminal_writestring("rock paper scissors - RPS");
 		newline();
 		terminal_writestring("tic tac toe - TTT");
+	} else if (strcmp(command, "color") == 0) {
+		terminal_color = vga_entry_color(VGA_COLOR_BLUE, VGA_COLOR_BLACK);
+
+		for (size_t y = 0; y < VGA_HEIGHT; y++) {
+			for (size_t x = 0; x < VGA_WIDTH; x++) {
+				const size_t index = y * VGA_WIDTH + x;
+				terminal_buffer[index] = vga_entry(terminal_buffer[index], terminal_color);
+			}
+		}
+
+		terminal_writestring("Color changed :)");
 	}
 	
 	
