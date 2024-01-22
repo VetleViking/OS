@@ -548,7 +548,7 @@ char text_editor_text[77][25] = {
 
 // Opens a text editor
 void text_editor() {
-	in_text_editor = true;
+	
 	clear_screen();
 	char line_number[10];
 	
@@ -569,6 +569,7 @@ void text_editor() {
 			terminal_column = 0;
 		}
 	}
+	in_text_editor = true;
 	terminal_row = 0;
 	terminal_column = 3;
 	input_loop(!in_text_editor);
@@ -659,7 +660,7 @@ void end_check_for_command() {
 void keyboard_handler(unsigned char c) {
 
 	if (c == 0) {
-	} else if (c == 27){
+	} else if (c == 1){
 		if (in_text_editor) {
 			in_text_editor = false;	
 			clear_screen();
@@ -775,7 +776,7 @@ void keyboard_handler(unsigned char c) {
 		}
 	} else if (c == 77) { // right arrow pressed
 		if (in_text_editor) {
-			if (terminal_column < 77) {
+			if (terminal_column < 77 && terminal_column < strlen(text_editor_text[terminal_row]) + 3) {
 				terminal_column++;
 			}
 		} else if (is_writing_command) {
@@ -826,6 +827,10 @@ void terminal_putchar(unsigned char c) {
 		} else if (terminal_column < len + 2) {
 			command[terminal_column - 2] = c;
 		}		
+	}
+
+	if (in_text_editor) {
+		text_editor_text[terminal_row][terminal_column - 3] = c;
 	}
 
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
