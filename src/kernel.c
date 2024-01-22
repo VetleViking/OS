@@ -799,6 +799,8 @@ void check_for_command() {
 		terminal_writestring("write - opens a text editor");
 		newline();
 		terminal_writestring("meow - prints meow :3");
+		newline();
+		terminal_writestring("color [bg or/and all] [color] - changes the color of the text");
 	} else if (strcmp(command, "cat") == 0) {
 		terminal_writestring("  _____");
 		newline();
