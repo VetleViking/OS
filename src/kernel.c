@@ -540,20 +540,46 @@ void game_handler() {
 	}
 }
 
-
+bool check_scroll = true;
 bool in_text_editor = false;
-char text_editor_text[77][25] = {
-	0
+bool text_editor_exit_flag = false;
+char text_editor_text[25][77] = {
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
 };
 
 // Opens a text editor
 void text_editor() {
-	
+	check_scroll = false;
+	in_text_editor = false;
+	text_editor_exit_flag = false;
 	clear_screen();
 	char line_number[10];
 	
 	for (size_t i = 0; i < 25; i++) {
-		text_editor_text[0][i] = '\0';
 		if (i < 9) {
 			itoa(i + 1, line_number, 10);
 			terminal_writestring(line_number);
@@ -563,7 +589,9 @@ void text_editor() {
 			terminal_writestring(line_number);
 			terminal_writestring("|");
 		}
-		terminal_writestring(text_editor_text[0]);
+
+		terminal_writestring(text_editor_text[i]);
+
 		if (i < 24) {
 			terminal_row++;
 			terminal_column = 0;
@@ -572,9 +600,7 @@ void text_editor() {
 	in_text_editor = true;
 	terminal_row = 0;
 	terminal_column = 3;
-	input_loop(!in_text_editor);
-	terminal_writestring("done");
-	kernel_main();
+	input_loop(&text_editor_exit_flag);
 }
 
 
@@ -663,8 +689,10 @@ void keyboard_handler(unsigned char c) {
 	} else if (c == 1){
 		if (in_text_editor) {
 			in_text_editor = false;	
+			check_scroll = true;
+			text_editor_exit_flag = true;
+
 			clear_screen();
-			new_kernel_line();
 		}
 	} else if (c == 28) { // enter and writing command
 		if (in_text_editor) {
@@ -813,7 +841,7 @@ void terminal_putchar(unsigned char c) {
 		c = kbd_US[c];
 	}
 
-	if (shift_pressed && is_writing_command) {
+	if (shift_pressed && (is_writing_command || in_text_editor)) {
 		if (c >= 'a' && c <= 'z') {
 			c -= 32;
 		}
@@ -830,7 +858,13 @@ void terminal_putchar(unsigned char c) {
 	}
 
 	if (in_text_editor) {
-		text_editor_text[terminal_row][terminal_column - 3] = c;
+		int len = strlen(text_editor_text[terminal_row]);
+		if (terminal_column == len + 3) {
+			text_editor_text[terminal_row][len] = c;
+			text_editor_text[terminal_row][len + 1] = '\0';
+		} else if (terminal_column < len + 3) {
+			text_editor_text[terminal_row][terminal_column - 3] = c;
+		}
 	}
 
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
@@ -842,7 +876,7 @@ void terminal_putchar(unsigned char c) {
 		}
 	}
 
-	if (!in_text_editor) {
+	if (check_scroll) {
 		check_kernel_scroll();
 	}
 }
@@ -918,9 +952,9 @@ void idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_
 
 
 // Starts an input loop, used to get input from the user
-void input_loop(bool exit_flag) {
+void input_loop(bool *exit_flag) {
 	unsigned char c = 0;
-	while (!exit_flag) { // loop until exit_flag is true
+	while (!(*exit_flag)) { // loop until exit_flag is true
 		
 		if (inb(0x60) != c) { // if key pressed
 
@@ -970,5 +1004,5 @@ void kernel_main(void) {
 	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
 	init_pics(0x20, 0x28);
-	input_loop(main_exit_flag);
+	input_loop(&main_exit_flag);
 }
