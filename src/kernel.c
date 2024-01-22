@@ -703,15 +703,27 @@ void keyboard_handler(unsigned char c) {
 			check_for_command();
 		}
 	} else if (c == 15) { // tab
-		terminal_column += 4;
-		int len = strlen(command);
-		if (len + 4 < MAX_COMMAND_LENGTH) { // assuming COMMAND_MAX_LENGTH is the size of your command buffer
-			command[len] = ' ';
-			command[len + 1] = ' ';
-			command[len + 2] = ' ';
-			command[len + 3] = ' ';
-			command[len + 4] = '\0';
-    	}
+		if (in_text_editor) {
+			terminal_column += 4;
+			int len = strlen(text_editor_text[terminal_row]);
+			if (len + 4 < 77) {
+				text_editor_text[terminal_row][len] = ' ';
+				text_editor_text[terminal_row][len + 1] = ' ';
+				text_editor_text[terminal_row][len + 2] = ' ';
+				text_editor_text[terminal_row][len + 3] = ' ';
+				text_editor_text[terminal_row][len + 4] = '\0';
+			}
+		} else if (is_writing_command) {
+			terminal_column += 4;
+			int len = strlen(command);
+			if (len + 4 < MAX_COMMAND_LENGTH) {
+				command[len] = ' ';
+				command[len + 1] = ' ';
+				command[len + 2] = ' ';
+				command[len + 3] = ' ';
+				command[len + 4] = '\0';
+			}
+		}
 	} else if (c == 42) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
 		if (is_writing_command || in_text_editor) {
 			shift_pressed = true;
@@ -725,15 +737,28 @@ void keyboard_handler(unsigned char c) {
 			shift_pressed = !shift_pressed; // TODO: add more elegant solution
 		}
 	} else if (c == 14) { // backspace
-		size_t len = strlen(command);
-		if (len > 0) { // if there is a command being written, delete last character
-			if (terminal_column < len + 2) {
-				command[terminal_column - 3] = ' ';
-			} else {
-				command[len - 1] = '\0';
+		if (in_text_editor) {
+			size_t len = strlen(text_editor_text[terminal_row]);
+			if (len > 0) {
+				if (terminal_column < len + 3) {
+					text_editor_text[terminal_row][terminal_column - 3] = ' ';
+				} else {
+					text_editor_text[terminal_row][len - 1] = '\0';
+				}
+				terminal_column--;
+				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
 			}
-			terminal_column--;
-			terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+		} else if (is_writing_command) {
+			size_t len = strlen(command);
+			if (len > 0) { // if there is a command being written, delete last character
+				if (terminal_column < len + 2) {
+					command[terminal_column - 3] = ' ';
+				} else {
+					command[len - 1] = '\0';
+				}
+				terminal_column--;
+				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+			}
 		}
 	} else if (c == 72) { // up arrow pressed
 	 	if (in_text_editor) {
