@@ -721,7 +721,16 @@ void keyboard_handler(unsigned char c) {
 					terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
 				}
 				command[0] = '\0';
+				is_writing_command = false;
+				
+				len = strlen(previous_commands[at_command]);
+				for (size_t i = 0; i < len; i++) {
+					command[i] = previous_commands[at_command][i];
+				}
+				command[len] = '\0';
+
 				terminal_writestring(previous_commands[at_command]); // write command
+				is_writing_command = true;
 			}
 		}
 	} else if (c == 80) { // down arrow pressed
