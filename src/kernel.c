@@ -704,9 +704,9 @@ void keyboard_handler(unsigned char c) {
 		}
 	} else if (c == 15) { // tab
 		if (in_text_editor) {
-			terminal_column += 4;
 			int len = strlen(text_editor_text[terminal_row]);
-			if (len + 4 < 77) {
+			if (terminal_column + 4 < 80) {
+				terminal_column += 4;
 				text_editor_text[terminal_row][len] = ' ';
 				text_editor_text[terminal_row][len + 1] = ' ';
 				text_editor_text[terminal_row][len + 2] = ' ';
@@ -714,9 +714,9 @@ void keyboard_handler(unsigned char c) {
 				text_editor_text[terminal_row][len + 4] = '\0';
 			}
 		} else if (is_writing_command) {
-			terminal_column += 4;
 			int len = strlen(command);
 			if (len + 4 < MAX_COMMAND_LENGTH) {
+				terminal_column += 4;
 				command[len] = ' ';
 				command[len + 1] = ' ';
 				command[len + 2] = ' ';
@@ -739,7 +739,7 @@ void keyboard_handler(unsigned char c) {
 	} else if (c == 14) { // backspace
 		if (in_text_editor) {
 			size_t len = strlen(text_editor_text[terminal_row]);
-			if (len > 0) {
+			if (len > 0 && terminal_column > 3) {
 				if (terminal_column < len + 3) {
 					text_editor_text[terminal_row][terminal_column - 3] = ' ';
 				} else {
@@ -883,6 +883,10 @@ void terminal_putchar(unsigned char c) {
 	}
 
 	if (in_text_editor) {
+		if (terminal_column == 79) {
+			return;
+		}
+
 		int len = strlen(text_editor_text[terminal_row]);
 		if (terminal_column == len + 3) {
 			text_editor_text[terminal_row][len] = c;
@@ -894,13 +898,18 @@ void terminal_putchar(unsigned char c) {
 
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
 
-	if (++terminal_column == VGA_WIDTH) {
+	terminal_column++;
+
+	if (terminal_column == VGA_WIDTH) {
 		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT) {
+		terminal_row++;
+		
+		if (terminal_row == VGA_HEIGHT) {
 			terminal_row++;
 		}
 	}
 
+	
 	if (check_scroll) {
 		check_kernel_scroll();
 	}
