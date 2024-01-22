@@ -865,7 +865,6 @@ void keyboard_handler(unsigned char c) {
 	}
 	
 	
-
 	else { // any other key
 		should_print = true;
 		return;
