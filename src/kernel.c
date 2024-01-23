@@ -580,6 +580,7 @@ void game_handler() {
 }
 
 
+// Command for changing the colors of the kernel
 int chosen_color = 13;
 int chosen_bg_color = 0;
 
@@ -590,12 +591,12 @@ void color_command() {
 	char extra_parameter[10];
 	char extra_parameter2[10];
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 10; i++) { // gets the first extra parameter
 		if (command[at_length] == ' ') {
 			at_length++;
 			extra_parameter[i] = '\0';
 			
-			for (int j = 0; j < 10; j++) {
+			for (int j = 0; j < 10; j++) { // gets the second extra parameter
 				if (command[at_length] == ' ') {
 					at_length++;
 					extra_parameter2[j] = '\0';
@@ -627,10 +628,9 @@ void color_command() {
 		at_length = 6;
 	}
 
-	
 	char change_color[20];
 	
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < 20; i++) { // gets the color to change to
 		if (command[at_length] == '\0') {
 			change_color[i] = '\0';
 			break;
@@ -666,7 +666,7 @@ void color_command() {
 	int chosen_new_color = 0;
 	size_t num_colors = sizeof(color_table) / sizeof(Color);
 
-	for (size_t i = 0; i < num_colors; i++) {
+	for (size_t i = 0; i < num_colors; i++) { 
 		if (strcmp(change_color, color_table[i].name) == 0) {
 			chosen_new_color = color_table[i].vga_color;
 			break;
@@ -700,6 +700,7 @@ void color_command() {
 }
 
 
+// Things used by the text editor
 bool check_scroll = true;
 bool in_text_editor = false;
 bool text_editor_exit_flag = false;
@@ -730,6 +731,8 @@ char text_editor_text[22][77] = {
 };
 
 
+
+// Tries to execute the line of code given
 void execute_checks(char text[77], int at_line) {
 	int len = strlen(text);
 
@@ -806,8 +809,9 @@ void text_editor() {
 	check_scroll = false;
 	in_text_editor = false;
 	text_editor_exit_flag = false;
-	clear_screen();
-	char line_number[10];
+
+	// draws the header of the text editor
+	clear_screen();  
 	terminal_putchar(201);
 	for (size_t i = 0; i < 78; i++) {
 		terminal_putchar(205);
@@ -823,6 +827,9 @@ void text_editor() {
 		terminal_putchar(205);
 	}
 	terminal_putchar(188);
+
+	// draws the text editor
+	char line_number[10];
 
 	for (size_t i = 0; i < 22; i++) {
 		if (i < 9) {
@@ -843,6 +850,8 @@ void text_editor() {
 			terminal_column = 0;
 		}
 	}
+
+	// starts the text editor input loop
 	in_text_editor = true;
 	terminal_row = 3;
 	terminal_column = 3;
