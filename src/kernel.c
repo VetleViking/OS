@@ -238,6 +238,19 @@ int strcmp(const char *str1, const char *str2) {
 }
 
 
+int strcmplen(const char *str1, const char *str2, size_t n) {
+    while (n-- && *str1 && (*str1 == *str2)) {
+        str1++;
+        str2++;
+    }
+    if (n == (size_t)-1) {
+        return 0;
+    } else {
+        return *(unsigned char *)str1 - *(unsigned char *)str2;
+    }
+}
+
+
 // Copies a string from src to dest
 void strcpy(char* dest, const char* src) {
     int i = 0;
@@ -600,41 +613,41 @@ void color_command() {
 		at_length++;
 	}
 
-	int chosen_new_color = 0;
+	typedef struct {
+		const char* name;
+		int vga_color;
+	} Color;
 
-	if (strcmp(change_color, "black") == 0) {
-		chosen_new_color = VGA_COLOR_BLACK;
-	} else if (strcmp(change_color, "blue") == 0) {
-		chosen_new_color = VGA_COLOR_BLUE;
-	} else if (strcmp(change_color, "green") == 0) {
-		chosen_new_color = VGA_COLOR_GREEN;
-	} else if (strcmp(change_color, "cyan") == 0) {
-		chosen_new_color = VGA_COLOR_CYAN;
-	} else if (strcmp(change_color, "red") == 0) {
-		chosen_new_color = VGA_COLOR_RED;
-	} else if (strcmp(change_color, "magenta") == 0) {
-		chosen_new_color = VGA_COLOR_MAGENTA;
-	} else if (strcmp(change_color, "brown") == 0) {
-		chosen_new_color = VGA_COLOR_BROWN;
-	} else if (strcmp(change_color, "light grey") == 0) {
-		chosen_new_color = VGA_COLOR_LIGHT_GREY;
-	} else if (strcmp(change_color, "dark grey") == 0) {
-		chosen_new_color = VGA_COLOR_DARK_GREY;
-	} else if (strcmp(change_color, "light blue") == 0) {
-		chosen_new_color = VGA_COLOR_LIGHT_BLUE;
-	} else if (strcmp(change_color, "light green") == 0) {
-		chosen_new_color = VGA_COLOR_LIGHT_GREEN;
-	} else if (strcmp(change_color, "light cyan") == 0) {
-		chosen_new_color = VGA_COLOR_LIGHT_CYAN;
-	} else if (strcmp(change_color, "light red") == 0) {
-		chosen_new_color = VGA_COLOR_LIGHT_RED;
-	} else if (strcmp(change_color, "light magenta") == 0) {
-		chosen_new_color = VGA_COLOR_LIGHT_MAGENTA;
-	} else if (strcmp(change_color, "light brown") == 0) {
-		chosen_new_color = VGA_COLOR_LIGHT_BROWN;
-	} else if (strcmp(change_color, "white") == 0) {
-		chosen_new_color = VGA_COLOR_WHITE;
-	} else {
+	static const Color color_table[] = {
+		{"black", VGA_COLOR_BLACK},
+		{"blue", VGA_COLOR_BLUE},
+		{"green", VGA_COLOR_GREEN},
+		{"cyan", VGA_COLOR_CYAN},
+		{"red", VGA_COLOR_RED},
+		{"magenta", VGA_COLOR_MAGENTA},
+		{"brown", VGA_COLOR_BROWN},
+		{"light grey", VGA_COLOR_LIGHT_GREY},
+		{"dark grey", VGA_COLOR_DARK_GREY},
+		{"light blue", VGA_COLOR_LIGHT_BLUE},
+		{"light green", VGA_COLOR_LIGHT_GREEN},
+		{"light cyan", VGA_COLOR_LIGHT_CYAN},
+		{"light red", VGA_COLOR_LIGHT_RED},
+		{"light magenta", VGA_COLOR_LIGHT_MAGENTA},
+		{"light brown", VGA_COLOR_LIGHT_BROWN},
+		{"white", VGA_COLOR_WHITE},
+	};
+
+	int chosen_new_color = 0;
+	size_t num_colors = sizeof(color_table) / sizeof(Color);
+
+	for (size_t i = 0; i < num_colors; i++) {
+		if (strcmp(change_color, color_table[i].name) == 0) {
+			chosen_new_color = color_table[i].vga_color;
+			break;
+		}
+	}
+
+	if (chosen_new_color == 0) {
 		terminal_writestring("Unknown color: ");
 		terminal_writestring(change_color);
 		return;
@@ -664,7 +677,7 @@ void color_command() {
 bool check_scroll = true;
 bool in_text_editor = false;
 bool text_editor_exit_flag = false;
-char text_editor_text[25][77] = {
+char text_editor_text[22][77] = {
 	'\0',
 	'\0',
 	'\0',
@@ -689,6 +702,37 @@ char text_editor_text[25][77] = {
 	'\0',
 	'\0',
 };
+
+
+// Executes the code from the text editor
+void execute_text() {
+	for (size_t i = 0; i < 22; i++) {
+		int len = strlen(text_editor_text[i]);
+
+		if (len <= 1) {
+			continue;
+		}
+
+		char execute_content [77];
+
+		if (strcmplen(text_editor_text[i], "command ", 8) == 0) {
+			for (int j = 0; j < len - 8; j++) {
+				command[j] = text_editor_text[i][j + 8];
+			}
+			command[len - 8] = '\0';
+			check_for_command();
+		}
+
+		if (strcmplen(text_editor_text[i], "print ", 6) == 0) {
+			for (int j = 0; j < len - 6; j++) {
+				execute_content[j] = text_editor_text[i][j + 6];
+			}
+			terminal_writestring(execute_content);
+			newline();
+		}
+	}
+}
+
 
 // Opens a text editor
 void text_editor() {
@@ -813,7 +857,12 @@ void check_for_command() {
 		terminal_writestring("meow! :3");
 	} else if (strcmp(command, "write") == 0) {
 		text_editor();
-	} else if (strcmp(command, "gamelist") == 0) {
+	} else if (strcmp(command, "execute") == 0) {
+		execute_text();
+	}
+	
+	
+	 else if (strcmp(command, "gamelist") == 0) {
 		terminal_writestring("Games:");
 		newline();
 		terminal_writestring("rock paper scissors - RPS");
@@ -907,12 +956,12 @@ void keyboard_handler(unsigned char c) {
 		}
 	} else if (c == 14) { // backspace
 		if (in_text_editor) {
-			size_t len = strlen(text_editor_text[terminal_row]);
+			size_t len = strlen(text_editor_text[terminal_row - 3]);
 			if (len > 0 && terminal_column > 3) {
 				if (terminal_column < len + 3) {
-					text_editor_text[terminal_row][terminal_column - 3] = ' ';
+					text_editor_text[terminal_row - 3][terminal_column - 3] = ' ';
 				} else {
-					text_editor_text[terminal_row][len - 1] = '\0';
+					text_editor_text[terminal_row - 3][len - 1] = '\0';
 				}
 				terminal_column--;
 				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
@@ -998,7 +1047,7 @@ void keyboard_handler(unsigned char c) {
 		}
 	} else if (c == 77) { // right arrow pressed
 		if (in_text_editor) {
-			if (terminal_column < 77 && terminal_column < strlen(text_editor_text[terminal_row]) + 3) {
+			if (terminal_column < 77 && terminal_column < strlen(text_editor_text[terminal_row - 3]) + 3) {
 				terminal_column++;
 			}
 		} else if (is_writing_command) {
