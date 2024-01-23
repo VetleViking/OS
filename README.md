@@ -1,12 +1,12 @@
 # OS
-Trying to make an os, because i am so good in Assembly (and forcing Kasper to join me)
+Trying to make an os, because i am so good in Assembly, and want to learn a bit of C (and forcing Kasper to join me)
 
 
 ## Compiling the OS
 After some time, there will probably be some real releases here, which you can just run in any vm that takes .bin files. 
 But for now, you have to compile this yourself if you want to run it, so i can give a quick tutorial. 
 
-You have to start with downloading the necessary tools, NASM, QEMU, GCC and WSL (Windows subsystem for Linux), because all of this is much easier with the linux terminal.
+You have to start with downloading the necessary tools, NASM, QEMU, GCC, GRUB and WSL (Windows subsystem for Linux), because all of this is much easier with the linux terminal.
 We will start with WSL, so that we can download the other stuff there:
 ```bash
 wsl --install
@@ -29,8 +29,14 @@ Go to the bottom, and add
 export PATH="$PATH:/usr/local/i386elfgcc/bin"
 ```
 Its way too much to explain here how vim works, so eiter search it up or use an editor you already know.
-Save the file, close and reopen WSL then navigate to the folder where you have the project downloaded, and run the command
+Save the file, close and reopen WSL. Now well download GRUB. Its three commands, and you will need to do them in order:
+```bash
+sudo apt install grub2-common
+sudo apt install xorriso
+sudo apt-get install grub-pc-bin
+```
+Now, navigate to the folder where you have the project downloaded, and run the command
 ```bash
 make
 ```
-The makefile in the project will then do all of the building for you, and the OS will open in QEMU, the vm.
+The makefile in the project will then do all the rest of the building for you, and the OS will open in QEMU, the vm.
