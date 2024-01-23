@@ -742,6 +742,13 @@ void execute_checks(char text[77], int at_line) {
 
 	char execute_content [77];
 
+	typedef struct {
+		char* name;
+		char* content;
+	} Strs;
+
+	static Strs saved_strings[10] = {0};
+
 	if (strcmplen(text, "command ", 8) == 0) {
 		for (int i = 0; i < len - 8; i++) {
 			command[i] = text[i + 8];
@@ -757,6 +764,18 @@ void execute_checks(char text[77], int at_line) {
 		execute_content[len - 6] = '\0';
 		terminal_writestring(execute_content);
 		newline();
+	}
+
+	if (strcmplen(text, "str ", 4) == 0) {
+		for (int i = 0; i < len - 4; i++) {
+			execute_content[i] = text[i + 4];
+		}
+		execute_content[len - 4] = '\0';
+
+		char name[10];
+		char content[77];
+
+		// continue here, save first part to name, second part to content seperated by a space or =
 	}
 
 	if (strcmplen(text, "loop ", 5) == 0) {
