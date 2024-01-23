@@ -284,6 +284,32 @@ void itoa(int value, char* str, int base) {
 }
 
 
+// Converts a string to an int
+int atoi(const char *str) {
+    int result = 0;
+    int sign = 1;
+  
+    // Check for whitespace
+    while (*str == ' ') {
+        str++;
+    }
+
+    // Check for sign
+    if (*str == '-' || *str == '+') {
+        if (*str == '-') sign = -1;
+        str++;
+    }
+
+    // Convert each digit to int and add it to the result
+    while (*str >= '0' && *str <= '9') {
+        result = result * 10 + (*str - '0');
+        str++;
+    }
+
+    return sign * result;
+}
+
+
 void clear_screen() {
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -704,32 +730,73 @@ char text_editor_text[22][77] = {
 };
 
 
+void execute_checks(char text[77], int at_line) {
+	int len = strlen(text);
+
+	if (len <= 1) {
+		return;
+	}
+
+	char execute_content [77];
+
+	if (strcmplen(text, "command ", 8) == 0) {
+		for (int i = 0; i < len - 8; i++) {
+			command[i] = text[i + 8];
+		}
+		command[len - 8] = '\0';
+		check_for_command();
+	}
+
+	if (strcmplen(text, "print ", 6) == 0) {
+		for (int i = 0; i < len - 6; i++) {
+			execute_content[i] = text[i + 6];
+		}
+		execute_content[len - 6] = '\0';
+		terminal_writestring(execute_content);
+		newline();
+	}
+
+	if (strcmplen(text, "loop ", 5) == 0) {
+		for (int i = 0; i < len - 5; i++) {
+			execute_content[i] = text[i + 5];
+		}
+		execute_content[len - 5] = '\0';
+
+		int loop_amount = atoi(execute_content);
+		
+		for (int i = 0; i < loop_amount; i++) {
+			for (int i = at_line + 1; i < 22; i++) {
+				if (strcmplen(text_editor_text[i], "    ", 4) == 0) {
+					char text_fixed [73];
+					int len2 = strlen(text_editor_text[i]);
+
+					for (int j = 0; j < len2 - 4; j++) {
+						text_fixed[j] = text_editor_text[i][j + 4];
+					}
+					text_fixed[len2 - 4] = '\0';
+
+					execute_checks(text_fixed, i);
+				} else {
+					break;
+				}
+			}
+		}	
+	}
+
+}
+
+
 // Executes the code from the text editor
 void execute_text() {
 	for (size_t i = 0; i < 22; i++) {
 		int len = strlen(text_editor_text[i]);
 
-		if (len <= 1) {
+		if (strcmplen(text_editor_text[i], "    ", 4) == 0) {
 			continue;
 		}
 
-		char execute_content [77];
+		execute_checks(text_editor_text[i], i);
 
-		if (strcmplen(text_editor_text[i], "command ", 8) == 0) {
-			for (int j = 0; j < len - 8; j++) {
-				command[j] = text_editor_text[i][j + 8];
-			}
-			command[len - 8] = '\0';
-			check_for_command();
-		}
-
-		if (strcmplen(text_editor_text[i], "print ", 6) == 0) {
-			for (int j = 0; j < len - 6; j++) {
-				execute_content[j] = text_editor_text[i][j + 6];
-			}
-			terminal_writestring(execute_content);
-			newline();
-		}
 	}
 }
 
@@ -842,6 +909,8 @@ void check_for_command() {
 		newline();
 		terminal_writestring("write - opens a text editor");
 		newline();
+		terminal_writestring("execute - executes the code from the text editor");
+		newline();
 		terminal_writestring("meow - prints meow :3");
 		newline();
 		terminal_writestring("color [bg or/and all] [color] - changes the color of the text");
@@ -922,14 +991,14 @@ void keyboard_handler(unsigned char c) {
 		}
 	} else if (c == 15) { // tab
 		if (in_text_editor) {
-			int len = strlen(text_editor_text[terminal_row]);
+			int len = strlen(text_editor_text[terminal_row - 3]);
 			if (terminal_column + 4 < 80) {
 				terminal_column += 4;
-				text_editor_text[terminal_row][len] = ' ';
-				text_editor_text[terminal_row][len + 1] = ' ';
-				text_editor_text[terminal_row][len + 2] = ' ';
-				text_editor_text[terminal_row][len + 3] = ' ';
-				text_editor_text[terminal_row][len + 4] = '\0';
+				text_editor_text[terminal_row - 3][len] = ' ';
+				text_editor_text[terminal_row - 3][len + 1] = ' ';
+				text_editor_text[terminal_row - 3][len + 2] = ' ';
+				text_editor_text[terminal_row - 3][len + 3] = ' ';
+				text_editor_text[terminal_row - 3][len + 4] = '\0';
 			}
 		} else if (is_writing_command) {
 			int len = strlen(command);
