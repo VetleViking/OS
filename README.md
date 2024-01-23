@@ -3,7 +3,7 @@ Trying to make an os, because i am so good in Assembly, and want to learn a bit 
 
 
 ## Compiling the OS
-After some time, there will probably be some real releases here, which you can just run in any vm that takes .bin files. 
+After some time, there will probably be some real releases here, which you can just run in any vm that takes .iso files. 
 But for now, you have to compile this yourself if you want to run it, so i can give a quick tutorial. 
 
 You have to start with downloading the necessary tools, NASM, QEMU, GCC, GRUB and WSL (Windows subsystem for Linux), because all of this is much easier with the linux terminal.
