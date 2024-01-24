@@ -730,10 +730,16 @@ char text_editor_text[22][77] = {
 	'\0',
 };
 
+typedef struct {
+	char name[20];
+	char content[77];
+} Strs;
 
+static Strs saved_strings[10] = {0};
 
 // Tries to execute the line of code given
 void execute_checks(char text[77], int at_line) {
+
 	int len = strlen(text);
 
 	if (len <= 1) {
@@ -742,43 +748,102 @@ void execute_checks(char text[77], int at_line) {
 
 	char execute_content [77];
 
-	typedef struct {
-		char* name;
-		char* content;
-	} Strs;
-
-	static Strs saved_strings[10] = {0};
-
 	if (strcmplen(text, "command ", 8) == 0) {
 		for (int i = 0; i < len - 8; i++) {
 			command[i] = text[i + 8];
 		}
 		command[len - 8] = '\0';
 		check_for_command();
-	}
+		is_writing_command = false;
+	} else if (strcmplen(text, "print ", 6) == 0) {
+		if (text[6] == '"') {
+			for (int i = 0; i < len - 7; i++) {
+				execute_content[i] = text[i + 7];
+				if (text[i + 7] == '"') {
+					execute_content[i] = '\0';
+					break;
+				}
 
-	if (strcmplen(text, "print ", 6) == 0) {
-		for (int i = 0; i < len - 6; i++) {
-			execute_content[i] = text[i + 6];
-		}
-		execute_content[len - 6] = '\0';
-		terminal_writestring(execute_content);
-		newline();
-	}
+				if (i == len - 7) {
+					terminal_writestring("Error: no end of string found");
+					newline();
+					return;
+				}
+			}
+			terminal_writestring(execute_content);
+			newline();
+		} else {
+			for (int i = 0; i < len - 6; i++) {
+				execute_content[i] = text[i + 6];
+			}
+			execute_content[len - 6] = '\0';
 
-	if (strcmplen(text, "str ", 4) == 0) {
+			for (int i = 0; i < 10; i++) {
+				if (saved_strings[i].name != NULL && strcmp(saved_strings[i].name, execute_content) == 0) {
+					terminal_writestring(saved_strings[i].content);
+					newline();
+					return;
+				}
+			}	
+			terminal_writestring("Error: no string with that name found");
+			newline();
+			return;
+		}		
+	} else if (strcmplen(text, "str ", 4) == 0) {
 		for (int i = 0; i < len - 4; i++) {
 			execute_content[i] = text[i + 4];
 		}
 		execute_content[len - 4] = '\0';
+		len = strlen(execute_content);
 
 		char name[10];
 		char content[77];
 
-		// continue here, save first part to name, second part to content seperated by a space or =
-	}
+		for (int i = 0; i < len; i++) {
+			if (execute_content[i] == ' ' && execute_content[i + 1] == '=' && execute_content[i + 2] == ' ') {
+				name[i] = '\0';
+				break;
+			}
+			if (i == len - 1) {
+				terminal_writestring("Error: no = found");
+				newline();
+				return;
+			}
+			name[i] = execute_content[i];
+		}
 
-	if (strcmplen(text, "loop ", 5) == 0) {
+		bool startStr = false;
+		int j = 0;
+		for (int i = strlen(name) + 3; i < len; i++) {
+			if (execute_content[i] == '"' && !startStr) {
+				startStr = true;
+				continue;
+			} else if (execute_content[i] == '"' && startStr) {
+				content[j] = '\0';
+				break;
+			}
+			if (i == len - 1) {
+				terminal_writestring("Error: no end of string found");
+				newline();
+				return;
+			}
+
+			content[j] = execute_content[i];
+			j++;
+		}
+
+		Strs new_str;
+
+		strcpy(new_str.name, name);
+		strcpy(new_str.content, content);
+
+		for (int i = 0; i < 10; i++) {
+			if (saved_strings[i].name[0] == '\0') {
+				saved_strings[i] = new_str;
+				break;
+			}
+		}
+	} else if (strcmplen(text, "loop ", 5) == 0) {
 		for (int i = 0; i < len - 5; i++) {
 			execute_content[i] = text[i + 5];
 		}
@@ -805,6 +870,12 @@ void execute_checks(char text[77], int at_line) {
 		}	
 	}
 
+
+	else if (!strcmp(text, "\n") == 0 && !strcmplen(text, "#", 1) == 0) {
+		terminal_writestring("Unknown command: ");
+		terminal_writestring(text);
+		newline();
+	}
 }
 
 
@@ -956,10 +1027,8 @@ void check_for_command() {
 		text_editor();
 	} else if (strcmp(command, "execute") == 0) {
 		execute_text();
-	}
-	
-	
-	 else if (strcmp(command, "gamelist") == 0) {
+		terminal_writestring("Executed the code from the text editor");
+	} else if (strcmp(command, "gamelist") == 0) {
 		terminal_writestring("Games:");
 		newline();
 		terminal_writestring("rock paper scissors - RPS");
@@ -1018,9 +1087,9 @@ void keyboard_handler(unsigned char c) {
 			check_for_command();
 		}
 	} else if (c == 15) { // tab
-		if (in_text_editor) {
+		if (in_text_editor) { // TODO: make it so that it moves the text after the tab, and make it not on end of text if in middle
 			int len = strlen(text_editor_text[terminal_row - 3]);
-			if (terminal_column + 4 < 80) {
+			if (terminal_column + 4 < 80) { 
 				terminal_column += 4;
 				text_editor_text[terminal_row - 3][len] = ' ';
 				text_editor_text[terminal_row - 3][len + 1] = ' ';
@@ -1028,7 +1097,7 @@ void keyboard_handler(unsigned char c) {
 				text_editor_text[terminal_row - 3][len + 3] = ' ';
 				text_editor_text[terminal_row - 3][len + 4] = '\0';
 			}
-		} else if (is_writing_command) {
+		} else if (is_writing_command) { // TODO: the same as above
 			int len = strlen(command);
 			if (len + 4 < MAX_COMMAND_LENGTH) {
 				terminal_column += 4;
@@ -1183,6 +1252,14 @@ void terminal_putchar(unsigned char c) {
 	if (shift_pressed && (is_writing_command || in_text_editor)) {
 		if (c >= 'a' && c <= 'z') {
 			c -= 32;
+		}
+
+		if (c >= '1' && c <= '9') {
+			c -= 16;
+		}
+
+		if (c == '0') {
+			c = '=';
 		}
 	}
 
