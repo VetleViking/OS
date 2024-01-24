@@ -238,6 +238,7 @@ int strcmp(const char *str1, const char *str2) {
 }
 
 
+// Compares two strings, using n of the first string
 int strcmplen(const char *str1, const char *str2, size_t n) {
     while (n-- && *str1 && (*str1 == *str2)) {
         str1++;
@@ -322,7 +323,7 @@ void clear_screen() {
 }
 
 
-
+// Command and game stuff
 #define MAX_COMMANDS 100
 #define MAX_COMMAND_LENGTH 256
 
@@ -351,6 +352,7 @@ int tic_tac_toe_occupied[5][5] = {
 };
 
 
+// Prints the current tic tac toe board
 void print_tic_tac_toe_board() {
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 5; j++) {	
@@ -364,6 +366,7 @@ void print_tic_tac_toe_board() {
 }
 
 
+// Called at the end of a game of tic tac toe, resets the board
 void end_tic_tac_toe() {
 	for (int i = 0; i < 5; i = i + 2) {
 		tic_tac_toe_board[i][0] = ' ';
@@ -379,6 +382,8 @@ void end_tic_tac_toe() {
 }
 
 
+// Checks if someone has won in tic tac toe
+// Returns 1 if the player has won, 2 if the pc has won and 0 if no one has won
 int check_for_win_ttt() {
 	for (size_t i = 0; i < 5; i = i + 2) {
 		if (tic_tac_toe_board[i][0] == tic_tac_toe_board[i][2] && tic_tac_toe_board[i][2] == tic_tac_toe_board[i][4]) {
@@ -737,6 +742,13 @@ typedef struct {
 
 static Strs saved_strings[10] = {0};
 
+typedef struct {
+	char name[20];
+	int start_line[10];
+} Funcs;
+
+static Funcs functions[10] = {0};
+
 // Tries to execute the line of code given
 void execute_checks(char text[77], int at_line) {
 
@@ -868,6 +880,52 @@ void execute_checks(char text[77], int at_line) {
 				}
 			}
 		}	
+	} else if (strcmplen(text, "func ", 5)) {
+		char name[10];
+
+		for (int i = 0; i < len; i++) {
+			if (execute_content[i] == '\0') {
+				name[i] = '\0';
+				break;
+			}
+			name[i] = execute_content[i];
+		}
+
+		Funcs new_func;
+
+		strcpy(new_func.name, name);
+		new_func.start_line[0] = at_line + 1;
+	} else if (strcmplen(text, "call ", 5)) {
+		char name[10];
+
+		for (int i = 0; i < len; i++) {
+			if (execute_content[i] == '\0') {
+				name[i] = '\0';
+				break;
+			}
+			name[i] = execute_content[i];
+		}
+
+		for (int i = 0; i < 10; i++) {
+			if (functions[i].name != NULL && strcmp(functions[i].name, name) == 0) {
+				for (int i = functions[i].start_line; i < 22; i++) {
+					if (strcmplen(text_editor_text[i], "    ", 4) == 0) {
+						char text_fixed [73];
+						int len2 = strlen(text_editor_text[i]);
+
+						for (int j = 0; j < len2 - 4; j++) {
+							text_fixed[j] = text_editor_text[i][j + 4];
+						}
+						text_fixed[len2 - 4] = '\0';
+
+						execute_checks(text_fixed, i);
+					} else {
+						break;
+					}
+				}
+				break;
+			}
+		}
 	}
 
 
