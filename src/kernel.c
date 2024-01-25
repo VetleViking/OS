@@ -1425,10 +1425,10 @@ void move_cursor(int x, int y) {
 }
 
 
-// idk, does not do what i wanted it to do, but my fans are not going crazy anymore
-void idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_it_does_not_pause_though(int ticks) {
+// sleeps for some time TODO: add actual hardware timer
+void sleep(int ticks) {
 	int i;
-	for (i = 0; i < ticks; i++) {
+	for (i = 0; i < ticks * 500000; i++) {
 		asm volatile("nop");
 	}
 }
@@ -1448,7 +1448,7 @@ void input_loop(bool *exit_flag) {
 			}
 		}
 		
-		idk_what_this_really_does_but_the_loop_does_not_take_as_much_resources_now_it_does_not_pause_though(1000);
+		sleep(1);
 	};
 }
 
@@ -1468,7 +1468,6 @@ void kernel_main(void) {
 	newline();
     terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------");
 	newline();
-
 
 	// Cat (Meow)
 	// 
