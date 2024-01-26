@@ -14,5 +14,10 @@ Generally just nice to have, has info on most things.<br>
 Concidering rewriting the project, reading up here on how i could do it better.<br>
 
 [OSDev meaty skeleton tutorial](https://wiki.osdev.org/Meaty_Skeleton)<br>
-18/01/2024 - ?<br>
-Finished barebones, this is next.<br>
+18/01/2024 - 19/01/2024<br>
+Finished barebones, looking at this next.<br>
+
+[Osdever GDT](http://www.osdever.net/bkerndev/Docs/gdt.htm)<br>
+[Osdever IDT](http://www.osdever.net/bkerndev/Docs/idt.htm)<br>
+26/01/2024 - ?<br>
+Trying to understand how the GDT and IDT works.<br>
