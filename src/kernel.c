@@ -998,14 +998,15 @@ void text_editor() {
 			terminal_column = 0;
 		}
 	}
-
-	// starts the text editor input loop
-	in_text_editor = true;
 	terminal_row = 3;
 	terminal_column = 3;
-	input_loop(&text_editor_exit_flag);
+	move_cursor(terminal_row, terminal_column);
+	in_text_editor = true;
+	
+	while (!text_editor_exit_flag) {
+		// does not work, i dont know why, continue here
+	}
 }
-
 
 // Checks if the command is valid and executes it
 void check_for_command() {
@@ -1082,7 +1083,7 @@ void check_for_command() {
 	}  else if (strcmp(command, "meow") == 0) {
 		terminal_writestring("meow! :3");
 	} else if (strcmp(command, "write") == 0) {
-		text_editor();
+		text_editor();		
 	} else if (strcmp(command, "execute") == 0) {
 		execute_text();
 		terminal_writestring("Executed the code from the text editor");
@@ -1435,6 +1436,8 @@ void sleep(int ticks) {
 
 
 // Starts an input loop, used to get input from the user
+// its not used anymore, but ill keep it here for now
+
 void input_loop(bool *exit_flag) {
 	unsigned char c = 0;
 	while (!(*exit_flag)) { // loop until exit_flag is true
@@ -1475,57 +1478,42 @@ struct regs
 
 int timer_ticks = 0;
 
-/* Handles the timer. In this case, it's very simple: We
-*  increment the 'timer_ticks' variable every time the
-*  timer fires. By default, the timer fires 18.222 times
-*  per second. Why 18.222Hz? Some engineer at IBM must've
-*  been smoking something funky */
-void timer_handler(struct regs *r) {
-    /* Increment our 'tick count' */
-    timer_ticks++;
-	
-	
-    /* Every 18 clocks (approximately 1 second), we will
-    *  display a message on the screen */
-    if (timer_ticks % 18 == 0) {
-		is_writing_command = false;
-        int seconds = timer_ticks / 18;
 
-		char secondsStr[10];
-		itoa(seconds, secondsStr, 10);
-		char message[20] = "Time since boot: ";
-		char message2[20] = " seconds";
+void timer_wait(int ticks)
+{
+    unsigned long eticks;
 
-		char full_message[40];
-
-		for (int i = 0; i < strlen(message); i++) {
-			full_message[i] = message[i];
-		}
-
-		for (int i = 0; i < strlen(secondsStr); i++) {
-			full_message[i + strlen(message)] = secondsStr[i];
-		}
-
-		for (int i = 0; i < strlen(message2); i++) {
-			full_message[i + strlen(message) + strlen(secondsStr)] = message2[i];
-		}
-
-		full_message[strlen(full_message)] = '\0';
-
-		for (int i = 0; i < strlen(full_message); i++) {
-			terminal_putentryat(full_message[i], terminal_color, i, VGA_HEIGHT - 1);
-		}
-		is_writing_command = true;
-	}
+    eticks = timer_ticks + ticks;
+    while(timer_ticks < eticks) {}
 }
 
-/* Sets up the system clock by installing the timer handler
-*  into IRQ0 */
+
+/* Handles the timer. By default, the timer fires 18.222 times per second. */
+void timer_handler(struct regs *r) {
+    timer_ticks++;
+}
+
+void keyboard_interrupt_handler(struct regs *r) {
+    unsigned char c;
+	c = inb(0x60);
+
+	if (is_writing_command || in_text_editor) {	
+		terminal_putchar(kbd_special_characters[c]);
+		move_cursor(terminal_column, terminal_row);
+	}
+	
+}
+
+
 void timer_install()
 {
-	terminal_writestring("Timer installed");
-    /* Installs 'timer_handler' to IRQ0 */
     irq_install_handler(0, timer_handler);
+}
+
+
+void keyboard_install()
+{
+	irq_install_handler(1, keyboard_interrupt_handler);
 }
 
 
@@ -1781,6 +1769,8 @@ void fault_handler(struct regs *r) {
 
 
 
+
+
 /* Defines an IDT entry */
 struct idt_entry
 {
@@ -1914,12 +1904,12 @@ void kernel_main(void) {
 	isrs_install();
 	irq_install();
 	
-
 	__asm__ __volatile__ ("sti");
 
-	
-
 	terminal_initialize();
+	irq_remap();
+	timer_install();
+	keyboard_install();
 
 	// Prints the cat
 	terminal_writestring("  _____");
@@ -1940,13 +1930,13 @@ void kernel_main(void) {
 	// |     |___ ___ _ _ _ 
     // | | | | -_| . | | | |
 	// |_|_|_|___|___|_____|
-	irq_remap();
-	timer_install();
+
 
 	// start of kernel
 	command[0] = '\0';
 	new_kernel_line();
 	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
-	input_loop(&main_exit_flag);	
+
+	while (!main_exit_flag) {} // dont know, may ge optimized away by compiler, further testing needed
 }
