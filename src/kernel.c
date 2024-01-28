@@ -102,7 +102,6 @@ char kbd_special_characters[256] = {
 };
 
 int timer_ticks = 0;
-int seconds = 0;
 
 // Colors used by the kernel, used so that colors are easier to use
 enum vga_color {
@@ -556,6 +555,100 @@ void rock_paper_scissors() {
 }
 
 
+int rand() {
+	int rand = timer_ticks + num_commands + at_command + game_round + terminal_row;
+
+	while (rand > 100) {
+		rand = rand / 10;
+	}
+
+	return rand;
+}
+
+
+bool in_tower_defense = false;
+int tower_defense_round = 1;
+int tower_defense_money = 100;
+int tower_defense_health = 100;
+char tower_defense_map [80][25] = {
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+};
+
+int tower_defense_towers [80][25] = {
+	{0},
+	{0},
+	{0},
+	{0},
+	{0},
+	{0},
+	{0},
+	{0},
+	{0},
+	{0}
+};
+
+
+void tower_defense_start() {
+
+	if (game_round != 1) {
+		return;
+	}
+
+	clear_screen();
+
+	for (int i = 0; i < 80; i++) { // clears the map
+		for (int j = 0; j < 25; j++) {
+			tower_defense_map[i][j] = '#';
+		}
+		tower_defense_map[i][25] = '\0';
+	}
+
+	for (int i = 0; i < 80; i++) { // makes the path
+		tower_defense_map[i][12] = ' ';
+		tower_defense_map[i][13] = ' ';
+		tower_defense_map[i][14] = ' ';
+	}
+
+	for (int i = 0; i < 76;) { // makes the tower placement areas
+		tower_defense_map[i][10] = '$';
+		tower_defense_map[i + 1][11] = '1';
+		tower_defense_map[i + 2][10] = '0';
+		tower_defense_map[i][16] = '$';
+		tower_defense_map[i + 1][17] = '2';
+		tower_defense_map[i + 2][16] = '0';
+
+		i = i + 5;
+	}
+
+	for (int i = 0; i < 80; i++) { // prints the map
+		terminal_writestring(tower_defense_map[i]);
+		newline();
+	}
+}
+
+
 // Handles the game command, and calls the correct game
 void game_handler() {
 	in_game = true;
@@ -585,7 +678,6 @@ void game_handler() {
 		in_game = false;
 	}
 }
-
 
 // Command for changing the colors of the kernel
 int chosen_color = 13;
@@ -819,14 +911,12 @@ void animation_test() {
 			sleep(framerate);
 		}
 	}
-	
 }
 
 
 // Things used by the text editor
 bool check_scroll = true;
 bool in_text_editor = false;
-volatile bool text_editor_exit_flag = false;
 char text_editor_text[22][77] = {
 	'\0',
 	'\0',
@@ -1119,7 +1209,6 @@ void text_editor() {
 	terminal_column = 3;
 	move_cursor(terminal_row, terminal_column);
 	
-	terminal_writestring("test");
 	in_text_editor = true;
 }
 
