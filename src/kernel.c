@@ -102,6 +102,7 @@ char kbd_special_characters[256] = {
 };
 
 int timer_ticks = 0;
+int seconds = 0;
 
 // Colors used by the kernel, used so that colors are easier to use
 enum vga_color {
@@ -745,6 +746,7 @@ void uptime_command() {
 
 
 
+
 // Things used by the text editor
 bool check_scroll = true;
 bool in_text_editor = false;
@@ -1075,13 +1077,7 @@ void check_for_command() {
 	
 
 	// checks if the command is a normal command
-	char color[7];
-	for (int i = 0; i < 6; i++) {
-		color[i] = command[i];
-	}
-	color[6] = '\0';
-
-	if (strcmp(color, "color ") == 0) {
+	if (strcmplen(command, "color ", 6) == 0) {
 		color_command();
 		end_check_for_command();
 		return;
@@ -1131,22 +1127,13 @@ void check_for_command() {
 		terminal_writestring("rock paper scissors - RPS");
 		newline();
 		terminal_writestring("tic tac toe - TTT");
-	} else if (strcmp(command, "color") == 0) {
-		terminal_color = vga_entry_color(VGA_COLOR_BLUE, VGA_COLOR_BLACK);
-
-		for (size_t y = 0; y < VGA_HEIGHT; y++) {
-			for (size_t x = 0; x < VGA_WIDTH; x++) {
-				const size_t index = y * VGA_WIDTH + x;
-				terminal_buffer[index] = vga_entry(terminal_buffer[index], terminal_color);
-			}
-		}
-
-		terminal_writestring("Color changed :)");
 	} else if (strcmp(command, "uptime") == 0) {
 		uptime_command();
+	} else if (strcmp(command, "animation") == 0) {
+		animation_test();
 	}
-	
-	
+
+
 	else {
 		terminal_writestring("Unknown command: ");
 		terminal_writestring(command);
@@ -1469,13 +1456,36 @@ void sleep(int ticks)
     unsigned long eticks;
 
     eticks = timer_ticks + ticks;
+
+	char ticks_str[10];
+    itoa(timer_ticks, ticks_str, 10);
+
+    terminal_writestring(ticks_str);
+	newline();
+
+    char eticks_str[10];
+    itoa(eticks, eticks_str, 10);
+
+    terminal_writestring(eticks_str);
+    
+
     while(timer_ticks < eticks) {
 		asm volatile ("pause");
 	}
+
+	terminal_writestring("done");
 }
 
 
-/* Handles the timer. By default, the timer fires 18.222 times per second. */
+void timer_phase(int hz)
+{
+    int divisor = 1193180 / hz;       /* Calculate our divisor */
+    outportb(0x43, 0x36);             /* Set our command byte 0x36 */
+    outportb(0x40, divisor & 0xFF);   /* Set low byte of divisor */
+    outportb(0x40, divisor >> 8);     /* Set high byte of divisor */
+}
+
+/* Handles the timer. By default, the timer fires 18.222 times per second. set it to 100 in kernel_main. */
 void timer_handler(struct regs *r) {
     timer_ticks++;
 }
@@ -1874,6 +1884,17 @@ void gdt_install()
 }
 
 
+void animation_test() {
+	int framerate = 100/10;
+
+	for (int i = 0; i < 10; i++) {
+		terminal_writestring("T");
+
+		sleep(framerate);
+	}
+	
+}
+
 
 bool main_exit_flag = false;
 
@@ -1890,6 +1911,7 @@ void kernel_main(void) {
 	terminal_initialize();
 	irq_remap();
 	timer_install();
+	timer_phase(10);
 	keyboard_install();
 
 	// Prints the cat
@@ -1897,6 +1919,7 @@ void kernel_main(void) {
 	newline();
     terminal_writestring(" |     |___ ___ _ _ _                 |\\__/,|   (`\\");
 	newline();
+	
     terminal_writestring(" | | | | -_| . | | | |              _.|o o  |_   ) )");
 	newline();
     terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------");
@@ -1911,7 +1934,9 @@ void kernel_main(void) {
 	// |     |___ ___ _ _ _ 
     // | | | | -_| . | | | |
 	// |_|_|_|___|___|_____|
+	sleep(10);
 
+	animation_test(); // something makes this not work later in the code (the sleep), have to fix later
 
 	// start of kernel
 	command[0] = '\0';
@@ -1919,7 +1944,5 @@ void kernel_main(void) {
 	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
 
-	while (!main_exit_flag) {
-		sleep(1);
-	} // dont know, may ge optimized away by compiler, further testing needed
+	while (!main_exit_flag) {}
 }
