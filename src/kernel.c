@@ -101,6 +101,7 @@ char kbd_special_characters[256] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0 /* 200, rest are added if needed. */
 };
 
+int timer_ticks = 0;
 
 // Colors used by the kernel, used so that colors are easier to use
 enum vga_color {
@@ -705,10 +706,49 @@ void color_command() {
 }
 
 
+void uptime_command() {
+	int seconds = timer_ticks / 18.2;
+	int minutes = seconds / 60;
+	int hours = minutes / 60;
+	int days = hours / 24;
+
+	seconds = seconds % 60;
+	minutes = minutes % 60;
+	hours = hours % 24;
+
+	char uptime[20];
+
+	terminal_writestring("Uptime: ");
+
+	if (days > 0) {
+		itoa(days, uptime, 10);
+		terminal_writestring(uptime);
+		terminal_writestring(" days, ");
+	}
+	
+	if (hours > 0) {
+		itoa(hours, uptime, 10);
+		terminal_writestring(uptime);
+		terminal_writestring(" hours, ");
+	}
+
+	if (minutes > 0) {
+		itoa(minutes, uptime, 10);
+		terminal_writestring(uptime);
+		terminal_writestring(" minutes, ");
+	}
+
+	itoa(seconds, uptime, 10);
+	terminal_writestring(uptime);
+	terminal_writestring(" seconds.");
+}
+
+
+
 // Things used by the text editor
 bool check_scroll = true;
 bool in_text_editor = false;
-bool text_editor_exit_flag = false;
+volatile bool text_editor_exit_flag = false;
 char text_editor_text[22][77] = {
 	'\0',
 	'\0',
@@ -956,7 +996,6 @@ void execute_text() {
 void text_editor() {
 	check_scroll = false;
 	in_text_editor = false;
-	text_editor_exit_flag = false;
 
 	// draws the header of the text editor
 	clear_screen();  
@@ -1002,10 +1041,6 @@ void text_editor() {
 	terminal_column = 3;
 	move_cursor(terminal_row, terminal_column);
 	in_text_editor = true;
-	
-	while (!text_editor_exit_flag) {
-		// does not work, i dont know why, continue here
-	}
 }
 
 // Checks if the command is valid and executes it
@@ -1072,6 +1107,8 @@ void check_for_command() {
 		terminal_writestring("meow - prints meow :3");
 		newline();
 		terminal_writestring("color [bg or/and all] [color] - changes the color of the text");
+		newline();
+		terminal_writestring("uptime - prints the time the kernel has been running");
 	} else if (strcmp(command, "cat") == 0) {
 		terminal_writestring("  _____");
 		newline();
@@ -1083,7 +1120,8 @@ void check_for_command() {
 	}  else if (strcmp(command, "meow") == 0) {
 		terminal_writestring("meow! :3");
 	} else if (strcmp(command, "write") == 0) {
-		text_editor();		
+		text_editor();
+		return;		
 	} else if (strcmp(command, "execute") == 0) {
 		execute_text();
 		terminal_writestring("Executed the code from the text editor");
@@ -1104,6 +1142,8 @@ void check_for_command() {
 		}
 
 		terminal_writestring("Color changed :)");
+	} else if (strcmp(command, "uptime") == 0) {
+		uptime_command();
 	}
 	
 	
@@ -1122,6 +1162,7 @@ void end_check_for_command() {
 	at_command = num_commands;
 	command[0] = '\0';
 	new_kernel_line();
+	
 }
 
 
@@ -1133,9 +1174,9 @@ void keyboard_handler(unsigned char c) {
 		if (in_text_editor) {
 			in_text_editor = false;	
 			check_scroll = true;
-			text_editor_exit_flag = true;
-
+			end_check_for_command();
 			clear_screen();
+			new_kernel_line();
 		}
 	} else if (c == 28) { // enter and writing command
 		if (in_text_editor) {
@@ -1392,30 +1433,6 @@ static __inline unsigned char inb (unsigned short int port) {
   return _v;
 }
 
-
-// Initializes the PICs
-void init_pics(int pic1, int pic2) {
-   /* send ICW1 */
-   outb(PIC1, ICW1);
-   outb(PIC2, ICW1);
-
-   /* send ICW2 */
-   outb(PIC1 + 1, pic1);   
-   outb(PIC2 + 1, pic2);   
-
-   /* send ICW3 */
-   outb(PIC1 + 1, 4);   
-   outb(PIC2 + 1, 2);
-
-   /* send ICW4 */
-   outb(PIC1 + 1, ICW4);
-   outb(PIC2 + 1, ICW4);
-
-   /* disable all IRQs */
-   outb(PIC1 + 1, 0xFF);
-}
-
-
 // Moves the cursor to a specific location, used to move cursor when writing commands
 void move_cursor(int x, int y) {
     uint16_t pos = y * VGA_WIDTH + x;
@@ -1423,36 +1440,6 @@ void move_cursor(int x, int y) {
     outb(0x3D5, pos >> 8);
     outb(0x3D4, 15);
     outb(0x3D5, pos);
-}
-
-
-// sleeps for some time TODO: add actual hardware timer
-void sleep(int ticks) {
-	int i;
-	for (i = 0; i < ticks * 500000; i++) {
-		asm volatile("nop");
-	}
-}
-
-
-// Starts an input loop, used to get input from the user
-// its not used anymore, but ill keep it here for now
-
-void input_loop(bool *exit_flag) {
-	unsigned char c = 0;
-	while (!(*exit_flag)) { // loop until exit_flag is true
-		
-		if (inb(0x60) != c) { // if key pressed
-
-			c = inb(0x60);
-			if (c > 0) {
-				terminal_putchar(kbd_special_characters[c]);
-				move_cursor(terminal_column, terminal_row);
-			}
-		}
-		
-		sleep(1);
-	};
 }
 
 
@@ -1476,15 +1463,15 @@ struct regs
     unsigned int eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */ 
 };
 
-int timer_ticks = 0;
 
-
-void timer_wait(int ticks)
+void sleep(int ticks)
 {
     unsigned long eticks;
 
     eticks = timer_ticks + ticks;
-    while(timer_ticks < eticks) {}
+    while(timer_ticks < eticks) {
+		asm volatile ("pause");
+	}
 }
 
 
@@ -1766,11 +1753,6 @@ void fault_handler(struct regs *r) {
     }
 }
 
-
-
-
-
-
 /* Defines an IDT entry */
 struct idt_entry
 {
@@ -1893,9 +1875,8 @@ void gdt_install()
 
 
 
-
-
 bool main_exit_flag = false;
+
 
 // The main function, called at the start of the kernel, calls all the other functions
 void kernel_main(void) {
@@ -1938,5 +1919,7 @@ void kernel_main(void) {
 	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
 
-	while (!main_exit_flag) {} // dont know, may ge optimized away by compiler, further testing needed
+	while (!main_exit_flag) {
+		sleep(1);
+	} // dont know, may ge optimized away by compiler, further testing needed
 }
