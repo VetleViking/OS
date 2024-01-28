@@ -566,14 +566,12 @@ int rand() {
 }
 
 
+bool check_scroll = true;
 bool in_tower_defense = false;
 int tower_defense_round = 1;
 int tower_defense_money = 100;
 int tower_defense_health = 100;
-char tower_defense_map [80][25] = {
-	'\0',
-	'\0',
-	'\0',
+char tower_defense_map [22][81] = {
 	'\0',
 	'\0',
 	'\0',
@@ -596,7 +594,7 @@ char tower_defense_map [80][25] = {
 	'\0',
 };
 
-int tower_defense_towers [80][25] = {
+int tower_defense_towers [22][25] = {
 	{0},
 	{0},
 	{0},
@@ -609,43 +607,78 @@ int tower_defense_towers [80][25] = {
 	{0}
 };
 
+bool in_TD = false;
+
+void tower_defense_input() {
+	if (strcmp(command, "b") == 0) {
+		terminal_row = 1;
+		terminal_column = 2;
+		if (tower_defense_money >= 10) {
+			terminal_writestring("Where do you want to place the tower?");
+		} else {
+			terminal_writestring("You dont have enough money to buy a tower");
+		}
+
+		terminal_row = 26;
+		terminal_column = 0;
+	}
+}
+
 
 void tower_defense_start() {
+	check_scroll = false;	
 
 	if (game_round != 1) {
+		tower_defense_input();
 		return;
 	}
 
 	clear_screen();
 
-	for (int i = 0; i < 80; i++) { // clears the map
-		for (int j = 0; j < 25; j++) {
-			tower_defense_map[i][j] = '#';
+	for (int i = 0; i < 22; i++) { // clears the map
+		for (int j = 0; j < 80; j++) {
+			tower_defense_map[i][j] = ' ';
 		}
-		tower_defense_map[i][25] = '\0';
+		tower_defense_map[i][80] = '\0';
 	}
 
 	for (int i = 0; i < 80; i++) { // makes the path
-		tower_defense_map[i][12] = ' ';
-		tower_defense_map[i][13] = ' ';
-		tower_defense_map[i][14] = ' ';
+		tower_defense_map[9][i] = '-';
+		tower_defense_map[11][i] = '-';
 	}
 
-	for (int i = 0; i < 76;) { // makes the tower placement areas
-		tower_defense_map[i][10] = '$';
-		tower_defense_map[i + 1][11] = '1';
-		tower_defense_map[i + 2][10] = '0';
-		tower_defense_map[i][16] = '$';
-		tower_defense_map[i + 1][17] = '2';
-		tower_defense_map[i + 2][16] = '0';
+	for (int i = 5; i < 75;) { // makes the tower placement areas
+		tower_defense_map[7][i] = '$';
+		tower_defense_map[7][i + 1] = '1';
+		tower_defense_map[7][i + 2] = '0';
+		tower_defense_map[13][i] = '$';
+		tower_defense_map[13][i + 1] = '2';
+		tower_defense_map[13][i + 2] = '0';
 
-		i = i + 5;
+		i = i + 10;
 	}
 
-	for (int i = 0; i < 80; i++) { // prints the map
+	for (int i = 0; i < 25; i++) { // prints the map
 		terminal_writestring(tower_defense_map[i]);
-		newline();
 	}
+
+	terminal_putchar(201);
+	for (size_t i = 0; i < 78; i++) {
+		terminal_putchar(205);
+	}
+	terminal_putchar(187);
+	terminal_putchar(186);
+	terminal_writestring(" Tower defense ----------------------------------------------- B to buy tower ");
+	terminal_putchar(186);
+	terminal_putchar(200);
+	terminal_putchar(205);
+	terminal_putchar(203);
+	for (size_t i = 0; i < 76; i++) {
+		terminal_putchar(205);
+	}
+	terminal_putchar(188);
+
+	game_round++;
 }
 
 
@@ -670,6 +703,8 @@ void game_handler() {
 		rock_paper_scissors();
 	} else if (strcmp(game, "tic tac toe") == 0 || strcmp(game, "TTT") == 0) {
 		tic_tac_toe();
+	} else if (strcmp(game, "tower defense") == 0 || strcmp(game, "TD") == 0) {
+		tower_defense_start();
 	}
 	
 	else {
@@ -915,7 +950,7 @@ void animation_test() {
 
 
 // Things used by the text editor
-bool check_scroll = true;
+
 bool in_text_editor = false;
 char text_editor_text[22][77] = {
 	'\0',
