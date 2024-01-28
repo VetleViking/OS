@@ -745,6 +745,82 @@ void uptime_command() {
 }
 
 
+void animation_test() {
+	int framerate = 100/2;
+
+	clear_screen();
+
+	char animation_frames [9][25][80] = {
+		{
+			"    |\\__/,|   (`\\ ",
+			"    |o o  |    ) )  ",
+			"  _.\\ ^  /_  ( (  ",
+			"-(((---(((--------  "
+		},
+		{
+			"                    ",
+			"    |\\__/,|   (`\\ ",
+			"  _.|o o  |_   ) )  ",
+			"-(((---(((--------  "
+		},
+		{
+			"                    ",
+			"                    ",
+			"  _.|\\__/,|_  (`\\ ",
+			"-(((---(((--------  "
+		},
+		{
+			"                    ",
+			"                    ",
+			"              (`\\  ",
+			"-(((---(((--------  "
+		},
+		{
+			"                    ",
+			"                    ",
+			"              (`\\  ",
+			"------------------  "
+		},
+		{
+			"                    ",
+			"                    ",
+			"              (`\\  ",
+			"-(((---(((--------  "
+		},
+		{
+			"                    ",
+			"                    ",
+			"  _.|\\__/,|_  (`\\ ",
+			"-(((---(((--------  "
+		},
+		{
+			"                    ",
+			"    |\\__/,|   (`\\ ",
+			"  _.|o o  |_   ) )  ",
+			"-(((---(((--------  "
+		},
+		{
+			"    |\\__/,|   (`\\ ",
+			"    |o o  |    ) )  ",
+			"  _.\\ ^  /_  ( (  ",
+			"-(((---(((--------  "
+		}
+	};
+
+	for (int k = 0; k < 4; k++) {
+		for (int i = 0; i < 9; i++) {
+			terminal_column = 0;
+			terminal_row = 0;
+			for (int j = 0; j < 5; j++) {
+				terminal_writestring(animation_frames[i][j]);
+				newline();
+			}
+
+			sleep(framerate);
+		}
+	}
+	
+}
 
 
 // Things used by the text editor
@@ -1042,6 +1118,8 @@ void text_editor() {
 	terminal_row = 3;
 	terminal_column = 3;
 	move_cursor(terminal_row, terminal_column);
+	
+	terminal_writestring("test");
 	in_text_editor = true;
 }
 
@@ -1056,7 +1134,6 @@ void check_for_command() {
     }
 
 	is_writing_command = false;
-
 
 	// checks if the command is a game command
 	char is_game[6];
@@ -1457,23 +1534,9 @@ void sleep(int ticks)
 
     eticks = timer_ticks + ticks;
 
-	char ticks_str[10];
-    itoa(timer_ticks, ticks_str, 10);
-
-    terminal_writestring(ticks_str);
-	newline();
-
-    char eticks_str[10];
-    itoa(eticks, eticks_str, 10);
-
-    terminal_writestring(eticks_str);
-    
-
     while(timer_ticks < eticks) {
 		asm volatile ("pause");
 	}
-
-	terminal_writestring("done");
 }
 
 
@@ -1487,10 +1550,22 @@ void timer_phase(int hz)
 
 /* Handles the timer. By default, the timer fires 18.222 times per second. set it to 100 in kernel_main. */
 void timer_handler(struct regs *r) {
+	bool was_writing_command = is_writing_command; // temporary, used for bug testing
+	is_writing_command = false;
+	char ticks_str[10];
+	itoa(timer_ticks, ticks_str, 10);
+	for (int i = 0; i < strlen(ticks_str); i++) {
+		terminal_putentryat(ticks_str[i], terminal_color, i, 24);
+	}
+	is_writing_command = was_writing_command; // end of temporary
+
     timer_ticks++;
+
 }
 
 void keyboard_interrupt_handler(struct regs *r) {
+	asm volatile ("sti");
+	
     unsigned char c;
 	c = inb(0x60);
 
@@ -1884,18 +1959,6 @@ void gdt_install()
 }
 
 
-void animation_test() {
-	int framerate = 100/10;
-
-	for (int i = 0; i < 10; i++) {
-		terminal_writestring("T");
-
-		sleep(framerate);
-	}
-	
-}
-
-
 bool main_exit_flag = false;
 
 
@@ -1911,7 +1974,7 @@ void kernel_main(void) {
 	terminal_initialize();
 	irq_remap();
 	timer_install();
-	timer_phase(10);
+	timer_phase(100);
 	keyboard_install();
 
 	// Prints the cat
@@ -1919,7 +1982,6 @@ void kernel_main(void) {
 	newline();
     terminal_writestring(" |     |___ ___ _ _ _                 |\\__/,|   (`\\");
 	newline();
-	
     terminal_writestring(" | | | | -_| . | | | |              _.|o o  |_   ) )");
 	newline();
     terminal_writestring(" |_|_|_|___|___|_____|             -(((---(((--------");
@@ -1934,9 +1996,6 @@ void kernel_main(void) {
 	// |     |___ ___ _ _ _ 
     // | | | | -_| . | | | |
 	// |_|_|_|___|___|_____|
-	sleep(10);
-
-	animation_test(); // something makes this not work later in the code (the sleep), have to fix later
 
 	// start of kernel
 	command[0] = '\0';
