@@ -2,9 +2,9 @@
 Trying to make an os, because i am so good in Assembly, and want to learn a bit of C (and forcing Kasper to join me)
 
 
-## Compiling the OS
-After some time, there will probably be some real releases here, which you can just run in any vm that takes .iso files. 
-But for now, you have to compile this yourself if you want to run it, so i can give a quick tutorial. 
+## Running the OS
+You can download the latest version i think is production ready from the releases, which you can just run in any vm that takes .iso files. 
+But if you want to try the absolute lastest, you can compile this yourself if you want, and i can give a quick tutorial. 
 
 You have to start with downloading the necessary tools, NASM, QEMU, GCC, GRUB and WSL (Windows subsystem for Linux), because all of this is much easier with the linux terminal.
 We will start with WSL, so that we can download the other stuff there:
