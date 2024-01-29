@@ -594,27 +594,61 @@ char tower_defense_map [22][81] = {
 	'\0',
 };
 
-int tower_defense_towers [22][25] = {
-	{0},
-	{0},
-	{0},
-	{0},
-	{0},
-	{0},
-	{0},
-	{0},
-	{0},
-	{0}
+int tower_defense_towers [25] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0
 };
 
 bool in_TD = false;
+
+void td_keyboard_handler(c) {
+	if (c == 75) { // left
+			terminal_column = 5;	
+			terminal_row = 7;
+			move_cursor(terminal_column, terminal_row);
+		for (int i = terminal_column - 1; i > 0; i--) {
+			if (tower_defense_map[terminal_row][i] == '$') {
+				const size_t index = terminal_column + terminal_row * VGA_WIDTH;
+
+				terminal_putentryat(terminal_buffer[index], terminal_color, terminal_column, terminal_row);
+				terminal_column = i;
+				move_cursor(terminal_column, terminal_row);
+				break;
+			}
+		}
+	} else if (c == 77) { // right
+			terminal_column = 5;	
+			terminal_row = 7;
+			move_cursor(terminal_column, terminal_row);
+		for (int i = terminal_column + 1; i < 80; i++) {
+			if (tower_defense_map[terminal_row][i] == '$') {
+				const size_t index = terminal_column + terminal_row * VGA_WIDTH;
+
+				terminal_putentryat(terminal_buffer[index], terminal_color, terminal_column, terminal_row);
+				terminal_column = i;
+				move_cursor(terminal_column, terminal_row);
+				break;
+			}
+		}
+	} 
+	
+}
 
 void tower_defense_input() {
 	if (strcmp(command, "b") == 0) {
 		terminal_row = 1;
 		terminal_column = 2;
 		if (tower_defense_money >= 10) {
-			terminal_writestring("Where do you want to place the tower?");
+			terminal_writestring("Where do you want to place the tower? (arrow keys to move, enter to place)");
+			terminal_column = 5;	
+			terminal_row = 7;
+			move_cursor(terminal_column, terminal_row);
+
+			
+			
+			const size_t index = terminal_column + terminal_row * VGA_WIDTH;
+			terminal_putentryat(terminal_buffer[index], VGA_COLOR_BLUE, terminal_column, terminal_row);
 		} else {
 			terminal_writestring("You dont have enough money to buy a tower");
 		}
@@ -632,6 +666,8 @@ void tower_defense_start() {
 		tower_defense_input();
 		return;
 	}
+
+	in_TD = true;
 
 	clear_screen();
 
@@ -835,7 +871,7 @@ void color_command() {
 
 
 void uptime_command() {
-	int seconds = timer_ticks / 18.2;
+	int seconds = timer_ticks / 100;
 	int minutes = seconds / 60;
 	int hours = minutes / 60;
 	int days = hours / 24;
@@ -1357,6 +1393,10 @@ void end_check_for_command() {
 // Checks if the key is special (like enter, backspace, etc.)
 void keyboard_handler(unsigned char c) {
 
+	if (in_TD) {
+		td_keyboard_handler(c);
+	}
+
 	if (c == 0) {
 	} else if (c == 1){
 		if (in_text_editor) {
@@ -1674,14 +1714,14 @@ void timer_phase(int hz)
 
 /* Handles the timer. By default, the timer fires 18.222 times per second. set it to 100 in kernel_main. */
 void timer_handler(struct regs *r) {
-	bool was_writing_command = is_writing_command; // temporary, used for bug testing
-	is_writing_command = false;
-	char ticks_str[10];
-	itoa(timer_ticks, ticks_str, 10);
-	for (int i = 0; i < strlen(ticks_str); i++) {
-		terminal_putentryat(ticks_str[i], terminal_color, i, 24);
-	}
-	is_writing_command = was_writing_command; // end of temporary
+	// bool was_writing_command = is_writing_command; // temporary, used for bug testing
+	// is_writing_command = false;
+	// char ticks_str[10];
+	// itoa(timer_ticks, ticks_str, 10);
+	// for (int i = 0; i < strlen(ticks_str); i++) {
+	// 	terminal_putentryat(ticks_str[i], terminal_color, i, 24);
+	// }
+	// is_writing_command = was_writing_command; // end of temporary
 
     timer_ticks++;
 
