@@ -644,16 +644,18 @@ void print_td_map() {
 }
 
 
-
+bool buying_tower = false;
 
 void td_keyboard_handler(c) {
 	is_writing_command = false;
 	in_TD = false; // janky, fix later mby
+
 	if (c == 48) { // b
+		buying_tower = true;
 		terminal_row = 1;
 		terminal_column = 2;
 		terminal_writestring("Where do you want to place the tower? (arrow keys to move, enter to place)");
-			
+		
 		terminal_column = 5;	
 		terminal_row = 7;
 
@@ -661,63 +663,82 @@ void td_keyboard_handler(c) {
 		
 		
 	} else if (c == 75) { // left
-		for (int i = terminal_column - 1; i > 0; i--) {
-			if (tower_defense_map[terminal_row][i] == '$') {
-				change_all_price_colors(chosen_bg_color);
-				terminal_column = i;
-				change_all_price_colors(VGA_COLOR_BLUE);	
-				break;
+		if (buying_tower) {
+			for (int i = terminal_column - 1; i > 0; i--) {
+				if (tower_defense_map[terminal_row][i] == '$') {
+					change_all_price_colors(chosen_bg_color);
+					terminal_column = i;
+					change_all_price_colors(VGA_COLOR_BLUE);	
+					break;
+				}
 			}
 		}
 	} else if (c == 77) { // right
-		for (int i = terminal_column + 1; i < 80; i++) {
-			if (tower_defense_map[terminal_row][i] == '$') {
-				change_all_price_colors(chosen_bg_color);
-				terminal_column = i;
-				change_all_price_colors(VGA_COLOR_BLUE);
-				break;
+		if (buying_tower) {
+			for (int i = terminal_column + 1; i < 80; i++) {
+				if (tower_defense_map[terminal_row][i] == '$') {
+					change_all_price_colors(chosen_bg_color);
+					terminal_column = i;
+					change_all_price_colors(VGA_COLOR_BLUE);
+					break;
+				}
 			}
 		}
 	} else if (c == 72) { // up
-		for (int i = terminal_row - 1; i > 0; i--) {
-			if (tower_defense_map[i][terminal_column] == '$') {
-				change_all_price_colors(chosen_bg_color);
-				terminal_row = i;
-				change_all_price_colors(VGA_COLOR_BLUE);
-				break;
+		if (buying_tower) {
+			for (int i = terminal_row - 1; i > 0; i--) {
+				if (tower_defense_map[i][terminal_column] == '$') {
+					change_all_price_colors(chosen_bg_color);
+					terminal_row = i;
+					change_all_price_colors(VGA_COLOR_BLUE);
+					break;
+				}
 			}
 		}
 	} else if (c == 80) { // down
-		for (int i = terminal_row + 1; i < 22; i++) {
-			if (tower_defense_map[i][terminal_column] == '$') {
-				change_all_price_colors(chosen_bg_color);
-				terminal_row = i;
-				change_all_price_colors(VGA_COLOR_BLUE);
-				break;
+		if (buying_tower) {
+			for (int i = terminal_row + 1; i < 22; i++) {
+				if (tower_defense_map[i][terminal_column] == '$') {
+					change_all_price_colors(chosen_bg_color);
+					terminal_row = i;
+					change_all_price_colors(VGA_COLOR_BLUE);
+					break;
+				}
 			}
 		}
 	} else if (c == 28) { // enter
-		
-		if (tower_defense_map[terminal_row][terminal_column] == '$') {
-			int tower_price = 0;
+		if (buying_tower) {
+			if (tower_defense_map[terminal_row][terminal_column] == '$') {
+				int tower_price = 0;
 
-			for (int i = terminal_column + 1; i < 80; i++) {
-				if (tower_defense_map[terminal_row][i] == ' ') {
-					break;
-				} else {
-					tower_price = tower_price * 10 + (tower_defense_map[terminal_row][i] - '0');
+				for (int i = terminal_column + 1; i < 80; i++) {
+					if (tower_defense_map[terminal_row][i] == ' ') {
+						break;
+					} else {
+						tower_price = tower_price * 10 + (tower_defense_map[terminal_row][i] - '0');
+					}
+				}
+
+				if (tower_defense_money >= tower_price) {
+					tower_defense_money = tower_defense_money - tower_price;
+
+					tower_defense_map[terminal_row][terminal_column] = 'T';
+					for (int i = terminal_column + 1; i < 80; i++) {
+						if (tower_defense_map[terminal_row][i] == ' ') {
+							break;
+						} else {
+							tower_defense_map[terminal_row][i] = ' ';
+						}
+					}
+
+					terminal_column = 0;
+					terminal_row = 26;
+					move_cursor(terminal_column, terminal_row);
+					
+					print_td_map();
 				}
 			}
-
-
-			if (tower_defense_money >= tower_price) {
-				tower_defense_money = tower_defense_money - tower_price;
-
-				tower_defense_map[terminal_row][terminal_column] = ' ';
-				tower_defense_map[terminal_row][terminal_column + 1] = 'T';
-				tower_defense_map[terminal_row][terminal_column + 2] = ' ';
-				print_td_map();
-			}
+			buying_tower = false;
 		}
 	}
 	
@@ -726,18 +747,46 @@ void td_keyboard_handler(c) {
 	is_writing_command = true;
 }
 
-void tower_defense_input() {
-	
-}
+void tower_defense_play() {
+	int framerate = 100 / 2;
 
+	int time_since_last_enemy = 0;
+
+	for (int i = 0; i < 10; i++) {
+		int moved_enemy = 100;
+
+		if (time_since_last_enemy > 5) {
+			time_since_last_enemy = 0;
+			tower_defense_map[10][0] = 'E';
+			moved_enemy = 0;
+		}
+
+		for (int i = 0; i < 80; i++) {
+			if (tower_defense_map[10][i] == 'E') {
+				if (i == 79) {
+					tower_defense_health = tower_defense_health - 10;
+					tower_defense_map[10][i] = ' ';
+				} else {
+					if (moved_enemy - i == 0) {
+						continue;
+					}
+					tower_defense_map[10][i] = ' ';
+					tower_defense_map[10][i + 1] = 'E';
+					moved_enemy = i + 1;
+				}
+			}
+		}
+
+		time_since_last_enemy++;
+
+		print_td_map();
+
+		sleep(framerate);
+	}
+}
 
 void tower_defense_start() {
 	check_scroll = false;	
-
-	if (game_round != 1) {
-		tower_defense_input();
-		return;
-	}
 
 	in_TD = true;
 
@@ -779,9 +828,7 @@ void tower_defense_start() {
 	terminal_writestring(" Tower defense ----------------------------------------------- B to buy tower ");
 	terminal_putchar(186);
 	terminal_putchar(200);
-	terminal_putchar(205);
-	terminal_putchar(203);
-	for (size_t i = 0; i < 76; i++) {
+	for (size_t i = 0; i < 78; i++) {
 		terminal_putchar(205);
 	}
 	terminal_putchar(188);
@@ -1798,8 +1845,19 @@ void timer_handler(struct regs *r) {
 
 }
 
+
 void keyboard_interrupt_handler(struct regs *r) {
 	asm volatile ("sti");
+
+	if (in_TD) { // TODO: will probably have to rewrite everything else to be like this
+		for (int i = 0; i < 100; i++) {
+			if (queued_key_presses[i] == 0) {
+				queued_key_presses[i] = inb(0x60);
+				break;
+			}
+		}
+		return;
+	}
 	
     unsigned char c;
 	c = inb(0x60);
@@ -2239,4 +2297,5 @@ void kernel_main(void) {
 	move_cursor(terminal_column, terminal_row);
 
 	while (!main_exit_flag) {}
+
 }
