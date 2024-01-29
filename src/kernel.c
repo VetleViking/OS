@@ -122,6 +122,9 @@ enum vga_color {
 	VGA_COLOR_LIGHT_BROWN = 14,
 	VGA_COLOR_WHITE = 15,
 };
+
+int chosen_color = 13;
+int chosen_bg_color = 0;
  
 static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
 	return fg | bg << 4;
@@ -602,60 +605,129 @@ int tower_defense_towers [25] = {
 
 bool in_TD = false;
 
-void td_keyboard_handler(c) {
-	if (c == 75) { // left
-			terminal_column = 5;	
-			terminal_row = 7;
+
+void change_all_price_colors(int color) {
+	int prev_ter_col = terminal_column;
+	for (int i = terminal_column; i < 80; i++) {
+		if (tower_defense_map[terminal_row][i] == ' ') {
+			terminal_column = prev_ter_col;
 			move_cursor(terminal_column, terminal_row);
+			return;
+		} else {
+			terminal_column = i;
+			change_cursorpos_bgcolor(color);
+		}
+	}
+}
+
+
+void change_cursorpos_bgcolor(int color) {
+	terminal_color = vga_entry_color(chosen_color, color);
+	const size_t index = terminal_column + terminal_row * VGA_WIDTH;
+	terminal_buffer[index] = vga_entry(terminal_buffer[index], terminal_color);
+	terminal_color = vga_entry_color(chosen_color, chosen_bg_color);	
+}
+
+
+void print_td_map() {
+	int prev_ter_col = terminal_column;
+	int prev_ter_row = terminal_row;
+
+	terminal_column = 0;
+	terminal_row = 0;
+	for (int i = 0; i < 22; i++) {
+		terminal_writestring(tower_defense_map[i]);
+	}
+
+	terminal_column = prev_ter_col;
+	terminal_row = prev_ter_row;
+}
+
+
+
+
+void td_keyboard_handler(c) {
+	is_writing_command = false;
+	in_TD = false; // janky, fix later mby
+	if (c == 48) { // b
+		terminal_row = 1;
+		terminal_column = 2;
+		terminal_writestring("Where do you want to place the tower? (arrow keys to move, enter to place)");
+			
+		terminal_column = 5;	
+		terminal_row = 7;
+
+		change_all_price_colors(VGA_COLOR_BLUE);
+		
+		
+	} else if (c == 75) { // left
 		for (int i = terminal_column - 1; i > 0; i--) {
 			if (tower_defense_map[terminal_row][i] == '$') {
-				const size_t index = terminal_column + terminal_row * VGA_WIDTH;
-
-				terminal_putentryat(terminal_buffer[index], terminal_color, terminal_column, terminal_row);
+				change_all_price_colors(chosen_bg_color);
 				terminal_column = i;
-				move_cursor(terminal_column, terminal_row);
+				change_all_price_colors(VGA_COLOR_BLUE);	
 				break;
 			}
 		}
 	} else if (c == 77) { // right
-			terminal_column = 5;	
-			terminal_row = 7;
-			move_cursor(terminal_column, terminal_row);
 		for (int i = terminal_column + 1; i < 80; i++) {
 			if (tower_defense_map[terminal_row][i] == '$') {
-				const size_t index = terminal_column + terminal_row * VGA_WIDTH;
-
-				terminal_putentryat(terminal_buffer[index], terminal_color, terminal_column, terminal_row);
+				change_all_price_colors(chosen_bg_color);
 				terminal_column = i;
-				move_cursor(terminal_column, terminal_row);
+				change_all_price_colors(VGA_COLOR_BLUE);
 				break;
 			}
 		}
-	} 
+	} else if (c == 72) { // up
+		for (int i = terminal_row - 1; i > 0; i--) {
+			if (tower_defense_map[i][terminal_column] == '$') {
+				change_all_price_colors(chosen_bg_color);
+				terminal_row = i;
+				change_all_price_colors(VGA_COLOR_BLUE);
+				break;
+			}
+		}
+	} else if (c == 80) { // down
+		for (int i = terminal_row + 1; i < 22; i++) {
+			if (tower_defense_map[i][terminal_column] == '$') {
+				change_all_price_colors(chosen_bg_color);
+				terminal_row = i;
+				change_all_price_colors(VGA_COLOR_BLUE);
+				break;
+			}
+		}
+	} else if (c == 28) { // enter
+		
+		if (tower_defense_map[terminal_row][terminal_column] == '$') {
+			int tower_price = 0;
+
+			for (int i = terminal_column + 1; i < 80; i++) {
+				if (tower_defense_map[terminal_row][i] == ' ') {
+					break;
+				} else {
+					tower_price = tower_price * 10 + (tower_defense_map[terminal_row][i] - '0');
+				}
+			}
+
+
+			if (tower_defense_money >= tower_price) {
+				tower_defense_money = tower_defense_money - tower_price;
+
+				tower_defense_map[terminal_row][terminal_column] = ' ';
+				tower_defense_map[terminal_row][terminal_column + 1] = 'T';
+				tower_defense_map[terminal_row][terminal_column + 2] = ' ';
+				print_td_map();
+			}
+		}
+	}
 	
+
+	in_TD = true;
+	is_writing_command = true;
 }
 
 void tower_defense_input() {
-	if (strcmp(command, "b") == 0) {
-		terminal_row = 1;
-		terminal_column = 2;
-		if (tower_defense_money >= 10) {
-			terminal_writestring("Where do you want to place the tower? (arrow keys to move, enter to place)");
-			terminal_column = 5;	
-			terminal_row = 7;
-			move_cursor(terminal_column, terminal_row);
-
-			
-			
-			const size_t index = terminal_column + terminal_row * VGA_WIDTH;
-			terminal_putentryat(terminal_buffer[index], VGA_COLOR_BLUE, terminal_column, terminal_row);
-		} else {
-			terminal_writestring("You dont have enough money to buy a tower");
-		}
-
-		terminal_row = 26;
-		terminal_column = 0;
-	}
+	
 }
 
 
@@ -751,9 +823,6 @@ void game_handler() {
 }
 
 // Command for changing the colors of the kernel
-int chosen_color = 13;
-int chosen_bg_color = 0;
-
 void color_command() {
 	int at_length = 6;
 	int len = strlen(command);
@@ -1395,6 +1464,8 @@ void keyboard_handler(unsigned char c) {
 
 	if (in_TD) {
 		td_keyboard_handler(c);
+		should_print = false;
+		return;
 	}
 
 	if (c == 0) {
