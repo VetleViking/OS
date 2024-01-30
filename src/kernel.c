@@ -597,11 +597,10 @@ char tower_defense_map [22][81] = {
 	'\0',
 };
 
-int tower_defense_towers [25] = {
-	0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0
+int td_color_placement[2][1] = {
+	0, 0
 };
+
 
 bool in_TD = false;
 
@@ -628,8 +627,13 @@ void change_cursorpos_bgcolor(int color) {
 	terminal_color = vga_entry_color(chosen_color, chosen_bg_color);	
 }
 
-
 void print_td_map() {
+	bool was_writing_command = is_writing_command;
+	bool was_in_TD = in_TD;
+
+	is_writing_command = false;
+	in_TD = false;
+
 	int prev_ter_col = terminal_column;
 	int prev_ter_row = terminal_row;
 
@@ -639,8 +643,18 @@ void print_td_map() {
 		terminal_writestring(tower_defense_map[i]);
 	}
 
+	terminal_column = td_color_placement[0][0];
+	terminal_row = td_color_placement[0][1];
+
+	if (terminal_column != 0 && terminal_row != 0) {
+		change_all_price_colors(VGA_COLOR_BLUE);
+	}
+
 	terminal_column = prev_ter_col;
 	terminal_row = prev_ter_row;
+
+	is_writing_command = was_writing_command;
+	in_TD = was_in_TD;
 }
 
 
@@ -651,24 +665,35 @@ void td_keyboard_handler(c) {
 	in_TD = false; // janky, fix later mby
 
 	if (c == 48) { // b
-		buying_tower = true;
-		terminal_row = 1;
-		terminal_column = 2;
-		terminal_writestring("Where do you want to place the tower? (arrow keys to move, enter to place)");
-		
-		terminal_column = 5;	
-		terminal_row = 7;
+		if (!buying_tower) {
+			buying_tower = true;
+			char help_str[80] = "Where do you want to place the tower? (arrow keys to move,enter to place)";
 
-		change_all_price_colors(VGA_COLOR_BLUE);
-		
-		
+			int row = 1;
+			int i2 = 22;
+			for (int i = 0; i < strlen(help_str); i++) {
+				if (i2 > 79) {
+					row = 2;
+					i2 = 22;
+				}
+				tower_defense_map[row][i2] = help_str[i];
+				i2++;
+			}
+			
+			terminal_column = 5;	
+			terminal_row = 7;
+
+			td_color_placement[0][0] = terminal_column;
+			td_color_placement[0][1] = terminal_row;
+		}
 	} else if (c == 75) { // left
 		if (buying_tower) {
 			for (int i = terminal_column - 1; i > 0; i--) {
-				if (tower_defense_map[terminal_row][i] == '$') {
-					change_all_price_colors(chosen_bg_color);
+				if (tower_defense_map[terminal_row][i] == '$' || tower_defense_map[terminal_row][i] == 'T') {
 					terminal_column = i;
-					change_all_price_colors(VGA_COLOR_BLUE);	
+
+					td_color_placement[0][0] = terminal_column;
+					td_color_placement[0][1] = terminal_row;
 					break;
 				}
 			}
@@ -676,10 +701,11 @@ void td_keyboard_handler(c) {
 	} else if (c == 77) { // right
 		if (buying_tower) {
 			for (int i = terminal_column + 1; i < 80; i++) {
-				if (tower_defense_map[terminal_row][i] == '$') {
-					change_all_price_colors(chosen_bg_color);
+				if (tower_defense_map[terminal_row][i] == '$' || tower_defense_map[terminal_row][i] == 'T') {
 					terminal_column = i;
-					change_all_price_colors(VGA_COLOR_BLUE);
+					
+					td_color_placement[0][0] = terminal_column;
+					td_color_placement[0][1] = terminal_row;
 					break;
 				}
 			}
@@ -687,10 +713,11 @@ void td_keyboard_handler(c) {
 	} else if (c == 72) { // up
 		if (buying_tower) {
 			for (int i = terminal_row - 1; i > 0; i--) {
-				if (tower_defense_map[i][terminal_column] == '$') {
-					change_all_price_colors(chosen_bg_color);
+				if (tower_defense_map[i][terminal_column] == '$' || tower_defense_map[i][terminal_column] == 'T') {
 					terminal_row = i;
-					change_all_price_colors(VGA_COLOR_BLUE);
+
+					td_color_placement[0][0] = terminal_column;
+					td_color_placement[0][1] = terminal_row;
 					break;
 				}
 			}
@@ -698,10 +725,11 @@ void td_keyboard_handler(c) {
 	} else if (c == 80) { // down
 		if (buying_tower) {
 			for (int i = terminal_row + 1; i < 22; i++) {
-				if (tower_defense_map[i][terminal_column] == '$') {
-					change_all_price_colors(chosen_bg_color);
+				if (tower_defense_map[i][terminal_column] == '$' || tower_defense_map[i][terminal_column] == 'T') {
 					terminal_row = i;
-					change_all_price_colors(VGA_COLOR_BLUE);
+
+					td_color_placement[0][0] = terminal_column;
+					td_color_placement[0][1] = terminal_row;
 					break;
 				}
 			}
@@ -715,12 +743,26 @@ void td_keyboard_handler(c) {
 					if (tower_defense_map[terminal_row][i] == ' ') {
 						break;
 					} else {
-						tower_price = tower_price * 10 + (tower_defense_map[terminal_row][i] - '0');
+						tower_price = tower_price * 10 + (tower_defense_map[terminal_row][i] - '0' || tower_defense_map[i][terminal_column] == 'T');
 					}
 				}
 
 				if (tower_defense_money >= tower_price) {
 					tower_defense_money = tower_defense_money - tower_price;
+
+					int row = 1;
+					int i2 = 22;
+					for (int i = 0; i < 116; i++) {
+						if (i2 > 79) {
+							row = 2;
+							i2 = 22;
+						}
+						tower_defense_map[row][i2] = ' ';
+						i2++;
+					}
+
+					td_color_placement[0][0] = 0;
+					td_color_placement[0][1] = 0;
 
 					tower_defense_map[terminal_row][terminal_column] = 'T';
 					for (int i = terminal_column + 1; i < 80; i++) {
@@ -735,49 +777,62 @@ void td_keyboard_handler(c) {
 					terminal_row = 26;
 					move_cursor(terminal_column, terminal_row);
 					
-					print_td_map();
+					 
 				}
 			}
 			buying_tower = false;
 		}
 	}
-	
 
 	in_TD = true;
 	is_writing_command = true;
+
 }
 
+int time_since_last_enemy = 0;
+
 void tower_defense_play() {
-	int framerate = 100 / 2;
 
-	int time_since_last_enemy = 0;
+	int framerate = 100 / 100;
 
-	for (int i = 0; i < 10; i++) {
-		int moved_enemy = 100;
+	int enemy_speed = framerate * 50; //  lower is faster, 100 is 1 second here
+	int last_walked = 0;
 
-		if (time_since_last_enemy > 5) {
-			time_since_last_enemy = 0;
-			tower_defense_map[10][0] = 'E';
-			moved_enemy = 0;
-		}
+	is_writing_command = true;
 
-		for (int i = 0; i < 80; i++) {
-			if (tower_defense_map[10][i] == 'E') {
-				if (i == 79) {
-					tower_defense_health = tower_defense_health - 10;
-					tower_defense_map[10][i] = ' ';
-				} else {
-					if (moved_enemy - i == 0) {
-						continue;
+	in_TD = true;
+
+	while (in_TD) {
+		last_walked++;
+
+		if (last_walked > enemy_speed) {
+			int moved_enemy = 100;
+
+			if (time_since_last_enemy > 5) {
+				time_since_last_enemy = 0;
+				tower_defense_map[10][0] = 'E';
+				moved_enemy = 0;
+			}
+
+			for (int i = 0; i < 80; i++) {
+				if (tower_defense_map[10][i] == 'E') {
+					if (i == 79) {
+						tower_defense_health = tower_defense_health - 10;
+						tower_defense_map[10][i] = ' ';
+					} else {
+						if (moved_enemy - i == 0) {
+							continue;
+						}
+						tower_defense_map[10][i] = ' ';
+						tower_defense_map[10][i + 1] = 'E';
+						moved_enemy = i + 1;
 					}
-					tower_defense_map[10][i] = ' ';
-					tower_defense_map[10][i + 1] = 'E';
-					moved_enemy = i + 1;
 				}
 			}
-		}
 
-		time_since_last_enemy++;
+			time_since_last_enemy++;
+			last_walked = 0;
+		}
 
 		print_td_map();
 
@@ -799,6 +854,39 @@ void tower_defense_start() {
 		tower_defense_map[i][80] = '\0';
 	}
 
+	for (int i = 0; i < 20; i++) { // makes the top of the map
+		tower_defense_map[3][i] = '-';
+	}
+	tower_defense_map[3][20] = 217;
+	tower_defense_map[2][20] = 179;
+	tower_defense_map[1][20] = 179;
+	tower_defense_map[0][20] = 179;
+
+	char health_str[10];
+	itoa(tower_defense_health, health_str, 10);
+	char money_str[10];
+	itoa(tower_defense_money, money_str, 10);
+
+	char health_str2[20] = "Health: ";
+	char money_str2[20] = "Money: ";
+
+	int health_len = strlen(health_str2);
+	int money_len = strlen(money_str2);
+
+	for (int i = health_len; i < health_len + strlen(health_str); i++) {
+		health_str2[i] = health_str[i - health_len];
+	}
+	for (int i = money_len; i < money_len + strlen(money_str); i++) {
+		money_str2[i] = money_str[i - money_len];
+	}
+
+	for (int i = 0; i < strlen(health_str2); i++) { // prints the health
+		tower_defense_map[1][i + 1] = health_str2[i];
+	}
+	for (int i = 0; i < strlen(money_str2); i++) { // prints the money
+		tower_defense_map[2][i + 1] = money_str2[i];
+	}
+	
 	for (int i = 0; i < 80; i++) { // makes the path
 		tower_defense_map[9][i] = '-';
 		tower_defense_map[11][i] = '-';
@@ -1510,7 +1598,6 @@ void end_check_for_command() {
 void keyboard_handler(unsigned char c) {
 
 	if (in_TD) {
-		td_keyboard_handler(c);
 		should_print = false;
 		return;
 	}
@@ -1837,7 +1924,7 @@ void timer_handler(struct regs *r) {
 	// char ticks_str[10];
 	// itoa(timer_ticks, ticks_str, 10);
 	// for (int i = 0; i < strlen(ticks_str); i++) {
-	// 	terminal_putentryat(ticks_str[i], terminal_color, i, 24);
+	// 	terminal_putentryat(ticks_str[i], terminal_color, i, 23);
 	// }
 	// is_writing_command = was_writing_command; // end of temporary
 
@@ -1848,19 +1935,14 @@ void timer_handler(struct regs *r) {
 
 void keyboard_interrupt_handler(struct regs *r) {
 	asm volatile ("sti");
-
-	if (in_TD) { // TODO: will probably have to rewrite everything else to be like this
-		for (int i = 0; i < 100; i++) {
-			if (queued_key_presses[i] == 0) {
-				queued_key_presses[i] = inb(0x60);
-				break;
-			}
-		}
-		return;
-	}
 	
     unsigned char c;
 	c = inb(0x60);
+
+	if (in_TD) {
+		td_keyboard_handler(kbd_special_characters[c]);
+		return;
+	}
 
 	if (is_writing_command || in_text_editor) {	
 		terminal_putchar(kbd_special_characters[c]);
@@ -2296,6 +2378,17 @@ void kernel_main(void) {
 	is_writing_command = true;
 	move_cursor(terminal_column, terminal_row);
 
-	while (!main_exit_flag) {}
+	while (!main_exit_flag) {
+		bool was_writing_command = is_writing_command; // temporary, used for bug testing
+		is_writing_command = false;
+		
+		if (in_TD) {
+			is_writing_command = true;
+			tower_defense_play();
+		}
+		
+		is_writing_command = was_writing_command; // end of temporary
+		sleep(1);
+	}
 
 }
