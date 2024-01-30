@@ -828,6 +828,59 @@ void tower_defense_play() {
 						moved_enemy = i + 1;
 					}
 				}
+
+				for (int i = 0; i < 80; i++) {
+					if (tower_defense_map[10][i] == 'E') {
+						if (tower_defense_map[7][i + 4] == 'T') {
+							tower_defense_map[8][i + 4] = 'B';
+						} 
+						
+						if (tower_defense_map[13][i + 4] == 'T') {
+							tower_defense_map[12][i + 4] = 'B';
+						}
+					}
+				}
+
+				int bullet_moved = 100;
+				int bullet_moved2 = 100;
+
+				for (int i = 0; i < 2; i++)  {
+					for (int j = 0; j < 80; j++) {
+						if (tower_defense_map[i + 7][j] == 'B' && bullet_moved - j != 0) {
+							tower_defense_map[i + 7][j] = ' ';
+							if (tower_defense_map[i + 8][j] == 'E') {
+								tower_defense_map[i + 8][j] = 178;
+							} else {
+								tower_defense_map[i + 8][j] = 'B';
+							}
+
+							bullet_moved = j;
+						}
+
+						if (tower_defense_map[-i + 13][j] == 'B' && bullet_moved2 - j != 0) {
+							tower_defense_map[-i + 13][j] = ' ';
+							if (tower_defense_map[-i + 12][j] == 'E') {
+								tower_defense_map[-i + 12][j] = 178;
+							} else {
+								tower_defense_map[-i + 12][j] = 'B';
+							}
+
+							bullet_moved2 = j + 1;
+						}
+					}
+				}
+
+				for (int i = 0; i < 80; i++) {
+					if (tower_defense_map[10][i] == 178) {
+						tower_defense_map[10][i] = 177;
+					} else if (tower_defense_map[10][i] == 177) {
+						tower_defense_map[10][i] = '*';
+					} else if (tower_defense_map[10][i] == '*') {
+						tower_defense_map[10][i] = '\'';
+					} else if (tower_defense_map[10][i] == '\'') {
+						tower_defense_map[10][i] = ' ';
+					}
+				}
 			}
 
 			time_since_last_enemy++;
