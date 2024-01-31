@@ -63,5 +63,5 @@ Finished barebones, looking at this next.<br>
 [Osdever GDT](http://www.osdever.net/bkerndev/Docs/gdt.htm)<br>
 [Osdever IDT](http://www.osdever.net/bkerndev/Docs/idt.htm)<br>
 [Osdever ISRS](http://www.osdever.net/bkerndev/Docs/isrs.htm)<br>
-26/01/2024 - ?<br>
+26/01/2024 - 28/01/2024<br>
 Trying to understand how the GDT, IDT and ISRS works.<br>
