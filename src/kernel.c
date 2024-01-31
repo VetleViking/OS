@@ -942,7 +942,6 @@ void tower_defense_play() {
 			}
 
 			
-
 			for (int i = 0; i < num_bullets; i++) {
 				tower_defense_map[bullet_list[i].y][bullet_list[i].x] = bullet_list[i].under_bullet;	
 				if (bullet_list[i].direction == 1) {
