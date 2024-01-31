@@ -765,6 +765,7 @@ void td_keyboard_handler(c) {
 					td_color_placement[0][1] = 0;
 
 					tower_defense_map[terminal_row][terminal_column] = 'T';
+
 					for (int i = terminal_column + 1; i < 80; i++) {
 						if (tower_defense_map[terminal_row][i] == ' ') {
 							break;
@@ -790,6 +791,41 @@ void td_keyboard_handler(c) {
 }
 
 int time_since_last_enemy = 0;
+
+int bullet_moved_list[40][2][1] = {
+	{0, 0}
+};
+
+void moved_bullet_list_add(int up_down, int x) {
+	for (int i = 0; i < 40; i++) {
+		if (bullet_moved_list[i][0][0] == 0) {
+			bullet_moved_list[i][0][0] = up_down;
+			bullet_moved_list[i][1][0] = x;
+			break;
+		}
+	}
+}
+
+int moved_bullet_list_find( int up_down,int x) {
+	for (int i = 0; i < 40; i++) {
+		char test [10];
+		char test2 [10];
+
+		itoa(bullet_moved_list[i][0][0], test, 10);
+		itoa(bullet_moved_list[i][1][0], test2, 10);
+
+		for (int )
+
+		if (bullet_moved_list[i][0][0] == up_down && bullet_moved_list[i][1][0] == x) {
+			char test [10];
+			itoa(i, test, 10);
+
+			terminal_putentryat(test, vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK), 0, 24);
+			return i;		
+		}
+	}
+	return 0;
+}
 
 void tower_defense_play() {
 
@@ -828,60 +864,65 @@ void tower_defense_play() {
 						moved_enemy = i + 1;
 					}
 				}
+			}
+			
+			for (int i = 0; i < 40; i++) {
+				bullet_moved_list[i][0][0] = 0;
+				bullet_moved_list[i][1][0] = 0;
+			}
 
-				for (int i = 0; i < 80; i++) {
-					if (tower_defense_map[10][i] == 'E') {
-						if (tower_defense_map[7][i + 4] == 'T') {
-							tower_defense_map[8][i + 4] = 'B';
-						} 
+			for (int i = 0; i < 80; i++) {
+				if (tower_defense_map[10][i] == 'E') {
+					if (tower_defense_map[7][i + 2] == 'T') {
+						tower_defense_map[8][i + 2] = 'B';
 						
-						if (tower_defense_map[13][i + 4] == 'T') {
-							tower_defense_map[12][i + 4] = 'B';
-						}
-					}
-				}
-
-				int bullet_moved = 100;
-				int bullet_moved2 = 100;
-
-				for (int i = 0; i < 2; i++)  {
-					for (int j = 0; j < 80; j++) {
-						if (tower_defense_map[i + 7][j] == 'B' && bullet_moved - j != 0) {
-							tower_defense_map[i + 7][j] = ' ';
-							if (tower_defense_map[i + 8][j] == 'E') {
-								tower_defense_map[i + 8][j] = 178;
-							} else {
-								tower_defense_map[i + 8][j] = 'B';
-							}
-
-							bullet_moved = j;
-						}
-
-						if (tower_defense_map[-i + 13][j] == 'B' && bullet_moved2 - j != 0) {
-							tower_defense_map[-i + 13][j] = ' ';
-							if (tower_defense_map[-i + 12][j] == 'E') {
-								tower_defense_map[-i + 12][j] = 178;
-							} else {
-								tower_defense_map[-i + 12][j] = 'B';
-							}
-
-							bullet_moved2 = j + 1;
-						}
-					}
-				}
-
-				for (int i = 0; i < 80; i++) {
-					if (tower_defense_map[10][i] == 178) {
-						tower_defense_map[10][i] = 177;
-					} else if (tower_defense_map[10][i] == 177) {
-						tower_defense_map[10][i] = '*';
-					} else if (tower_defense_map[10][i] == '*') {
-						tower_defense_map[10][i] = '\'';
-					} else if (tower_defense_map[10][i] == '\'') {
-						tower_defense_map[10][i] = ' ';
+						moved_bullet_list_add(1, i + 2);
+					} 
+					
+					if (tower_defense_map[13][i + 2] == 'T') {
+						tower_defense_map[12][i + 2] = 'B';
+					
+						moved_bullet_list_add(2, i + 2);
 					}
 				}
 			}
+
+			for (int i = 0; i < 3; i++)  {
+				for (int j = 0; j < 80; j++) {
+					if (tower_defense_map[i + 7][j] == 'B' && moved_bullet_list_find(1, j) == 0) {
+						tower_defense_map[i + 7][j] = ' ';
+						if (tower_defense_map[i + 8][j] == 'E') {
+							tower_defense_map[i + 8][j] = '#';
+						} else if (i + 8 != 10) {
+                    		tower_defense_map[i + 8][j] = 'B';
+                		}
+
+						moved_bullet_list_add(1, j);
+					}
+
+					if (tower_defense_map[-i + 13][j] == 'B' && moved_bullet_list_find(2, j) == 0) {
+						tower_defense_map[-i + 13][j] = ' ';
+						if (tower_defense_map[-i + 12][j] == 'E') {
+							tower_defense_map[-i + 12][j] = '#';
+						} else if (-i + 12 != 10) {
+							tower_defense_map[-i + 12][j] = 'B';
+						}
+
+						moved_bullet_list_add(2, j);
+					}
+				}
+			}
+
+			for (int i = 0; i < 80; i++) {
+				if (tower_defense_map[10][i] == '#' && moved_bullet_list_find(1, i) == 0 && moved_bullet_list_find(2, i) == 0) {	
+					tower_defense_map[10][i] = '*';
+				} else if (tower_defense_map[10][i] == '*') {
+					tower_defense_map[10][i] = '\'';
+				} else if (tower_defense_map[10][i] == '\'') {
+					tower_defense_map[10][i] = ' ';
+				}
+			}
+			
 
 			time_since_last_enemy++;
 			last_walked = 0;
