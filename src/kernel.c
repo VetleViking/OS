@@ -641,13 +641,16 @@ void print_td_map() {
 	terminal_row = 0;
 	for (int i = 0; i < 22; i++) {
 		terminal_writestring(tower_defense_map[i]);
-	}
-
-	terminal_column = td_color_placement[0][0];
-	terminal_row = td_color_placement[0][1];
-
-	if (terminal_column != 0 && terminal_row != 0) {
-		change_all_price_colors(VGA_COLOR_BLUE);
+		if (td_color_placement[0][0] != 0 && td_color_placement[0][1] != 0) {
+			if (i == td_color_placement[0][1]) {
+				terminal_column = td_color_placement[0][0];
+				terminal_row = td_color_placement[0][1];
+				change_all_price_colors(VGA_COLOR_BLUE);
+				terminal_row = i + 1;
+				terminal_column = 0;
+			}
+		
+		}
 	}
 
 	terminal_column = prev_ter_col;
@@ -925,6 +928,7 @@ void tower_defense_play() {
 								terminal_writestring("You survived for ");
 								print_ticks_to_time(timer_ticks - start_time);
 								new_kernel_line();
+								move_cursor(terminal_column, terminal_row);
 								return;
 							}
 
