@@ -792,46 +792,33 @@ void td_keyboard_handler(c) {
 
 int time_since_last_enemy = 0;
 
-int bullet_moved_list[40][2][1] = {
-	{0, 0}
+
+struct Bullet{
+    int x;
+    int y;
+    int direction; // 1 for up, 2 for down
+	bool should_move;
+	char under_bullet;
 };
 
-void moved_bullet_list_add(int up_down, int x) {
-	for (int i = 0; i < 40; i++) {
-		if (bullet_moved_list[i][0][0] == 0) {
-			bullet_moved_list[i][0][0] = up_down;
-			bullet_moved_list[i][1][0] = x;
-			break;
-		}
+struct Bullet bullet_list[40] = {
+	{0, 0, 0, false, ' '}
+};
+
+int num_bullets = 0;
+
+void remove_bullet(int index) {
+	for (int i = index; i < num_bullets; i++) {
+		bullet_list[i] = bullet_list[i + 1];
 	}
-}
-
-int moved_bullet_list_find( int up_down,int x) {
-	for (int i = 0; i < 40; i++) {
-		char test [10];
-		char test2 [10];
-
-		itoa(bullet_moved_list[i][0][0], test, 10);
-		itoa(bullet_moved_list[i][1][0], test2, 10);
-
-		for (int )
-
-		if (bullet_moved_list[i][0][0] == up_down && bullet_moved_list[i][1][0] == x) {
-			char test [10];
-			itoa(i, test, 10);
-
-			terminal_putentryat(test, vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK), 0, 24);
-			return i;		
-		}
-	}
-	return 0;
+	num_bullets--;
 }
 
 void tower_defense_play() {
 
 	int framerate = 100 / 100;
 
-	int enemy_speed = framerate * 50; //  lower is faster, 100 is 1 second here
+	int enemy_speed = framerate * 5; //  lower is faster, 100 is 1 second here
 	int last_walked = 0;
 
 	is_writing_command = true;
@@ -840,6 +827,31 @@ void tower_defense_play() {
 
 	while (in_TD) {
 		last_walked++;
+
+		char health_str[10];
+		itoa(tower_defense_health, health_str, 10);
+		char money_str[10];
+		itoa(tower_defense_money, money_str, 10);
+
+		for (int i = 0; i < 7; i++) {
+			if (tower_defense_map[1][i + 9] == ' ' && tower_defense_map[2][i + 9] == ' ') {
+				break;				
+			}
+
+			tower_defense_map[1][i + 9] = ' ';
+			tower_defense_map[2][i + 9] = ' ';
+
+			if (i < strlen(health_str)) {
+				tower_defense_map[1][i + 9] = health_str[i];
+			}
+
+			if (i < strlen(money_str)) {
+				
+				tower_defense_map[2][i + 9] = money_str[i];
+			}
+
+			
+		}
 
 		if (last_walked > enemy_speed) {
 			int moved_enemy = 100;
@@ -854,6 +866,16 @@ void tower_defense_play() {
 				if (tower_defense_map[10][i] == 'E') {
 					if (i == 79) {
 						tower_defense_health = tower_defense_health - 10;
+						
+						if (tower_defense_health <= 0) { // not entirely working, fix later
+							in_TD = false;
+							is_writing_command = false;
+							check_scroll = true;
+							clear_screen();
+							terminal_writestring("You lost!");
+							return;
+						}
+
 						tower_defense_map[10][i] = ' ';
 					} else {
 						if (moved_enemy - i == 0) {
@@ -865,56 +887,58 @@ void tower_defense_play() {
 					}
 				}
 			}
-			
-			for (int i = 0; i < 40; i++) {
-				bullet_moved_list[i][0][0] = 0;
-				bullet_moved_list[i][1][0] = 0;
+
+			for (int i = 0; i < num_bullets; i++) {
+				tower_defense_map[bullet_list[i].y][bullet_list[i].x] = bullet_list[i].under_bullet;	
+				if (bullet_list[i].direction == 1) {
+					bullet_list[i].y++;
+				} else if (bullet_list[i].direction == 2) {
+					bullet_list[i].y--;
+				}
+
+				bullet_list[i].under_bullet = tower_defense_map[bullet_list[i].y][bullet_list[i].x];
+
+				if (tower_defense_map[bullet_list[i].y][bullet_list[i].x] == 'E') {
+					tower_defense_map[bullet_list[i].y][bullet_list[i].x] = 'd';
+					remove_bullet(i);
+					i--;
+				} else if (bullet_list[i].y == 10) {
+					remove_bullet(i);
+					i--;
+				} else {
+					tower_defense_map[bullet_list[i].y][bullet_list[i].x] = 'B';
+				}
 			}
+			
 
 			for (int i = 0; i < 80; i++) {
 				if (tower_defense_map[10][i] == 'E') {
 					if (tower_defense_map[7][i + 2] == 'T') {
-						tower_defense_map[8][i + 2] = 'B';
+						bullet_list[num_bullets].x = i + 2;
+						bullet_list[num_bullets].y = 8;
+						bullet_list[num_bullets].direction = 1;
+						bullet_list[num_bullets].under_bullet = tower_defense_map[8][i + 2];
+						num_bullets++;
 						
-						moved_bullet_list_add(1, i + 2);
+						tower_defense_map[8][i + 2] = 'B';
 					} 
 					
 					if (tower_defense_map[13][i + 2] == 'T') {
+						bullet_list[num_bullets].x = i + 2;
+						bullet_list[num_bullets].y = 12;
+						bullet_list[num_bullets].direction = 2;
+						bullet_list[num_bullets].under_bullet = tower_defense_map[12][i + 2];
+						num_bullets++;
+						
 						tower_defense_map[12][i + 2] = 'B';
-					
-						moved_bullet_list_add(2, i + 2);
-					}
-				}
-			}
-
-			for (int i = 0; i < 3; i++)  {
-				for (int j = 0; j < 80; j++) {
-					if (tower_defense_map[i + 7][j] == 'B' && moved_bullet_list_find(1, j) == 0) {
-						tower_defense_map[i + 7][j] = ' ';
-						if (tower_defense_map[i + 8][j] == 'E') {
-							tower_defense_map[i + 8][j] = '#';
-						} else if (i + 8 != 10) {
-                    		tower_defense_map[i + 8][j] = 'B';
-                		}
-
-						moved_bullet_list_add(1, j);
-					}
-
-					if (tower_defense_map[-i + 13][j] == 'B' && moved_bullet_list_find(2, j) == 0) {
-						tower_defense_map[-i + 13][j] = ' ';
-						if (tower_defense_map[-i + 12][j] == 'E') {
-							tower_defense_map[-i + 12][j] = '#';
-						} else if (-i + 12 != 10) {
-							tower_defense_map[-i + 12][j] = 'B';
-						}
-
-						moved_bullet_list_add(2, j);
 					}
 				}
 			}
 
 			for (int i = 0; i < 80; i++) {
-				if (tower_defense_map[10][i] == '#' && moved_bullet_list_find(1, i) == 0 && moved_bullet_list_find(2, i) == 0) {	
+				if (tower_defense_map[10][i] == 'd') {
+					tower_defense_map[10][i] = '#';
+				} else if (tower_defense_map[10][i] == '#') {	
 					tower_defense_map[10][i] = '*';
 				} else if (tower_defense_map[10][i] == '*') {
 					tower_defense_map[10][i] = '\'';
@@ -962,7 +986,7 @@ void tower_defense_start() {
 	itoa(tower_defense_money, money_str, 10);
 
 	char health_str2[20] = "Health: ";
-	char money_str2[20] = "Money: ";
+	char money_str2[20] = "Money:  ";
 
 	int health_len = strlen(health_str2);
 	int money_len = strlen(money_str2);
