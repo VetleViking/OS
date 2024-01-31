@@ -657,6 +657,20 @@ void print_td_map() {
 	in_TD = was_in_TD;
 }
 
+struct Tower{
+	int x;
+	int y;
+	int damage;
+	int fire_rate;
+	int last_shot;
+	int direction;
+};	
+
+struct Tower tower_list[40] = {
+	{0, 0, 0, 0, 0, 0}
+};
+
+int num_towers = 0;
 
 bool buying_tower = false;
 
@@ -764,8 +778,22 @@ void td_keyboard_handler(c) {
 					td_color_placement[0][0] = 0;
 					td_color_placement[0][1] = 0;
 
-					tower_defense_map[terminal_row][terminal_column] = 'T';
+					tower_defense_map[terminal_row][terminal_column] = 'T';					
 
+					tower_list[num_towers].x = terminal_column;
+					tower_list[num_towers].y = terminal_row;
+					tower_list[num_towers].damage = 10;
+					tower_list[num_towers].fire_rate = 10;
+					tower_list[num_towers].last_shot = 0;
+					
+					if (tower_list[num_towers].y < 10) {
+						tower_list[num_towers].direction = 1;
+					} else {
+						tower_list[num_towers].direction = 2;
+					}
+
+					num_towers++;
+				
 					for (int i = terminal_column + 1; i < 80; i++) {
 						if (tower_defense_map[terminal_row][i] == ' ') {
 							break;
@@ -790,14 +818,15 @@ void td_keyboard_handler(c) {
 
 }
 
-int time_since_last_enemy = 0;
+
+
+int start_time = 0;
 
 
 struct Bullet{
     int x;
     int y;
     int direction; // 1 for up, 2 for down
-	bool should_move;
 	char under_bullet;
 };
 
@@ -807,6 +836,8 @@ struct Bullet bullet_list[40] = {
 
 int num_bullets = 0;
 
+
+
 void remove_bullet(int index) {
 	for (int i = index; i < num_bullets; i++) {
 		bullet_list[i] = bullet_list[i + 1];
@@ -815,18 +846,28 @@ void remove_bullet(int index) {
 }
 
 void tower_defense_play() {
+	start_time = timer_ticks;
 
-	int framerate = 100 / 100;
+	int framerate = 100 / 100; // 100 is 1 second
 
-	int enemy_speed = framerate * 5; //  lower is faster, 100 is 1 second here
+	int update_rate = framerate * 50; // lower is faster, used for most things, like enemies moving and bullets moving
+	int last_update = 0;
+
+	int enemy_health = 10;
+	int enemy_speed = 1; // uses update_rate, 1 is every update.
 	int last_walked = 0;
+	int time_since_last_enemy = 0;
+
+	int tower_damage = 10;
+	int fire_rate = 2; // uses update_rate, 2 is every second update.
+	int last_shot = 0;
+
 
 	is_writing_command = true;
-
 	in_TD = true;
 
 	while (in_TD) {
-		last_walked++;
+		last_update++;
 
 		char health_str[10];
 		itoa(tower_defense_health, health_str, 10);
@@ -846,47 +887,61 @@ void tower_defense_play() {
 			}
 
 			if (i < strlen(money_str)) {
-				
 				tower_defense_map[2][i + 9] = money_str[i];
 			}
-
-			
 		}
 
-		if (last_walked > enemy_speed) {
-			int moved_enemy = 100;
+		if (last_update == update_rate) {
+			last_update = 0;
 
-			if (time_since_last_enemy > 5) {
-				time_since_last_enemy = 0;
-				tower_defense_map[10][0] = 'E';
-				moved_enemy = 0;
-			}
+			last_walked++;
+			last_shot++;
 
-			for (int i = 0; i < 80; i++) {
-				if (tower_defense_map[10][i] == 'E') {
-					if (i == 79) {
-						tower_defense_health = tower_defense_health - 10;
-						
-						if (tower_defense_health <= 0) { // not entirely working, fix later
-							in_TD = false;
-							is_writing_command = false;
-							check_scroll = true;
-							clear_screen();
-							terminal_writestring("You lost!");
-							return;
+			if (last_walked == enemy_speed) {
+				time_since_last_enemy++;
+				last_walked = 0;
+
+				int moved_enemy = 100;
+
+				if (time_since_last_enemy > 5) {
+					time_since_last_enemy = 0;
+					tower_defense_map[10][0] = 'E';
+					moved_enemy = 0;
+				}
+
+				for (int i = 0; i < 80; i++) {
+					if (tower_defense_map[10][i] == 'E') {
+						if (i == 79) {
+							tower_defense_health = tower_defense_health - 10;
+							
+							if (tower_defense_health <= 0) {
+								in_game = false;
+								in_TD = false;
+								is_writing_command = false;
+								check_scroll = true;
+								clear_screen();
+								terminal_writestring("You lost!");
+								newline();
+								terminal_writestring("You survived for ");
+								print_ticks_to_time(timer_ticks - start_time);
+								new_kernel_line();
+								return;
+							}
+
+							tower_defense_map[10][i] = ' ';
+						} else {
+							if (moved_enemy - i == 0) {
+								continue;
+							}
+							tower_defense_map[10][i] = ' ';
+							tower_defense_map[10][i + 1] = 'E';
+							moved_enemy = i + 1;
 						}
-
-						tower_defense_map[10][i] = ' ';
-					} else {
-						if (moved_enemy - i == 0) {
-							continue;
-						}
-						tower_defense_map[10][i] = ' ';
-						tower_defense_map[10][i + 1] = 'E';
-						moved_enemy = i + 1;
 					}
 				}
 			}
+
+			
 
 			for (int i = 0; i < num_bullets; i++) {
 				tower_defense_map[bullet_list[i].y][bullet_list[i].x] = bullet_list[i].under_bullet;	
@@ -899,7 +954,12 @@ void tower_defense_play() {
 				bullet_list[i].under_bullet = tower_defense_map[bullet_list[i].y][bullet_list[i].x];
 
 				if (tower_defense_map[bullet_list[i].y][bullet_list[i].x] == 'E') {
-					tower_defense_map[bullet_list[i].y][bullet_list[i].x] = 'd';
+					enemy_health = enemy_health - tower_damage;
+					if (enemy_health <= 0) {
+						tower_defense_money = tower_defense_money + 10;
+						tower_defense_map[bullet_list[i].y][bullet_list[i].x] = 'd';
+					}
+
 					remove_bullet(i);
 					i--;
 				} else if (bullet_list[i].y == 10) {
@@ -909,29 +969,33 @@ void tower_defense_play() {
 					tower_defense_map[bullet_list[i].y][bullet_list[i].x] = 'B';
 				}
 			}
-			
+				
+			for (int i = 0; i < num_towers; i++) {
+				if (tower_list[i].fire_rate == tower_list[i].last_shot) {
+					if (tower_defense_map[10][tower_list[i].x - 2] == 'E') {
+						tower_list[i].last_shot = 0;
+						
+						bullet_list[num_bullets].x = tower_list[i].x;
+						bullet_list[num_bullets].direction = tower_list[i].direction;
+							
+						if (tower_list[i].direction == 1) {
+							bullet_list[num_bullets].y = tower_list[i].y + 1;
+							bullet_list[num_bullets].under_bullet = tower_defense_map[tower_list[i].y + 1][tower_list[i].x];
 
-			for (int i = 0; i < 80; i++) {
-				if (tower_defense_map[10][i] == 'E') {
-					if (tower_defense_map[7][i + 2] == 'T') {
-						bullet_list[num_bullets].x = i + 2;
-						bullet_list[num_bullets].y = 8;
-						bullet_list[num_bullets].direction = 1;
-						bullet_list[num_bullets].under_bullet = tower_defense_map[8][i + 2];
-						num_bullets++;
+							tower_defense_map[tower_list[i].y + 1][tower_list[i].x] = 'B';
+						}
 						
-						tower_defense_map[8][i + 2] = 'B';
-					} 
-					
-					if (tower_defense_map[13][i + 2] == 'T') {
-						bullet_list[num_bullets].x = i + 2;
-						bullet_list[num_bullets].y = 12;
-						bullet_list[num_bullets].direction = 2;
-						bullet_list[num_bullets].under_bullet = tower_defense_map[12][i + 2];
+						if (tower_list[i].direction == 2) {
+							bullet_list[num_bullets].y = tower_list[i].y - 1;
+							bullet_list[num_bullets].under_bullet = tower_defense_map[tower_list[i].y - 1][tower_list[i].x];
+
+							tower_defense_map[tower_list[i].y - 1][tower_list[i].x] = 'B';
+						}
+							
 						num_bullets++;
-						
-						tower_defense_map[12][i + 2] = 'B';
 					}
+				} else {
+					tower_list[i].last_shot++;
 				}
 			}
 
@@ -946,10 +1010,6 @@ void tower_defense_play() {
 					tower_defense_map[10][i] = ' ';
 				}
 			}
-			
-
-			time_since_last_enemy++;
-			last_walked = 0;
 		}
 
 		print_td_map();
@@ -957,6 +1017,7 @@ void tower_defense_play() {
 		sleep(framerate);
 	}
 }
+
 
 void tower_defense_start() {
 	check_scroll = false;	
@@ -1192,8 +1253,8 @@ void color_command() {
 }
 
 
-void uptime_command() {
-	int seconds = timer_ticks / 100;
+void print_ticks_to_time(int ticks) {
+	int seconds = ticks / 100;
 	int minutes = seconds / 60;
 	int hours = minutes / 60;
 	int days = hours / 24;
@@ -1202,31 +1263,36 @@ void uptime_command() {
 	minutes = minutes % 60;
 	hours = hours % 24;
 
-	char uptime[20];
-
-	terminal_writestring("Uptime: ");
+	char time[20];
 
 	if (days > 0) {
-		itoa(days, uptime, 10);
-		terminal_writestring(uptime);
+		itoa(days, time, 10);
+		terminal_writestring(time);
 		terminal_writestring(" days, ");
 	}
 	
 	if (hours > 0) {
-		itoa(hours, uptime, 10);
-		terminal_writestring(uptime);
+		itoa(hours, time, 10);
+		terminal_writestring(time);
 		terminal_writestring(" hours, ");
 	}
 
 	if (minutes > 0) {
-		itoa(minutes, uptime, 10);
-		terminal_writestring(uptime);
+		itoa(minutes, time, 10);
+		terminal_writestring(time);
 		terminal_writestring(" minutes, ");
 	}
 
-	itoa(seconds, uptime, 10);
-	terminal_writestring(uptime);
+	itoa(seconds, time, 10);
+	terminal_writestring(time);
 	terminal_writestring(" seconds.");
+}
+
+
+void uptime_command() {
+	terminal_writestring("Uptime: ");
+
+	print_ticks_to_time(timer_ticks);
 }
 
 
