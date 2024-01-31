@@ -42,7 +42,7 @@ make
 The makefile in the project will then do all the rest of the building for you, and the OS will open in QEMU, the vm.
 
 ## Sources
-
+These are the sources i used the most, arranged from oldest to most recently used.
 
 [Playlist on YT](https://www.youtube.com/playlist?list=PLm3B56ql_akNcvH8vvJRYOc7TbYhRs19M)<br>
 13/01/2024 - 16/01/2024<br>
@@ -62,6 +62,6 @@ Finished barebones, looking at this next.<br>
 
 [Osdever GDT](http://www.osdever.net/bkerndev/Docs/gdt.htm)<br>
 [Osdever IDT](http://www.osdever.net/bkerndev/Docs/idt.htm)<br>
-[Osdever IDT](http://www.osdever.net/bkerndev/Docs/isrs.htm)<br>
+[Osdever ISRS](http://www.osdever.net/bkerndev/Docs/isrs.htm)<br>
 26/01/2024 - ?<br>
 Trying to understand how the GDT, IDT and ISRS works.<br>
