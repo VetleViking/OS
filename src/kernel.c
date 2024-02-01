@@ -1121,8 +1121,17 @@ char mine_sweeper_map[10][20] = {
 	'\0'
 };
 
-char mine_sweeper_bomb_coords[100][2] = {
-	{0, 0}
+char mine_sweeper_shown_map[10][20] = {
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0'
 };
 
 bool in_mine_sweeper = false;
@@ -1130,22 +1139,29 @@ bool in_mine_sweeper = false;
 
 void mine_sweeper_keyboard_handler(c) {
 	is_writing_command = false;
-	in_mine_sweeper = false; // janky, fix later mby
+	in_mine_sweeper = false;
+
+	terminal_putentryat('X', terminal_color, 0, 22);
 
 	if (c == 75) { // left
-		terminal_column--;
-		
+		if (terminal_column > 0) {
+			terminal_column--;
+			move_cursor(terminal_column, terminal_row);
+		}
 	} else if (c == 77) { // right
 		if (terminal_column < 19) {
 			terminal_column++;
+			move_cursor(terminal_column, terminal_row);
 		}
 	} else if (c == 72) { // up
 		if (terminal_row > 0) {
 			terminal_row--;
+			move_cursor(terminal_column, terminal_row);
 		}
 	} else if (c == 80) { // down
 		if (terminal_row < 9) {
 			terminal_row++;
+			move_cursor(terminal_column, terminal_row);
 		}
 	} else if (c == 28) { // enter
 		if (mine_sweeper_map[terminal_row][terminal_column] == ' ') {
@@ -1169,7 +1185,7 @@ void mine_sweeper() {
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 20; j++) {
 			mine_sweeper_map[i][j] = ' ';
-			terminal_putentryat(' ', vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_WHITE), j, i);
+			mine_sweeper_shown_map[i][j] = ' ';
 		}
 	}
 
@@ -1189,15 +1205,11 @@ void mine_sweeper() {
 			i--;
 		} else {
 			mine_sweeper_map[x][y] = 'B';
-			mine_sweeper_bomb_coords[i][0] = x;
-			mine_sweeper_bomb_coords[i][1] = y;
-		}
-		
+		}	
 	}
-	terminal_column = 0;
-	terminal_row = 0;
-
-	in_game = true;
+	terminal_column = 10;
+	terminal_row = 5;
+	move_cursor(terminal_column, terminal_row);
 	in_mine_sweeper = true;
 }
 
