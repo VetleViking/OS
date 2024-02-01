@@ -1107,6 +1107,101 @@ void tower_defense_start() {
 }
 
 
+
+char mine_sweeper_map[10][20] = {
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0',
+	'\0'
+};
+
+char mine_sweeper_bomb_coords[100][2] = {
+	{0, 0}
+};
+
+bool in_mine_sweeper = false;
+
+
+void mine_sweeper_keyboard_handler(c) {
+	is_writing_command = false;
+	in_mine_sweeper = false; // janky, fix later mby
+
+	if (c == 75) { // left
+		terminal_column--;
+		
+	} else if (c == 77) { // right
+		if (terminal_column < 19) {
+			terminal_column++;
+		}
+	} else if (c == 72) { // up
+		if (terminal_row > 0) {
+			terminal_row--;
+		}
+	} else if (c == 80) { // down
+		if (terminal_row < 9) {
+			terminal_row++;
+		}
+	} else if (c == 28) { // enter
+		if (mine_sweeper_map[terminal_row][terminal_column] == ' ') {
+			mine_sweeper_map[terminal_row][terminal_column] = 'O';
+		} else if (mine_sweeper_map[terminal_row][terminal_column] == 'O') {
+			mine_sweeper_map[terminal_row][terminal_column] = ' ';
+		}
+	}
+
+	in_mine_sweeper = true;
+	is_writing_command = true;
+}
+
+
+void mine_sweeper() {
+	int num_mines = 10;
+	check_scroll = false;
+	
+	clear_screen();	
+
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j < 20; j++) {
+			mine_sweeper_map[i][j] = ' ';
+			terminal_putentryat(' ', vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_WHITE), j, i);
+		}
+	}
+
+	for (int i = 0; i < num_mines; i++){
+		int x = rand();
+		int y = rand();
+
+		if (x > 9) {
+			x = x / 2;
+		}
+
+		if (y > 19) {
+			y = y / 2;
+		}
+
+		if (mine_sweeper_map[x][y] == 'B') {
+			i--;
+		} else {
+			mine_sweeper_map[x][y] = 'B';
+			mine_sweeper_bomb_coords[i][0] = x;
+			mine_sweeper_bomb_coords[i][1] = y;
+		}
+		
+	}
+	terminal_column = 0;
+	terminal_row = 0;
+
+	in_game = true;
+	in_mine_sweeper = true;
+}
+
+
 // Handles the game command, and calls the correct game
 void game_handler() {
 	in_game = true;
@@ -1130,8 +1225,11 @@ void game_handler() {
 		tic_tac_toe();
 	} else if (strcmp(game, "tower defense") == 0 || strcmp(game, "TD") == 0) {
 		tower_defense_start();
+	} else if (strcmp(game, "minesweeper") == 0 || strcmp(game, "MS") == 0) {
+		mine_sweeper();
 	}
-	
+
+
 	else {
 		terminal_writestring("Unknown game: ");
 		terminal_writestring(game);
@@ -2126,8 +2224,11 @@ void keyboard_interrupt_handler(struct regs *r) {
     unsigned char c;
 	c = inb(0x60);
 
-	if (in_TD) {
+	if (in_TD) { // no, this is not jank, this is unique and sofisticated
 		td_keyboard_handler(kbd_special_characters[c]);
+		return;
+	} else if (in_mine_sweeper) {
+		mine_sweeper_keyboard_handler(kbd_special_characters[c]);
 		return;
 	}
 
