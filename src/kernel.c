@@ -1156,7 +1156,7 @@ void print_ms_map() {
 	terminal_column = 0;
 	terminal_row = 0;
 	for (int i = 0; i < 10; i++) {
-		terminal_writestring(mine_sweeper_map[i]);
+		terminal_writestring(mine_sweeper_shown_map[i]);
 		terminal_writestring("|");
 		newline();
 	}
@@ -1169,18 +1169,146 @@ void print_ms_map() {
 	in_mine_sweeper = was_in_ms;
 }
 
+
+bool check_ms_win() {
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j < 20; j++) {
+			if (mine_sweeper_map[i][j] == 'B' && mine_sweeper_shown_map[i][j] != 'F') {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
+void check_surroundings(int y, int x) {
+	int start_x = x - 1;
+	int start_y = y - 1;
+
+	for (int i = start_x; i < start_x + 3; i++) {
+		for (int j = start_y; j < start_y + 3; j++) {
+			if (i < 0 || i > 19 || j < 0 || j > 9) {
+				continue;
+			} else if (mine_sweeper_shown_map[j][i] == ' ') {
+				continue;
+			}
+			
+			int num_mines = check_mines(j, i);
+
+			if (num_mines == 0) {
+				mine_sweeper_shown_map[j][i] = ' ';
+				check_surroundings(j, i);
+				continue;
+			}
+			
+			mine_sweeper_shown_map[j][i] = num_mines + '0';
+		}
+	}
+}
+
+
+int check_mines(int y, int x) {
+	int num_mines = 0;
+
+	int start_x = x - 1;
+	int start_y = y - 1;
+
+	for (int i = start_x; i < start_x + 3; i++) {
+		for (int j = start_y; j < start_y + 3; j++) {
+			if (i < 0 || i > 19 || j < 0 || j > 9) {
+				continue;
+			}
+			if (mine_sweeper_map[j][i] == 'B') {
+				num_mines++;
+			}
+		}
+	}
+
+	return num_mines;
+}
+
+
 void ms_keyboard_handler(c) {
 	is_writing_command = false;
 	in_mine_sweeper = false;
 
 	if (c == 75) { // left
-		terminal_putentryat('L', terminal_color, 11, 22);
+		if (terminal_column > 0) {
+			terminal_column--;
+			move_cursor(terminal_column, terminal_row);
+		}
 	} else if (c == 77) { // right
-		terminal_putentryat('R', terminal_color, 12, 22);
+		if (terminal_column < 19) {
+			terminal_column++;
+			move_cursor(terminal_column, terminal_row);
+		}
 	} else if (c == 72) { // up
-		terminal_putentryat('L', terminal_color, 13, 22);
+		if (terminal_row > 0) {
+			terminal_row--;
+			move_cursor(terminal_column, terminal_row);
+		}
 	} else if (c == 80) { // down
-		terminal_putentryat('R', terminal_color, 14, 22);
+		if (terminal_row < 9) {
+			terminal_row++;
+			move_cursor(terminal_column, terminal_row);
+		}
+	} else if (c == 28)	{ // enter
+		if (mine_sweeper_map[terminal_row][terminal_column] == 'B') {
+			in_game = false;
+			in_mine_sweeper = false;
+			is_writing_command = false;
+			check_scroll = true;
+			clear_screen();
+			for (int i = 0; i < 10; i++) {
+				for (int j = 0; j < 20; j++) {
+					if (mine_sweeper_map[i][j] == 'B') {
+						terminal_putentryat('B', vga_entry_color(VGA_COLOR_RED, VGA_COLOR_BLACK), j, i);
+					} else {
+						terminal_putentryat(' ', vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK), j, i);
+					}
+				}
+				terminal_column = 20;
+				terminal_row = i;
+				vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK);
+				terminal_writestring("|");				
+				newline();
+			}
+			vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK);
+			terminal_writestring("____________________|");
+			newline();
+			terminal_writestring("You lost!");
+			new_kernel_line();
+			move_cursor(terminal_column, terminal_row);
+			return;
+		} else {
+			int num_mines = 0;
+			num_mines = check_mines(terminal_row, terminal_column);
+
+			if (num_mines == 0) {
+				mine_sweeper_shown_map[terminal_row][terminal_column] = ' ';
+				check_surroundings(terminal_row, terminal_column);
+			} else {
+				mine_sweeper_shown_map[terminal_row][terminal_column] = num_mines + '0';
+			}
+		}
+	} else if (c == 33) { //F
+		if (mine_sweeper_shown_map[terminal_row][terminal_column] == 'F') {
+			mine_sweeper_shown_map[terminal_row][terminal_column] = '#';
+		} else {
+			mine_sweeper_shown_map[terminal_row][terminal_column] = 'F';
+			if (check_ms_win()) {
+				in_game = false;
+				in_mine_sweeper = false;
+				is_writing_command = false;
+				check_scroll = true;
+				clear_screen();
+				terminal_writestring("You won!");
+				new_kernel_line();
+				move_cursor(terminal_column, terminal_row);
+				return;
+			}
+		}
 	}
 
 	in_mine_sweeper = true;
@@ -1200,8 +1328,7 @@ void mine_sweeper_play() {
 	while (in_mine_sweeper) {
 		last_update++;
 
-		if (last_update == update_rate) {
-			terminal_putentryat('U', terminal_color, 10, 22);
+		if (last_update == update_rate) { // dont think ill need this, but just in case
 			last_update = 0;
 		}
 
@@ -1216,30 +1343,38 @@ void mine_sweeper_start() {
 	check_scroll = false;	
 	in_mine_sweeper = true;
 
-	int num_mines = 20;
+	int num_mines = 30;
 
 	clear_screen();
 
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 20; j++) {
-			mine_sweeper_map[i][j] = ' ';
-			mine_sweeper_shown_map[i][j] = ' ';
+			mine_sweeper_map[i][j] = '#';
+			mine_sweeper_shown_map[i][j] = '#';
 		}
 		mine_sweeper_map[i][20] = '\0';
 		mine_sweeper_shown_map[i][20] = '\0';
 	}
 
-	for (int i = 0; i < num_mines; i++) { // change to while mby
-		int x = rand(i) % 10;
-		int y = rand(i * 2) % 20;
+	int num_mines_placed = 0;
+	int i = 0;
 
-		if (mine_sweeper_map[x][y] == 'B') {
-			i--;
-		} else {
-			mine_sweeper_map[x][y] = 'B';
+	while (num_mines_placed < num_mines) {
+		int x = rand(num_mines_placed + i * 1332126) % 20;
+		int y = i; // did not work if both were random
+
+		if (mine_sweeper_map[y][x] == 'B') {
+			continue;
+		} else if (mine_sweeper_map[y][x] == '#'){
+			mine_sweeper_map[y][x] = 'B';
+			num_mines_placed++;
 		}
-	}	
 
+		i++;
+		if (i == 10) {
+			i = 0;
+		}
+	}
 }
 
 
@@ -1817,7 +1952,7 @@ void text_editor() {
 void check_for_command() {
 	newline();
 
-	if (num_commands < MAX_COMMANDS) {
+	if (num_commands < MAX_COMMANDS && strlen(command) > 0) {
         strcpy(previous_commands[num_commands], command);
         num_commands++;
 		at_command = num_commands;
@@ -2265,7 +2400,6 @@ void keyboard_interrupt_handler(struct regs *r) {
     unsigned char c;
 	c = inb(0x60);
 
-	terminal_putentryat('w', terminal_color, 0, 23);
 
 	if (in_TD) { // no, this is not jank, this is unique and sofisticated
 		td_keyboard_handler(kbd_special_characters[c]);
@@ -2273,8 +2407,6 @@ void keyboard_interrupt_handler(struct regs *r) {
 	} 
 	
 	if (in_mine_sweeper) {
-		terminal_putentryat('d', terminal_color, 1, 23);
-
 		ms_keyboard_handler(kbd_special_characters[c]);
 		return;
 	}
