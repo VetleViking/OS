@@ -1179,7 +1179,7 @@ struct Color_coords{
 	int color;
 };
 
-struct Color_coords color_coords[600] = {
+struct Color_coords color_coords[2000] = {
 	{0, 0, 0}
 };
 
@@ -1272,7 +1272,7 @@ void add_num_color(int num_mines) {
 	}
 }
 
-
+int times_checked = 0;
 void check_surroundings(int y, int x) {
 	int start_x = x - 1;
 	int start_y = y - 1;
@@ -1281,7 +1281,14 @@ void check_surroundings(int y, int x) {
 		for (int j = start_y; j < start_y + 3; j++) {
 			if (i < 0 || i > w - 1 || j < 0 || j > h - 1) {
 				continue;
-			} else if (mine_sweeper_shown_map[j][i] == ' ') {
+			} 
+			if (mine_sweeper_shown_map[j][i] == ' ') {
+				continue;
+			}
+			if (mine_sweeper_shown_map[j][i] == 'F') {
+				continue;
+			}
+			if (mine_sweeper_shown_map[j][i] == '1') {
 				continue;
 			}
 			
@@ -1289,6 +1296,12 @@ void check_surroundings(int y, int x) {
 
 			if (num_mines == 0) {
 				mine_sweeper_shown_map[j][i] = ' ';
+				times_checked++;
+
+				if (times_checked > 200) {
+					return;
+				}
+
 				check_surroundings(j, i);
 				continue;
 			}
@@ -1371,7 +1384,12 @@ void ms_keyboard_handler(c) {
 					newline();
 				}
 				vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK);
-				terminal_writestring("____________________|");
+				
+				for (int i = 0; i < w; i++) {
+					terminal_writestring("-");
+				}
+				terminal_writestring("|");
+
 				newline();
 				terminal_writestring("You lost!");
 				new_kernel_line();
@@ -1383,6 +1401,7 @@ void ms_keyboard_handler(c) {
 
 				if (num_mines == 0) {
 					mine_sweeper_shown_map[terminal_row][terminal_column] = ' ';
+					times_checked = 0;
 					check_surroundings(terminal_row, terminal_column);
 				} else {
 					add_num_color(num_mines);
@@ -1394,6 +1413,7 @@ void ms_keyboard_handler(c) {
 				}
 			}
 		}
+		print_ms_map();
 	} else if (c == 33) { //F
 		if (mine_sweeper_shown_map[terminal_row][terminal_column] == 'F') {
 			remove_color_coords(terminal_column, terminal_row);
@@ -1421,9 +1441,9 @@ void ms_keyboard_handler(c) {
 				return;
 			}
 		}
+		print_ms_map();
 	}
 
-	print_ms_map();
 	is_writing_command = true;
 }
 
@@ -1435,6 +1455,8 @@ void mine_sweeper_play() {
 
 	is_writing_command = true;
 	in_mine_sweeper = true;
+
+	print_ms_map();
 
 	while (in_mine_sweeper) {
 		last_update++;
@@ -1467,23 +1489,28 @@ void mine_sweeper_start() {
 		int num_params = 0;
 
 		int len = strlen(game_params);
-		int start = 2;
-	
-		while (len > 0) {
-			for (int i = start; i < len; i++) {
-				if ((game_params[i] == ' ' && game_params[i + 1] == '-') || game_params[i] == '\0') {
-					buffer[i] = '\0';
-					break;
-				}
-				buffer[i - start] = game_params[i];
-			}
+        int start = 0;
 
-			start = start + strlen(buffer) + 2;
-			len = len - strlen(buffer) - 2;
-			
-			strcpy(params[num_params], buffer);
-			num_params++;
-		}
+        while (start < len) {
+            int i;
+            for (i = start; i < len; i++) {
+                if (game_params[i] == ' ' || game_params[i] == '\0') {
+                    buffer[i - start] = '\0';
+                    break;
+                }
+                buffer[i - start] = game_params[i];
+            }
+
+            if (i == len) {
+                buffer[i - start] = '\0';
+            }
+
+            // Skip the minus sign when copying to params
+            strcpy(params[num_params], buffer + 1);
+            num_params++;
+
+            start = i + 1;
+        }
 
 		for (int i = 0; i < num_params; i++) {
 			if (strcmplen(params[i], "w", 1) == 0) {
@@ -1509,11 +1536,11 @@ void mine_sweeper_start() {
 			}
 		}
 
-		if (w > 79) {
-			w = 79;
+		if (w > 78) {
+			w = 78;
 		}
-		if (h > 24) {
-			h = 24;
+		if (h > 23) {
+			h = 23;
 		}
 		if (num_mines > w * h) {
 			num_mines = w * h;
