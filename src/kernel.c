@@ -1140,15 +1140,28 @@ char mine_sweeper_shown_map[10][21] = {
 	'\0'
 };
 
+
+struct Color_coords{
+	int x;
+	int y;
+	int color;
+};
+
+struct Color_coords color_coords[600] = {
+	{0, 0, 0}
+};
+
+int num_color_coords = 0;
+
+int start_ms_time = 0;
+
 bool in_mine_sweeper = false;
 
 
 void print_ms_map() {
 	bool was_writing_command = is_writing_command;
-	bool was_in_ms = in_mine_sweeper;
 
 	is_writing_command = false;
-	in_mine_sweeper = false;
 
 	int prev_ter_col = terminal_column;
 	int prev_ter_row = terminal_row;
@@ -1162,11 +1175,16 @@ void print_ms_map() {
 	}
 	terminal_writestring("____________________|");
 
+	for (int i = 0; i < num_color_coords; i++) {
+		int x = color_coords[i].x;
+		int y = color_coords[i].y;
+		terminal_putentryat(mine_sweeper_shown_map[y][x], vga_entry_color(color_coords[i].color, VGA_COLOR_BLACK), x, y);
+	}
+
 	terminal_column = prev_ter_col;
 	terminal_row = prev_ter_row;
 
 	is_writing_command = was_writing_command;
-	in_mine_sweeper = was_in_ms;
 }
 
 
@@ -1179,6 +1197,41 @@ bool check_ms_win() {
 		}
 	}
 	return true;
+}
+
+
+void remove_color_coords(int x, int y) {
+	for (int i = 0; i < num_color_coords; i++) {
+		if (color_coords[i].x == x && color_coords[i].y == y) {
+			for (int j = i; j < num_color_coords; j++) {
+				color_coords[j] = color_coords[j + 1];
+			}
+			num_color_coords--;
+			break;
+		}
+	}
+}
+
+
+void add_num_color(int num_mines) {
+	switch (num_mines) {
+		case 1:
+		
+			color_coords[num_color_coords].color = VGA_COLOR_GREEN;
+			break;
+		case 2:
+			color_coords[num_color_coords].color = VGA_COLOR_LIGHT_RED;
+			break;
+
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+			color_coords[num_color_coords].color = VGA_COLOR_RED;
+			break;
+	}
 }
 
 
@@ -1202,6 +1255,11 @@ void check_surroundings(int y, int x) {
 				continue;
 			}
 			
+			add_num_color(num_mines);
+			color_coords[num_color_coords].x = i;
+			color_coords[num_color_coords].y = j;
+			num_color_coords++;
+
 			mine_sweeper_shown_map[j][i] = num_mines + '0';
 		}
 	}
@@ -1231,7 +1289,6 @@ int check_mines(int y, int x) {
 
 void ms_keyboard_handler(c) {
 	is_writing_command = false;
-	in_mine_sweeper = false;
 
 	if (c == 75) { // left
 		if (terminal_column > 0) {
@@ -1254,49 +1311,64 @@ void ms_keyboard_handler(c) {
 			move_cursor(terminal_column, terminal_row);
 		}
 	} else if (c == 28)	{ // enter
-		if (mine_sweeper_map[terminal_row][terminal_column] == 'B') {
-			in_game = false;
-			in_mine_sweeper = false;
-			is_writing_command = false;
-			check_scroll = true;
-			clear_screen();
-			for (int i = 0; i < 10; i++) {
-				for (int j = 0; j < 20; j++) {
-					if (mine_sweeper_map[i][j] == 'B') {
-						terminal_putentryat('B', vga_entry_color(VGA_COLOR_RED, VGA_COLOR_BLACK), j, i);
-					} else {
-						terminal_putentryat(' ', vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK), j, i);
+		if (mine_sweeper_shown_map[terminal_row][terminal_column] != 'F') {
+			if (mine_sweeper_map[terminal_row][terminal_column] == 'B') {
+				in_game = false;
+				in_mine_sweeper = false;
+				is_writing_command = false;
+				check_scroll = true;
+				clear_screen();
+				for (int i = 0; i < 10; i++) {
+					for (int j = 0; j < 20; j++) {
+						if (mine_sweeper_map[i][j] == 'B') {
+							terminal_putentryat('B', vga_entry_color(VGA_COLOR_RED, VGA_COLOR_BLACK), j, i);
+						} else {
+							terminal_putentryat(' ', vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK), j, i);
+						}
 					}
+					terminal_column = 20;
+					terminal_row = i;
+					vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK);
+					terminal_writestring("|");				
+					newline();
 				}
-				terminal_column = 20;
-				terminal_row = i;
 				vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK);
-				terminal_writestring("|");				
+				terminal_writestring("____________________|");
 				newline();
-			}
-			vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK);
-			terminal_writestring("____________________|");
-			newline();
-			terminal_writestring("You lost!");
-			new_kernel_line();
-			move_cursor(terminal_column, terminal_row);
-			return;
-		} else {
-			int num_mines = 0;
-			num_mines = check_mines(terminal_row, terminal_column);
-
-			if (num_mines == 0) {
-				mine_sweeper_shown_map[terminal_row][terminal_column] = ' ';
-				check_surroundings(terminal_row, terminal_column);
+				terminal_writestring("You lost!");
+				new_kernel_line();
+				move_cursor(terminal_column, terminal_row);
+				terminal_putentryat('B', vga_entry_color(VGA_COLOR_RED, VGA_COLOR_BLACK), 0, 24);
+				return;
 			} else {
-				mine_sweeper_shown_map[terminal_row][terminal_column] = num_mines + '0';
+				int num_mines = 0;
+				num_mines = check_mines(terminal_row, terminal_column);
+
+				if (num_mines == 0) {
+					mine_sweeper_shown_map[terminal_row][terminal_column] = ' ';
+					check_surroundings(terminal_row, terminal_column);
+				} else {
+					add_num_color(num_mines);
+					color_coords[num_color_coords].x = terminal_column;
+					color_coords[num_color_coords].y = terminal_row;
+					num_color_coords++;
+
+					mine_sweeper_shown_map[terminal_row][terminal_column] = num_mines + '0';
+				}
 			}
 		}
 	} else if (c == 33) { //F
 		if (mine_sweeper_shown_map[terminal_row][terminal_column] == 'F') {
+			remove_color_coords(terminal_column, terminal_row);
 			mine_sweeper_shown_map[terminal_row][terminal_column] = '#';
-		} else {
+		} else if (mine_sweeper_shown_map[terminal_row][terminal_column] == '#') {
 			mine_sweeper_shown_map[terminal_row][terminal_column] = 'F';
+
+			color_coords[num_color_coords].x = terminal_column;
+			color_coords[num_color_coords].y = terminal_row;
+			color_coords[num_color_coords].color = VGA_COLOR_LIGHT_BLUE;
+			num_color_coords++;
+
 			if (check_ms_win()) {
 				in_game = false;
 				in_mine_sweeper = false;
@@ -1304,6 +1376,9 @@ void ms_keyboard_handler(c) {
 				check_scroll = true;
 				clear_screen();
 				terminal_writestring("You won!");
+				newline();
+				terminal_writestring("You won in ");
+				print_ticks_to_time(timer_ticks - start_ms_time);
 				new_kernel_line();
 				move_cursor(terminal_column, terminal_row);
 				return;
@@ -1311,9 +1386,8 @@ void ms_keyboard_handler(c) {
 		}
 	}
 
-	in_mine_sweeper = true;
+	print_ms_map();
 	is_writing_command = true;
-
 }
 
 void mine_sweeper_play() {
@@ -1332,14 +1406,14 @@ void mine_sweeper_play() {
 			last_update = 0;
 		}
 
-		print_ms_map();
-
 		sleep(framerate);
 	}
 }
 
 
 void mine_sweeper_start() {
+	start_ms_time = timer_ticks;
+
 	check_scroll = false;	
 	in_mine_sweeper = true;
 
@@ -1354,6 +1428,13 @@ void mine_sweeper_start() {
 		}
 		mine_sweeper_map[i][20] = '\0';
 		mine_sweeper_shown_map[i][20] = '\0';
+	}
+
+	while (num_color_coords > 0) {
+		color_coords[num_color_coords].x = 0;
+		color_coords[num_color_coords].y = 0;
+		color_coords[num_color_coords].color = 0;
+		num_color_coords--;
 	}
 
 	int num_mines_placed = 0;
