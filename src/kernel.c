@@ -1229,7 +1229,7 @@ void print_ms_map() {
 bool check_ms_win() {
 	for (int i = 0; i < h; i++) {
 		for (int j = 0; j < w; j++) {
-			if (mine_sweeper_map[i][j] == 'B' && mine_sweeper_shown_map[i][j] != 'F') {
+			if (mine_sweeper_map[i][j] == 'M' && mine_sweeper_shown_map[i][j] != 'F') {
 				return false;
 			}
 		}
@@ -1328,7 +1328,7 @@ int check_mines(int y, int x) {
 			if (i < 0 || i > w - 1 || j < 0 || j > h - 1) {
 				continue;
 			}
-			if (mine_sweeper_map[j][i] == 'B') {
+			if (mine_sweeper_map[j][i] == 'M') {
 				num_mines++;
 			}
 		}
@@ -1363,7 +1363,7 @@ void ms_keyboard_handler(c) {
 		}
 	} else if (c == 28)	{ // enter
 		if (mine_sweeper_shown_map[terminal_row][terminal_column] != 'F') {
-			if (mine_sweeper_map[terminal_row][terminal_column] == 'B') {
+			if (mine_sweeper_map[terminal_row][terminal_column] == 'M') {
 				in_game = false;
 				in_mine_sweeper = false;
 				is_writing_command = false;
@@ -1371,8 +1371,8 @@ void ms_keyboard_handler(c) {
 				clear_screen();
 				for (int i = 0; i < h; i++) {
 					for (int j = 0; j < w; j++) {
-						if (mine_sweeper_map[i][j] == 'B') {
-							terminal_putentryat('B', vga_entry_color(VGA_COLOR_RED, VGA_COLOR_BLACK), j, i);
+						if (mine_sweeper_map[i][j] == 'M') {
+							terminal_putentryat('M', vga_entry_color(VGA_COLOR_RED, VGA_COLOR_BLACK), j, i);
 						} else {
 							terminal_putentryat(' ', vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK), j, i);
 						}
@@ -1571,10 +1571,10 @@ void mine_sweeper_start() {
 		int x = rand(num_mines_placed + i * 1332126) % w;
 		int y = i; // did not work if both were random
 
-		if (mine_sweeper_map[y][x] == 'B') {
+		if (mine_sweeper_map[y][x] == 'M') {
 			continue;
 		} else if (mine_sweeper_map[y][x] == '#'){
-			mine_sweeper_map[y][x] = 'B';
+			mine_sweeper_map[y][x] = 'M';
 			num_mines_placed++;
 		}
 
@@ -2253,6 +2253,8 @@ void check_for_command() {
 		terminal_writestring("rock paper scissors - RPS");
 		newline();
 		terminal_writestring("tic tac toe - TTT");
+		newline();
+		terminal_writestring("tower defense - TD params: -w[num] (width), -h[num] (height), -m[num] (mines)");
 	} else if (strcmp(command, "uptime") == 0) {
 		uptime_command();
 	} else if (strcmp(command, "animation") == 0) {
