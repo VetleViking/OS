@@ -203,7 +203,8 @@ void newline() {
 
 bool should_print = true;
 bool is_writing_command = false;
-static bool shift_pressed = false;
+bool shift_pressed = false;
+bool caps_lock = false;
 
 
 // calls newline and prints "> " to indicate that the user can write a command
@@ -1099,7 +1100,7 @@ void keyboard_handler(unsigned char c) {
 		}
 	} else if (c == 58) { // caps lock
 		if (is_writing_command || in_text_editor) {
-			shift_pressed = !shift_pressed; // TODO: add more elegant solution
+			caps_lock = !caps_lock;
 		}
 	} else if (c == 14) { // backspace
 		if (in_text_editor) {
@@ -1230,7 +1231,7 @@ void terminal_putchar(unsigned char c) {
 		c = kbd_US[c];
 	}
 
-	if (shift_pressed && (is_writing_command || in_text_editor)) {
+	if ((shift_pressed || caps_lock) && (is_writing_command || in_text_editor)) {
 		if (c >= 'a' && c <= 'z') {
 			c -= 32;
 		}
