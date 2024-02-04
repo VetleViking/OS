@@ -1,0 +1,87 @@
+#ifndef __SYSTEM_H
+#define __SYSTEM_H
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+/* Kernel */
+extern bool in_game;
+extern bool is_writing_command;
+extern bool check_scroll;
+extern bool has_params;
+extern size_t terminal_column;
+extern size_t terminal_row;
+extern uint8_t terminal_color;
+extern int timer_ticks;
+extern char game_params[20];
+extern int game_round;
+extern int chosen_color;
+extern int chosen_bg_color;
+extern const size_t VGA_WIDTH;
+extern const size_t VGA_HEIGHT;
+extern uint16_t* terminal_buffer;
+extern char command[256];
+
+// Colors used by the kernel, used so that colors are easier to use
+enum vga_color { 
+	VGA_COLOR_BLACK = 0,
+	VGA_COLOR_BLUE = 1,
+	VGA_COLOR_GREEN = 2,
+	VGA_COLOR_CYAN = 3,
+	VGA_COLOR_RED = 4,
+	VGA_COLOR_MAGENTA = 5,
+	VGA_COLOR_BROWN = 6,
+	VGA_COLOR_LIGHT_GREY = 7,
+	VGA_COLOR_DARK_GREY = 8,
+	VGA_COLOR_LIGHT_BLUE = 9,
+	VGA_COLOR_LIGHT_GREEN = 10,
+	VGA_COLOR_LIGHT_CYAN = 11,
+	VGA_COLOR_LIGHT_RED = 12,
+	VGA_COLOR_LIGHT_MAGENTA = 13,
+	VGA_COLOR_LIGHT_BROWN = 14,
+	VGA_COLOR_WHITE = 15,
+};
+
+extern void terminal_writestring(const char* data);
+extern void newline();
+extern void terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y);
+extern int rand(int something);
+extern void move_cursor(int x, int y);
+extern void clear_screen();
+extern uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg);
+extern uint16_t vga_entry(unsigned char uc, uint8_t color);
+extern void new_kernel_line();
+extern void print_ticks_to_time(int ticks);
+extern void sleep(int ticks);
+extern size_t strlen(const char* str);
+extern void strcpy(char* dest, const char* src);
+extern int strcmplen(const char *str1, const char *str2, size_t n);
+extern int atoi(const char *str);
+extern void itoa(int value, char* str, int base);
+extern void terminal_putchar(unsigned char c);
+
+
+/* Minesweeper */
+extern bool in_mine_sweeper;
+
+extern void mine_sweeper_start();
+extern void mine_sweeper_play(); 
+
+
+/* Tower defense */
+extern bool in_TD;
+
+extern void tower_defense_start();
+extern void tower_defense_play();
+
+
+/* Rock paper scissors */
+extern void rock_paper_scissors();
+
+
+/* Tic tac toe */
+extern void tic_tac_toe();
+
+
+#endif
