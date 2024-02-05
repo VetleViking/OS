@@ -10,6 +10,7 @@ extern bool in_game;
 extern bool is_writing_command;
 extern bool check_scroll;
 extern bool has_params;
+extern bool should_print;
 extern size_t terminal_column;
 extern size_t terminal_row;
 extern uint8_t terminal_color;
@@ -22,6 +23,11 @@ extern const size_t VGA_WIDTH;
 extern const size_t VGA_HEIGHT;
 extern uint16_t* terminal_buffer;
 extern char command[256];
+#define MAX_COMMANDS 100
+#define MAX_COMMAND_LENGTH 256
+extern int at_command;
+extern char previous_commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
+extern int num_commands;
 
 // Colors used by the kernel, used so that colors are easier to use
 enum vga_color { 
@@ -94,5 +100,17 @@ extern void text_editor();
 /* Execute text */
 extern void execute_text();
 
+
+/* Keyboard handler */
+extern bool shift_pressed;
+extern bool caps_lock;
+
+extern void keyboard_handler(unsigned char c);
+
+
+/* Keyboard layouts */
+extern char kbd_US[256];
+extern char kbd_NO[256];
+extern char kbd_special_characters[256];
 
 #endif

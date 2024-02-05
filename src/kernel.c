@@ -13,96 +13,6 @@
 #define ICW4 0x01
 
 
-// english keyboard layout TODO: add norwegian keyboard layout
-char kbd_US [256] = {
-    0,  0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', /* <-- Backspace */   
- '\t', /* <-- Tab */
-  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', /* <-- Enter key */     
-   	0, /* <-- control key */
-  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',  0, /* <-- left shift */ '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0, /* <-- right shift */
-  '*',
-    0,  /* Alt */
-  ' ',  /* Space bar */
-    0,  /* Caps lock */
-    0,  /* 59 - F1 key ... > */
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,  /* < ... F10 */
-    0,  /* 69 - Num lock*/
-    0,  /* Scroll Lock */
-    0,  /* Home key */
-    0,  /* Up Arrow */
-    0,  /* Page Up */
-  '-',
-    0,  /* Left Arrow */
-    0,
-    0,  /* Right Arrow */
-  '+',
-    0,  /* 79 - End key*/
-    0,  /* Down Arrow */
-    0,  /* Page Down */
-    0,  /* Insert Key */
-    0,  /* Delete Key */
-    0,   0,   0,
-    0,  /* F11 Key */
-    0,  /* F12 Key */
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 100 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 110 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 120 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 130, key releases after number 128 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 140 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 150 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 160 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 170, 170 - left shift */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 180 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 190, 182 - right shift */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0 /* 200, rest are added if needed. */
-};
-
-char kbd_special_characters[256] = {
-    0,  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, /* <-- Backspace */
-   15, /* <-- Tab */
-   16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, /* <-- Enter key */
-    0, /* <-- control key */
-   30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, /* <-- left shift */
-   43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, /* <-- right shift */
-   55,
-    0,  /* Alt */
-   57,  /* Space bar */
-   58,  /* Caps lock */
-    0,  /* 59 - F1 key ... > */
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,  /* < ... F10 */
-    0,  /* 69 - Num lock*/
-    0,  /* Scroll Lock */
-    0,  /* Home key */
-   72,  /* Up Arrow */
-    0,  /* Page Up */
-   74,
-   75,  /* Left Arrow */
-    0,
-   77,  /* Right Arrow */
-   78,
-    0,  /* 79 - End key*/
-   80,  /* Down Arrow */
-    0,  /* Page Down */
-    0,  /* Insert Key */
-    0,  /* Delete Key */
-    0,   0,   0,
-    0,  /* F11 Key */
-    0,  /* F12 Key */
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 100 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 110 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 120 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 130, key releases after number 128 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 140 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 150 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 160 */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 170, /* 170, 170 - left shift */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 180 */
-	0, 182, 0, 0, 0, 0, 0, 0, 0, 0, /* 190, 182 - right shift */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0 /* 200, rest are added if needed. */
-};
-
 int timer_ticks = 0;
 
 
@@ -203,8 +113,6 @@ void newline() {
 
 bool should_print = true;
 bool is_writing_command = false;
-bool shift_pressed = false;
-bool caps_lock = false;
 
 
 // calls newline and prints "> " to indicate that the user can write a command
@@ -312,9 +220,6 @@ void clear_screen() {
 
 
 // Command and game stuff
-#define MAX_COMMANDS 100
-#define MAX_COMMAND_LENGTH 256
-
 char previous_commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
 int num_commands = 0;
 int at_command = 0;
@@ -718,7 +623,9 @@ void check_for_command() {
 		newline();
 		terminal_writestring("tic tac toe - TTT");
 		newline();
-		terminal_writestring("tower defense - TD params: -w[num] (width), -h[num] (height), -m[num] (mines)");
+		terminal_writestring("tower defense - TD");
+		newline();
+		terminal_writestring("minesweeper - MS params: -w[num] (width), -h[num] (height), -m[num] (mines)");
 	} else if (strcmp(command, "uptime") == 0) {
 		uptime_command();
 	} else if (strcmp(command, "animation") == 0) {
@@ -741,179 +648,6 @@ void end_check_for_command() {
 	at_command = num_commands;
 	command[0] = '\0';
 	new_kernel_line();
-	
-}
-
-
-// Checks if the key is special (like enter, backspace, etc.)
-void keyboard_handler(unsigned char c) { 
-
-	if (in_TD) {
-		should_print = false;
-		return;
-	}
-
-	if (c == 0) {
-	} else if (c == 1){
-		if (in_text_editor) {
-			in_text_editor = false;	
-			check_scroll = true;
-			end_check_for_command();
-			clear_screen();
-			new_kernel_line();
-		}
-	} else if (c == 28) { // enter and writing command
-		if (in_text_editor) {
-			// TODO: make lower lines move down and delete last line, or something like that
-		} else if (!is_writing_command) {
-			newline();
-		} else {
-			check_for_command();
-		}
-	} else if (c == 15) { // tab
-		if (in_text_editor) { // TODO: make it so that it moves the text after the tab, and make it not on end of text if in middle
-			int len = strlen(text_editor_text[terminal_row - 3]);
-			if (terminal_column + 4 < 80) { 
-				terminal_column += 4;
-				text_editor_text[terminal_row - 3][len] = ' ';
-				text_editor_text[terminal_row - 3][len + 1] = ' ';
-				text_editor_text[terminal_row - 3][len + 2] = ' ';
-				text_editor_text[terminal_row - 3][len + 3] = ' ';
-				text_editor_text[terminal_row - 3][len + 4] = '\0';
-			}
-		} else if (is_writing_command) { // TODO: the same as above
-			int len = strlen(command);
-			if (len + 4 < MAX_COMMAND_LENGTH) {
-				terminal_column += 4;
-				command[len] = ' ';
-				command[len + 1] = ' ';
-				command[len + 2] = ' ';
-				command[len + 3] = ' ';
-				command[len + 4] = '\0';
-			}
-		}
-	} else if (c == 42) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
-		if (is_writing_command || in_text_editor) {
-			shift_pressed = true;
-		}
-	} else if (c == 170) { // shift released
-		if (is_writing_command || in_text_editor) {
-			shift_pressed = false; 
-		}
-	} else if (c == 58) { // caps lock
-		if (is_writing_command || in_text_editor) {
-			caps_lock = !caps_lock;
-		}
-	} else if (c == 14) { // backspace
-		if (in_text_editor) {
-			size_t len = strlen(text_editor_text[terminal_row - 3]);
-			if (len > 0 && terminal_column > 3) {
-				if (terminal_column < len + 3) {
-					text_editor_text[terminal_row - 3][terminal_column - 3] = ' ';
-				} else {
-					text_editor_text[terminal_row - 3][len - 1] = '\0';
-				}
-				terminal_column--;
-				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
-			}
-		} else if (is_writing_command) {
-			size_t len = strlen(command);
-			if (len > 0) { // if there is a command being written, delete last character
-				if (terminal_column < len + 2) {
-					command[terminal_column - 3] = ' ';
-				} else {
-					command[len - 1] = '\0';
-				}
-				terminal_column--;
-				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
-			}
-		}
-	} else if (c == 72) { // up arrow pressed
-	 	if (in_text_editor) {
-			if (terminal_row > 3) {
-				terminal_row--;
-				terminal_column = 3;
-			}
-		} else {	
-			if (at_command > 0) { // if there is commands above
-				at_command--;
-				size_t len = strlen(command);
-				for (size_t i = 0; i < len; i++) { // delete current command
-					terminal_column--;
-					terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
-				}
-				command[0] = '\0';
-				is_writing_command = false;
-				
-				len = strlen(previous_commands[at_command]);
-				for (size_t i = 0; i < len; i++) {
-					command[i] = previous_commands[at_command][i];
-				}
-				command[len] = '\0';
-
-				terminal_writestring(previous_commands[at_command]); // write command
-				is_writing_command = true;
-			}
-		}
-	} else if (c == 80) { // down arrow pressed
-		if (in_text_editor) {
-			if (terminal_row < 24) {
-				terminal_row++;
-				terminal_column = 3;
-			}
-		} else {
-			if (at_command < num_commands) { // if there is commands below
-				at_command++;
-				size_t len = strlen(command);
-				for (size_t i = 0; i < len; i++) { // delete current command
-					terminal_column--;
-					terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
-				}
-				command[0] = '\0';
-					
-				if (!(at_command == num_commands)) { 
-
-					len = strlen(previous_commands[at_command]);
-					for (size_t i = 0; i < len; i++) {
-						command[i] = previous_commands[at_command][i];
-					}
-					command[len] = '\0';
-
-					is_writing_command = false;
-					terminal_writestring(previous_commands[at_command]); // if not last and empty command, write command
-					is_writing_command = true;
-				}
-			}
-		}
-	} else if (c == 75) { // left arrow pressed
-		if (in_text_editor) {
-			if (terminal_column > 3) {
-				terminal_column--;
-			}
-		} else if (is_writing_command) {
-			if (terminal_column > 2) {
-				terminal_column--;
-			}
-		}
-	} else if (c == 77) { // right arrow pressed
-		if (in_text_editor) {
-			if (terminal_column < 77 && terminal_column < strlen(text_editor_text[terminal_row - 3]) + 3) {
-				terminal_column++;
-			}
-		} else if (is_writing_command) {
-			if (terminal_column < strlen(command) + 2) {
-				terminal_column++;
-			}
-		}
-	}
-	
-	
-	else { // any other key
-		should_print = true;
-		return;
-	}
-	should_print = false; // if any of the above is true, then it should not print
-	return;
 }
 
 
