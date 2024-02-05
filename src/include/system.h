@@ -84,4 +84,15 @@ extern void rock_paper_scissors();
 extern void tic_tac_toe();
 
 
+/* Text editor */
+extern bool in_text_editor;
+extern char text_editor_text[22][77];
+
+extern void text_editor();
+
+
+/* Execute text */
+extern void execute_text();
+
+
 #endif

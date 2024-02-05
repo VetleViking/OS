@@ -1,22 +1,40 @@
-startQemu: setupGrub
+# This makefile compiles and runs the most recent version of the OS.
+# It is run by using the command "make" in the terminal, in the root directory of the project.
+
+# Starts the OS in QEMU.
+startQemu: clean
 	qemu-system-i386 -cdrom src/myos.iso
 
+# Removes all the object and binary files the makefile created.
+clean: setupGrub 
+	cd src && rm -f *.o
+	cd src && rm -f *.bin
+
+# Creates the iso file that can be used to boot the OS, using GRUB.
 setupGrub: combineFiles
 	cd src && mkdir -p isodir/boot/grub
 	cd src && cp myos.bin isodir/boot/myos.bin
 	cd src && cp grub.cfg isodir/boot/grub/grub.cfg
 	cd src && grub-mkrescue -o myos.iso isodir
 
+# Combines the all the different object files into a single binary file.
+# If you add something to compileKernel, you need to add the object file it creates here.
 combineFiles: compileKernel
-	cd src && i386-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o kernel.o test.o minesweeper.o tower_defense.o rock_paper_scissors.o tic_tac_toe.o -lgcc
+	cd src && i386-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o kernel.o test.o execute_text.o text_editor.o minesweeper.o tower_defense.o rock_paper_scissors.o tic_tac_toe.o -lgcc
 
+# Compiles the c and asm files to object files.
+# If you add a new c file, you need to add it to the compileKernel command.
 compileKernel: compileBoot
 	cd src && i386-elf-gcc -c kernel.c -o kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
 	cd src && i386-elf-gcc -c games/minesweeper.c -o minesweeper.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
 	cd src && i386-elf-gcc -c games/tower_defense.c -o tower_defense.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
 	cd src && i386-elf-gcc -c games/rock_paper_scissors.c -o rock_paper_scissors.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
 	cd src && i386-elf-gcc -c games/tic_tac_toe.c -o tic_tac_toe.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
+	cd src && i386-elf-gcc -c text_editor/execute_text.c -o execute_text.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
+	cd src && i386-elf-gcc -c text_editor/text_editor.c -o text_editor.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
+	
 	cd src && nasm -f elf32 test.asm -o test.o
 
+# Compiles the boot Assembly file to an object file.
 compileBoot:
 	cd src && i386-elf-as boot.asm -o boot.o
