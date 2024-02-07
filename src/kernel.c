@@ -630,6 +630,8 @@ void check_for_command() {
 		uptime_command();
 	} else if (strcmp(command, "animation") == 0) {
 		animation_test();
+	} else if (strcmp(command, "kukbart") == 0) { // best code ever written. By banana toucher beats B)
+		terminal_writestring("Kukbart finner ikke lommeboken sin! Kan du hjelpe han? PS: (Riktig svar er nei;))!");
 	}
 
 
