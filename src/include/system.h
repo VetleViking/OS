@@ -113,4 +113,12 @@ extern char kbd_US[256];
 extern char kbd_NO[256];
 extern char kbd_special_characters[256];
 
+
+/* VGA */
+extern void vga_test();
+extern void draw_rectangle(int x, int y, int width, int height, unsigned short color);
+extern void vga_clear_screen();
+extern void vga_plot_pixel(int x, int y, unsigned short color);
+
+
 #endif
