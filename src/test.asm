@@ -460,17 +460,12 @@ global ioport_in
 global ioport_out
 
 ioport_in:
-	mov edx, [esp + 4] ; PORT_TO_READ, 16 bits
-	; dx is lower 16 bits of edx. al is lower 8 bits of eax
-	; Format: in <DESTINATION_REGISTER>, <PORT_TO_READ>
-	in al, dx					 ; Read from port DX. Store value in AL
-	; Return will send back the value in eax
-	; (al in this case since return type is char, 8 bits)
-	ret
+	mov edx, [esp + 4] ; Get the port number
+	in al, dx	       ; Read the value from the port
+	ret                ; Return the value in al
 
 ioport_out:
-	mov edx, [esp + 4]	; port to write; DST_IO_PORT. 16 bits
-	mov eax, [esp + 8] 	; value to write. 8 bits
-	; Format: out <DST_IO_PORT>, <VALUE_TO_WRITE>
-	out dx, al
-	ret
+	mov edx, [esp + 4]	; Get the port number
+	mov eax, [esp + 8]  ; Get the value to send
+	out dx, al          ; Send the value
+	ret                 ; Return 

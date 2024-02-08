@@ -1238,157 +1238,89 @@ void gdt_install()
 bool main_exit_flag = false;
 
 
+
+
 // // VGA stuff
 
-// #define VGA_ADDRESS 0xA0000
+#define VGA_ADDRESS 0xA0000
 
-// #define VGA_AC_INDEX 0x3C0
-// #define VGA_AC_WRITE 0x3C0
-// #define VGA_AC_READ 0x3C1
-// #define VGA_INSTAT_READ 0x3DA
-// #define VGA_MISC_WRITE 0x3C2
-// #define VGA_MISC_READ 0x3CC
+#define VGA_AC_INDEX 0x3C0
+#define VGA_AC_WRITE 0x3C0
+#define VGA_AC_READ 0x3C1
+#define VGA_INSTAT_READ 0x3DA
+#define VGA_MISC_WRITE 0x3C2
+#define VGA_MISC_READ 0x3CC
 
-// #define VGA_CRTC_INDEX 0x3D4
-// #define VGA_CRTC_DATA 0x3D5
-// #define VGA_GC_INDEX 0x3CE
-// #define VGA_GC_DATA 0x3CF
-// #define VGA_SEQ_INDEX 0x3C4
-// #define VGA_SEQ_DATA 0x3C5
+#define VGA_CRTC_INDEX 0x3D4
+#define VGA_CRTC_DATA 0x3D5
+#define VGA_GC_INDEX 0x3CE
+#define VGA_GC_DATA 0x3CF
+#define VGA_SEQ_INDEX 0x3C4
+#define VGA_SEQ_DATA 0x3C5
 
-// #define VGA_NUM_AC_REGS 21
-// #define VGA_NUM_CRTC_REGS 25
-// #define VGA_NUM_GC_REGS 9
-// #define VGA_NUM_SEQ_REGS 5
-
-// #define COLOR_GREEN 0x2
-
-// unsigned char g_320x200x256[] = {
-// 	/* MISC */
-// 	0xE3,
-// 	/* SEQ */
-// 	0x03, 0x01, 0x0F, 0x00, 0x0E,
-// 	/* CRTC */
-// 	0x5F, 0x4F, 0x50, 0x82, 0x54, 0x80, 0xBF, 0x1F,
-// 	0x00, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x9C,
-// 	0x0E, 0x8F,
-// 	/* GC */
-// 	0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x0F, 0xFF,
-// 	0x00,
-// 	/* AC */
-// 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-// 	0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
-// 	0x41, 0x00, 0x0F, 0x00, 0x00
-// };
-
-
-/*
-
-This is work in progress, the VGA color stuff is not working yet.
-It currently only makes some rgb lines on the screen.
-Dont know whats wrong.
-
-
-void *memcpy(void *dest, const void *src, size_t n) {
-    char *cdest = (char *) dest;
-    const char *csrc = (const char *) src;
-    for (size_t i = 0; i < n; i++) {
-        cdest[i] = csrc[i];
-    }
-    return dest;
-}
+#define VGA_NUM_AC_REGS 21
+#define VGA_NUM_CRTC_REGS 25
+#define VGA_NUM_GC_REGS 9
+#define VGA_NUM_SEQ_REGS 5
 
 #define COLOR_BLACK 0x0
 #define COLOR_GREEN 0x2
 #define COLOR_PURPLE 0xf
 
-#define GRAPHICS_REG_ADDR 0x3ce
-#define GRAPHICS_REG_DATA 0x3cf
-#define GRAPHICS_IDX_MISC 0x06
+unsigned char g_320x200x256[] =
+{
+/* MISC */
+	0x63,
+/* SEQ */
+	0x03, 0x01, 0x0F, 0x00, 0x0E,
+/* CRTC */
+	0x5F, 0x4F, 0x50, 0x82, 0x54, 0x80, 0xBF, 0x1F,
+	0x00, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x9C, 0x0E, 0x8F, 0x28,	0x40, 0x96, 0xB9, 0xA3,
+	0xFF,
+/* GC */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x05, 0x0F,
+	0xFF,
+/* AC */
+	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+	0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+	0x41, 0x00, 0x0F, 0x00,	0x00
+};
 
-#define VGA_ADDRESS 0xB8000
-
-
-unsigned int vga_mode_var = 0;
-
-extern void ioport_out(unsigned short port, unsigned char data);
-extern unsigned char ioport_in(unsigned short port);
-
-unsigned int get_graphics_reg(unsigned int index) {
-	unsigned int saved_addr_reg = ioport_in(GRAPHICS_REG_ADDR);
-	ioport_out(GRAPHICS_REG_ADDR, index);
-	unsigned int graphics_reg_value = ioport_in(GRAPHICS_REG_DATA);
-	ioport_out(GRAPHICS_REG_ADDR, saved_addr_reg);
-	return graphics_reg_value;
-}
-void set_graphics_reg(unsigned int index, unsigned int value) {
-	unsigned int saved_addr_reg = ioport_in(GRAPHICS_REG_ADDR);
-	ioport_out(GRAPHICS_REG_ADDR, index);
-	ioport_out(GRAPHICS_REG_DATA, value);
-	ioport_out(GRAPHICS_REG_ADDR, saved_addr_reg);
-}
-
-void vga_info() {
-	terminal_writestring("Getting VGA info");
-	unsigned int misc_reg = get_graphics_reg(GRAPHICS_IDX_MISC);
-	unsigned int ram_enable = (misc_reg & 0b10) >> 1;
-	unsigned int mem_map_select = (misc_reg & 0b1100) >> 2;
-	unsigned int alpha_dis = misc_reg & 1;
-
-	terminal_writestring("RAM enable: ");
-
-	if (ram_enable == 0) {
-		terminal_writestring("disabled");
-	} else {
-		terminal_writestring("enabled");
-	}
-
-	terminal_writestring("Memory Map Select: 0b");
-	char buffer[2];
-	itoa(mem_map_select, buffer, 2);
-	terminal_writestring(buffer);
-	terminal_writestring("Alphanumeric disable: 0b");
-
-	itoa(alpha_dis, buffer, 2);
-
-	terminal_writestring(buffer);
-}
-
-void vga_enter() {
-	if (vga_mode_var == 1) return;
-	vga_mode_var = 1;
+void vga_test() {
     terminal_writestring("Attempting to switch modes...");
+    write_regs(g_320x200x256);
+    vga_clear_screen();
 
-	memcpy(0x0010b8000, 0xb8000, terminal_column*terminal_row*2);
+	// draw rectangle
+	draw_rectangle(150, 10, 100, 50, COLOR_GREEN);
 
-	unsigned int misc_reg = get_graphics_reg(GRAPHICS_IDX_MISC);
-	misc_reg |= 1; 
-	set_graphics_reg(GRAPHICS_IDX_MISC, misc_reg);
+	// start and end of screen
+	vga_plot_pixel(0, 0, 15);
+	vga_plot_pixel(319, 199, COLOR_PURPLE);
 
-	memset(0xb8000, 0, 60);
-
-	vga_clear_screen();
-
-
-	while (true) {
-		sleep(1);
+	// all colors
+	for (int i = 0; i < 15; i++) {
+		for (int j = 0; j < 100; j++) {
+			vga_plot_pixel(i, 50+j, i);
+		}
 	}
 }
 
+void draw_rectangle(int x, int y, int width, int height, unsigned short color) {
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+			vga_plot_pixel(x+i, y+j, color);
+		}
+	}
+}
 
-void vga_exit() {
-	if (vga_mode_var == 0) return;
-	unsigned int misc_reg = get_graphics_reg(GRAPHICS_IDX_MISC);
-	misc_reg &= 0;
-	misc_reg |= 0b10; 
-	misc_reg |= 0b1100; 
-	set_graphics_reg(GRAPHICS_IDX_MISC, misc_reg);
-
-	memcpy(0xb8000, 0x0010b8000, terminal_column*terminal_row*2);
-
-	vga_mode_var = 0;
-
-	terminal_writestring("test");
+void vga_clear_screen() {
+    for (int i = 0; i < 320; i++) {
+        for (int j = 0; j < 200; j++) {
+            vga_plot_pixel(i,j,COLOR_BLACK);
+        }
+    }
 }
 
 void vga_plot_pixel(int x, int y, unsigned short color) {
@@ -1396,8 +1328,63 @@ void vga_plot_pixel(int x, int y, unsigned short color) {
     unsigned char *VGA = (unsigned char*) VGA_ADDRESS;
     VGA[offset] = color;
 }
-*/
 
+// Copied code from osdev.org
+
+void write_regs(unsigned char *regs)
+{
+	unsigned i;
+
+	// write MISCELLANEOUS reg
+	ioport_out(VGA_MISC_WRITE, *regs);
+	regs++;
+
+	// write SEQUENCER regs
+	for(i = 0; i < VGA_NUM_SEQ_REGS; i++)
+	{
+		ioport_out(VGA_SEQ_INDEX, i);
+		ioport_out(VGA_SEQ_DATA, *regs);
+		regs++;
+	}
+
+	// unlock CRTC registers
+	ioport_out(VGA_CRTC_INDEX, 0x03);
+	ioport_out(VGA_CRTC_DATA, ioport_in(VGA_CRTC_DATA) | 0x80);
+	ioport_out(VGA_CRTC_INDEX, 0x11);
+	ioport_out(VGA_CRTC_DATA, ioport_in(VGA_CRTC_DATA) & ~0x80);
+
+	regs[0x03] |= 0x80;
+	regs[0x11] &= ~0x80;
+
+	// write CRTC regs
+	for(i = 0; i < VGA_NUM_CRTC_REGS; i++)
+	{
+		ioport_out(VGA_CRTC_INDEX, i);
+		ioport_out(VGA_CRTC_DATA, *regs);
+		regs++;
+	}
+
+	// write GRAPHICS CONTROLLER regs
+	for(i = 0; i < VGA_NUM_GC_REGS; i++)
+	{
+		ioport_out(VGA_GC_INDEX, i);
+		ioport_out(VGA_GC_DATA, *regs);
+		regs++;
+	}
+
+	// write ATTRIBUTE CONTROLLER regs
+	for(i = 0; i < VGA_NUM_AC_REGS; i++)
+	{
+		(void)ioport_in(VGA_INSTAT_READ);
+		ioport_out(VGA_AC_INDEX, i);
+		ioport_out(VGA_AC_WRITE, *regs);
+		regs++;
+	}
+	
+	// lock 16-color palette and unblank display
+	(void)ioport_in(VGA_INSTAT_READ);
+	ioport_out(VGA_AC_INDEX, 0x20);
+}
 
 
 // The main function, called at the start of the kernel, calls all the other functions
@@ -1435,6 +1422,9 @@ void kernel_main(void) {
     // | | | | -_| . | | | |
 	// |_|_|_|___|___|_____|
 
+
+
+	vga_test();
 	
 
 	// start of kernel
