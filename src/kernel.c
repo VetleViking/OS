@@ -294,6 +294,8 @@ void game_handler() {
 		tower_defense_start();
 	} else if (strcmp(game, "minesweeper") == 0 || strcmp(game, "MS") == 0) {
 		mine_sweeper_start();
+	} else if (strcmp(game, "game of life") == 0 || strcmp(game, "GOL") == 0) {
+		game_of_life_start();
 	}
 
 
@@ -632,15 +634,9 @@ void check_for_command() {
 		animation_test();
 	} else if (strcmp(command, "kukbart") == 0) { // best code ever written. By banana toucher beats B)
 		terminal_writestring("Kukbart finner ikke lommeboken sin! Kan du hjelpe han? PS: (Riktig svar er nei;))!");
-	} 
-	
-	/*
-	work in progress
-
-	else if (strcmp(command, "vga") == 0) {
+	} else if (strcmp(command, "vga") == 0) {
 		vga_enter();
 	}
-	*/
 
 
 	else {
@@ -842,6 +838,11 @@ void keyboard_interrupt_handler(struct regs *r) {
 	
 	if (in_mine_sweeper) {
 		ms_keyboard_handler(kbd_special_characters[c]);
+		return;
+	}
+
+	if (in_game_of_life) {
+		gol_keyboard_handler(kbd_special_characters[c]);
 		return;
 	}
 
@@ -1272,10 +1273,6 @@ void kernel_main(void) {
 	// |     |___ ___ _ _ _ 
     // | | | | -_| . | | | |
 	// |_|_|_|___|___|_____|
-
-
-
-	vga_test();
 	
 
 	// start of kernel
@@ -1296,6 +1293,11 @@ void kernel_main(void) {
 		if (in_mine_sweeper) {
 			is_writing_command = true;
 			mine_sweeper_play();
+		}
+
+		if (in_game_of_life) {
+			is_writing_command = true;
+			game_of_life_play();
 		}
 		
 		is_writing_command = was_writing_command; // end of temporary

@@ -25,10 +25,6 @@
 #define VGA_NUM_GC_REGS 9
 #define VGA_NUM_SEQ_REGS 5
 
-#define COLOR_BLACK 0x0
-#define COLOR_GREEN 0x2
-#define COLOR_PURPLE 0xf
-
 unsigned char g_320x200x256[] =
 {
 /* MISC */
@@ -49,24 +45,10 @@ unsigned char g_320x200x256[] =
 	0x41, 0x00, 0x0F, 0x00,	0x00
 };
 
-void vga_test() {
+void vga_enter() {
     terminal_writestring("Attempting to switch modes...");
     write_regs(g_320x200x256);
     vga_clear_screen();
-
-	// draw rectangle
-	draw_rectangle(150, 10, 100, 50, COLOR_GREEN);
-
-	// start and end of screen
-	vga_plot_pixel(0, 0, 15);
-	vga_plot_pixel(319, 199, COLOR_PURPLE);
-
-	// all colors
-	for (int i = 0; i < 15; i++) {
-		for (int j = 0; j < 100; j++) {
-			vga_plot_pixel(i, 50+j, i);
-		}
-	}
 }
 
 void draw_rectangle(int x, int y, int width, int height, unsigned short color) {
@@ -80,7 +62,7 @@ void draw_rectangle(int x, int y, int width, int height, unsigned short color) {
 void vga_clear_screen() {
     for (int i = 0; i < 320; i++) {
         for (int j = 0; j < 200; j++) {
-            vga_plot_pixel(i,j,COLOR_BLACK);
+            vga_plot_pixel(i,j,VGA_COLOR_BLACK);
         }
     }
 }

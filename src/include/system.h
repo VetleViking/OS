@@ -82,6 +82,14 @@ extern void tower_defense_start();
 extern void tower_defense_play();
 
 
+/* Game of life */
+extern bool in_game_of_life;
+
+extern void game_of_life_start();
+extern void game_of_life_play();
+extern void gol_keyboard_handler(c);
+
+
 /* Rock paper scissors */
 extern void rock_paper_scissors();
 
@@ -115,7 +123,7 @@ extern char kbd_special_characters[256];
 
 
 /* VGA */
-extern void vga_test();
+extern void vga_enter();
 extern void draw_rectangle(int x, int y, int width, int height, unsigned short color);
 extern void vga_clear_screen();
 extern void vga_plot_pixel(int x, int y, unsigned short color);
