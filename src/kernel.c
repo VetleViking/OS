@@ -632,9 +632,15 @@ void check_for_command() {
 		animation_test();
 	} else if (strcmp(command, "kukbart") == 0) { // best code ever written. By banana toucher beats B)
 		terminal_writestring("Kukbart finner ikke lommeboken sin! Kan du hjelpe han? PS: (Riktig svar er nei;))!");
-	} else if (strcmp(command, "vga") == 0) {
+	} 
+	
+	/*
+	work in progress
+
+	else if (strcmp(command, "vga") == 0) {
 		vga_enter();
 	}
+	*/
 
 
 	else {
@@ -1275,6 +1281,14 @@ bool main_exit_flag = false;
 // 	0x41, 0x00, 0x0F, 0x00, 0x00
 // };
 
+
+/*
+
+This is work in progress, the VGA color stuff is not working yet.
+It currently only makes some rgb lines on the screen.
+Dont know whats wrong.
+
+
 void *memcpy(void *dest, const void *src, size_t n) {
     char *cdest = (char *) dest;
     const char *csrc = (const char *) src;
@@ -1300,33 +1314,29 @@ unsigned int vga_mode_var = 0;
 extern void ioport_out(unsigned short port, unsigned char data);
 extern unsigned char ioport_in(unsigned short port);
 
-// Graphics Registers: 0x3ce = addr, 0x3cf = data
-// see http://www.osdever.net/FreeVGA/vga/graphreg.htm
 unsigned int get_graphics_reg(unsigned int index) {
 	unsigned int saved_addr_reg = ioport_in(GRAPHICS_REG_ADDR);
 	ioport_out(GRAPHICS_REG_ADDR, index);
 	unsigned int graphics_reg_value = ioport_in(GRAPHICS_REG_DATA);
-	ioport_out(GRAPHICS_REG_ADDR, saved_addr_reg); // restore address register
+	ioport_out(GRAPHICS_REG_ADDR, saved_addr_reg);
 	return graphics_reg_value;
 }
 void set_graphics_reg(unsigned int index, unsigned int value) {
 	unsigned int saved_addr_reg = ioport_in(GRAPHICS_REG_ADDR);
 	ioport_out(GRAPHICS_REG_ADDR, index);
 	ioport_out(GRAPHICS_REG_DATA, value);
-	ioport_out(GRAPHICS_REG_ADDR, saved_addr_reg); // restore address register
+	ioport_out(GRAPHICS_REG_ADDR, saved_addr_reg);
 }
 
 void vga_info() {
 	terminal_writestring("Getting VGA info");
 	unsigned int misc_reg = get_graphics_reg(GRAPHICS_IDX_MISC);
-	// RAM Enable: is VGA checking the memory set by CPU? (are we bothering to use mem-mapped I/O from CPU?)
 	unsigned int ram_enable = (misc_reg & 0b10) >> 1;
-	// Memory Map Select: which area of memory should be used to draw the screen?
 	unsigned int mem_map_select = (misc_reg & 0b1100) >> 2;
-	// Alphanumeric Disable: are we disabling text mode (and instead interpreting memory as pixels?)
 	unsigned int alpha_dis = misc_reg & 1;
-	// Pretty-print each of these fields
+
 	terminal_writestring("RAM enable: ");
+
 	if (ram_enable == 0) {
 		terminal_writestring("disabled");
 	} else {
@@ -1349,13 +1359,10 @@ void vga_enter() {
 	vga_mode_var = 1;
     terminal_writestring("Attempting to switch modes...");
 
-	// Save video memory somewhere else
-	// 0xb8000 to 0xbffff (32K)
 	memcpy(0x0010b8000, 0xb8000, terminal_column*terminal_row*2);
 
-	// Set alphanumeric disable = 1
 	unsigned int misc_reg = get_graphics_reg(GRAPHICS_IDX_MISC);
-	misc_reg |= 1; // bit 0 is alphanumeric disable, set it to 1
+	misc_reg |= 1; 
 	set_graphics_reg(GRAPHICS_IDX_MISC, misc_reg);
 
 	memset(0xb8000, 0, 60);
@@ -1371,14 +1378,12 @@ void vga_enter() {
 
 void vga_exit() {
 	if (vga_mode_var == 0) return;
-	// Go back to alphanumeric disable 0
 	unsigned int misc_reg = get_graphics_reg(GRAPHICS_IDX_MISC);
-	misc_reg &= 0; // set alphanum disable back to 0
-	misc_reg |= 0b10; // bit 1 is RAM enable, set it to 1
-	misc_reg |= 0b1100; // set mem map select to 11
+	misc_reg &= 0;
+	misc_reg |= 0b10; 
+	misc_reg |= 0b1100; 
 	set_graphics_reg(GRAPHICS_IDX_MISC, misc_reg);
 
-	// Restore text-mode video memory
 	memcpy(0xb8000, 0x0010b8000, terminal_column*terminal_row*2);
 
 	vga_mode_var = 0;
@@ -1386,51 +1391,12 @@ void vga_exit() {
 	terminal_writestring("test");
 }
 
-void draw_rectangle(int x, int y, int width, int height) {
-	for (int i = 0; i < width; i++) {
-		for (int j = 0; j < height; j++) {
-			vga_plot_pixel(x+i, y+j, COLOR_GREEN);
-		}
-	}
-}
-
-void draw_happy_face(int x, int y) {
-	// eye
-	vga_plot_pixel(x,y,COLOR_PURPLE);
-	// eye
-	vga_plot_pixel(x+10,y,COLOR_PURPLE);
-	// mouth
-	vga_plot_pixel(x,	y+8,COLOR_PURPLE);
-	vga_plot_pixel(x+1,	y+9,COLOR_PURPLE);
-	vga_plot_pixel(x+2,	y+10,COLOR_PURPLE);
-	vga_plot_pixel(x+3,	y+10,COLOR_PURPLE);
-	vga_plot_pixel(x+4,	y+10,COLOR_PURPLE);
-	vga_plot_pixel(x+5,	y+10,COLOR_PURPLE);
-	vga_plot_pixel(x+6,	y+10,COLOR_PURPLE);
-	vga_plot_pixel(x+7,	y+10,COLOR_PURPLE);
-	vga_plot_pixel(x+8,	y+10,COLOR_PURPLE);
-	vga_plot_pixel(x+9,	y+9,COLOR_PURPLE);
-	vga_plot_pixel(x+10,y+8,COLOR_PURPLE);
-}
-
-void vga_clear_screen() {
-    // Note: "clear_screen" name conflicted with something in screen.h
-    // Now I see why namespacing is a thing
-    for (int i = 0; i < 320; i++) {
-        for (int j = 0; j < 200; j++) {
-            vga_plot_pixel(i,j,COLOR_BLACK);
-        }
-    }
-}
-
 void vga_plot_pixel(int x, int y, unsigned short color) {
     unsigned short offset = x + 320 * y;
     unsigned char *VGA = (unsigned char*) VGA_ADDRESS;
     VGA[offset] = color;
 }
-
-
-
+*/
 
 
 
