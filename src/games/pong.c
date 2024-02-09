@@ -8,6 +8,15 @@
 
 bool in_pong = false;
 
+int p1_pos = 80;
+int p2_pos = 80;
+
+int p1_score = 0;
+int p2_score = 0;
+
+int ball_pos[2] = {160, 100};
+int ball_dir = 0; 
+
 
 // this function will draw the number at the given x and y coordinates
 // the number is 40 pixels high and 25 pixels wide
@@ -90,21 +99,44 @@ void pong_make_map() {
 
     draw_rectangle(310, 80, 3, 40, VGA_COLOR_WHITE);
 
-    print_number(125, 5, 9);
+    print_number(125, 5, 0);
+
+    print_number(170, 5, 0);
 }
 
 void pong_keyboard_handler(c) {
     if (c == 72) { // up
-
+        if (p2_pos > 0) {
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK);
+            p2_pos -= 5;
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE);
+        }
 	} else if (c == 80) { // down
-
+        if (p2_pos < 160) {
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK);
+            p2_pos += 5;
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE);
+        }
+    } else if (c == 17) { // w
+        if (p1_pos > 0) {
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK);
+            p1_pos -= 5;
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE);
+        }
+    } else if (c == 31) { // s
+        if (p1_pos < 160) {
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK);
+            p1_pos += 5;
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE);
+        }
     }
 }
 
 void pong_play() {
     while (in_pong) {
-        sleep(100); // sleep for 1s
-        // do
+        sleep(1); // sleep for 1s
+        
+        // ball dir and stuff
     }
 }  
 
