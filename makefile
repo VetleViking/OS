@@ -20,7 +20,7 @@ setupGrub: combineFiles
 # Combines the all the different object files into a single binary file.
 # If you add something to compileKernel, you need to add the object file it creates here.
 combineFiles: compileKernel
-	cd src && i386-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o vga.o kernel.o test.o execute_text.o text_editor.o minesweeper.o tower_defense.o game_of_life.o rock_paper_scissors.o keyboard_layouts.o tic_tac_toe.o keyboard_handler.o -lgcc
+	cd src && i386-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o pong.o vga.o kernel.o test.o execute_text.o text_editor.o minesweeper.o tower_defense.o game_of_life.o rock_paper_scissors.o keyboard_layouts.o tic_tac_toe.o keyboard_handler.o -lgcc
 
 # Compiles the c and asm files to object files.
 # If you add a new c file, you need to add it to the compileKernel command.
@@ -31,6 +31,7 @@ compileKernel: compileBoot
 	cd src && i386-elf-gcc -c games/rock_paper_scissors.c -o rock_paper_scissors.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
 	cd src && i386-elf-gcc -c games/tic_tac_toe.c -o tic_tac_toe.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
 	cd src && i386-elf-gcc -c games/game_of_life.c -o game_of_life.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include	
+	cd src && i386-elf-gcc -c games/pong.c -o pong.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include	
 	cd src && i386-elf-gcc -c text_editor/execute_text.c -o execute_text.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
 	cd src && i386-elf-gcc -c text_editor/text_editor.c -o text_editor.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
 	cd src && i386-elf-gcc -c keyboard/keyboard_handler.c -o keyboard_handler.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include

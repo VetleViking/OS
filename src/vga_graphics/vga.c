@@ -25,6 +25,7 @@
 #define VGA_NUM_GC_REGS 9
 #define VGA_NUM_SEQ_REGS 5
 
+
 unsigned char g_320x200x256[] =
 {
 /* MISC */
@@ -49,6 +50,11 @@ void vga_enter() {
     terminal_writestring("Attempting to switch modes...");
     write_regs(g_320x200x256);
     vga_clear_screen();
+}
+
+void vga_exit() {
+	terminal_writestring("Exiting VGA mode...");
+
 }
 
 void draw_rectangle(int x, int y, int width, int height, unsigned short color) {

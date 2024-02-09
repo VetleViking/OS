@@ -90,6 +90,14 @@ extern void game_of_life_play();
 extern void gol_keyboard_handler(c);
 
 
+/* Pong */
+extern bool in_pong;
+
+extern void pong_start();
+extern void pong_play();
+extern void pong_keyboard_handler(c);
+
+
 /* Rock paper scissors */
 extern void rock_paper_scissors();
 

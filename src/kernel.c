@@ -296,6 +296,8 @@ void game_handler() {
 		mine_sweeper_start();
 	} else if (strcmp(game, "game of life") == 0 || strcmp(game, "GOL") == 0) {
 		game_of_life_start();
+	} else if (strcmp(game, "pong") == 0) {
+		pong_start();
 	}
 
 
@@ -844,6 +846,11 @@ void keyboard_interrupt_handler(struct regs *r) {
 
 	if (in_game_of_life) {
 		gol_keyboard_handler(kbd_special_characters[c]);
+		return;
+	}
+
+	if (in_pong) {
+		pong_keyboard_handler(kbd_special_characters[c]);
 		return;
 	}
 
