@@ -106,7 +106,7 @@ void check_kernel_scroll() {
 // Creates a new line in the kernel
 void newline() {
 	terminal_row++;
-	terminal_column = 0;
+	terminal_column = 1;
 
 	check_kernel_scroll();
 }
@@ -118,6 +118,7 @@ bool is_writing_command = false;
 // calls newline and prints "> " to indicate that the user can write a command
 void new_kernel_line() {
 	newline();
+	terminal_column = 0;
 	is_writing_command = false;
 	terminal_writestring("> ");
 	is_writing_command = true;
@@ -388,7 +389,7 @@ void color_command() {
 		{"white", VGA_COLOR_WHITE},
 	};
 
-	int chosen_new_color = 0;
+	int chosen_new_color = 20;
 	size_t num_colors = sizeof(color_table) / sizeof(Color);
 
 	for (size_t i = 0; i < num_colors; i++) { 
@@ -398,7 +399,7 @@ void color_command() {
 		}
 	}
 
-	if (chosen_new_color == 0) {
+	if (chosen_new_color == 20) {
 		terminal_writestring("Unknown color: ");
 		terminal_writestring(change_color);
 		return;
@@ -475,9 +476,9 @@ void animation_test() {
 
 	char animation_frames [9][25][80] = {
 		{
-			"    |\\__/,|   (`\\ ",
+			"     |\\__/,|   (`\\",
 			"    |o o  |    ) )  ",
-			"  _.\\ ^  /_  ( (  ",
+			"  _.\\ ^  /_  ( (   ",
 			"-(((---(((--------  "
 		},
 		{
@@ -523,9 +524,9 @@ void animation_test() {
 			"-(((---(((--------  "
 		},
 		{
-			"    |\\__/,|   (`\\ ",
+			"     |\\__/,|   (`\\",
 			"    |o o  |    ) )  ",
-			"  _.\\ ^  /_  ( (  ",
+			"  _.\\ ^  /_  ( (   ",
 			"-(((---(((--------  "
 		}
 	};
@@ -573,7 +574,6 @@ void check_for_command() {
 		end_check_for_command();
 		return;
 	}
-	
 
 	// checks if the command is a normal command
 	if (strcmplen(command, "color ", 6) == 0) {
@@ -1263,7 +1263,7 @@ void kernel_main(void) {
 	keyboard_install();
 
 	// Prints the cat
-	terminal_writestring("  _____");
+	terminal_writestring("   _____");
 	newline();
     terminal_writestring(" |     |___ ___ _ _ _                 |\\__/,|   (`\\");
 	newline();
