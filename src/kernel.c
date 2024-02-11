@@ -64,8 +64,18 @@ void terminal_setcolor(uint8_t color) {
 }
  
 
+bool rainbow = false;
+bool bg_rainbow = false;
+int rainbow_additional_rows = 0;
+
 // Puts a character at a specific location in the kernel
 void terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y) {
+	if (rainbow || bg_rainbow) {
+		int rainbow_color = rainbow ? (x + y + rainbow_additional_rows) % 14 + 1 : chosen_color;
+		int bg_rainbow_color = bg_rainbow ? (x + 2 + y + rainbow_additional_rows) % 14 + 1 : chosen_bg_color;
+		color = vga_entry_color(rainbow_color, bg_rainbow_color);
+	} 
+
 	const size_t index = y * VGA_WIDTH + x;
 	terminal_buffer[index] = vga_entry(c, color);
 }
@@ -97,8 +107,15 @@ void check_kernel_scroll() {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
 			const size_t index = (VGA_HEIGHT - 1) * VGA_WIDTH + x;
 			terminal_buffer[index] = vga_entry(' ', terminal_color);
+			
+			if (rainbow || bg_rainbow) {
+				int rainbow_color = rainbow ? (x + VGA_HEIGHT + rainbow_additional_rows) % 14 + 1 : chosen_color;
+				int bg_rainbow_color = bg_rainbow ? (x + 2 + VGA_HEIGHT + rainbow_additional_rows) % 14 + 1 : chosen_bg_color;
+				terminal_buffer[index] = vga_entry(terminal_buffer[index], vga_entry_color(rainbow_color, bg_rainbow_color));
+			}
 		}
 		terminal_row--;
+		rainbow_additional_rows++;
 	}
 }
 
@@ -212,7 +229,9 @@ void clear_screen() {
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
 			const size_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = vga_entry(' ', terminal_color);
+			int rainbow_color = rainbow ? (x + y + rainbow_additional_rows) % 14 + 1 : chosen_color;
+			int bg_rainbow_color = bg_rainbow ? (x + 2 + y + rainbow_additional_rows) % 14 + 1 : chosen_bg_color;
+			terminal_buffer[index] = vga_entry(' ', vga_entry_color(rainbow_color, bg_rainbow_color));
 		}
 	}
 	terminal_row = 0;
@@ -340,6 +359,34 @@ void color_command() {
 
 	bool all = false;
 	bool bg = false;
+
+	if (strcmp(extra_parameter, "reset") == 0) {
+		chosen_color = 13;
+		chosen_bg_color = 0;
+		all = true;
+		change_color_done(chosen_color, all, bg);
+		terminal_writestring("Color reset");
+		return;
+	}
+
+	if (strcmp(extra_parameter, "rainbow") == 0 || strcmp(extra_parameter2, "rainbow") == 0) {
+		if (strcmp(extra_parameter, "bg") == 0 || strcmp(extra_parameter2, "bg") == 0) {
+			bg_rainbow = true;
+			terminal_writestring("Background rainbow mode enabled");		
+		} else {
+			rainbow = true;
+			terminal_writestring("Rainbow mode enabled");
+		}
+		for (size_t y = 0; y < VGA_HEIGHT; y++) {
+			for (size_t x = 0; x < VGA_WIDTH; x++) {
+				int rainbow_color = rainbow ? (x + y + rainbow_additional_rows) % 14 + 1 : chosen_color;
+				int bg_rainbow_color = bg_rainbow ? (x + 2 + y + rainbow_additional_rows) % 14 + 1 : chosen_bg_color;
+				terminal_buffer[y * VGA_WIDTH + x] = vga_entry(terminal_buffer[y * VGA_WIDTH + x], vga_entry_color(rainbow_color, bg_rainbow_color));
+			}
+		}
+		return;
+	}
+
 	if (strcmp(extra_parameter, "all") == 0 || strcmp(extra_parameter2, "all") == 0) {
 		all = true;
 	}
@@ -405,10 +452,22 @@ void color_command() {
 		return;
 	}
 
+	change_color_done(chosen_new_color, all, bg);
+
+	terminal_writestring("Color changed :)");
+}
+
+void change_color_done(int color, bool all, bool bg) {
 	if (bg) {
-		chosen_bg_color = chosen_new_color;
+		bg_rainbow = false;
 	} else {
-		chosen_color = chosen_new_color;
+		rainbow = false;
+	}
+
+	if (bg) {
+		chosen_bg_color = color;
+	} else {
+		chosen_color = color;
 	}
 
 	terminal_color = vga_entry_color(chosen_color, chosen_bg_color);
@@ -417,12 +476,12 @@ void color_command() {
 		for (size_t y = 0; y < VGA_HEIGHT; y++) {
 			for (size_t x = 0; x < VGA_WIDTH; x++) {
 				const size_t index = y * VGA_WIDTH + x;
-				terminal_buffer[index] = vga_entry(terminal_buffer[index], terminal_color);
+				int rainbow_color = rainbow ? (x + y + rainbow_additional_rows) % 14 + 1 : chosen_color;
+				int bg_rainbow_color = bg_rainbow ? (x + 2 + y + rainbow_additional_rows) % 14 + 1 : chosen_bg_color;
+				terminal_buffer[index] = vga_entry(terminal_buffer[index], vga_entry_color(rainbow_color, bg_rainbow_color));
 			}
 		}
 	}
-
-	terminal_writestring("Color changed :)");
 }
 
 
