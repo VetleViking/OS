@@ -1307,6 +1307,11 @@ void kernel_main(void) {
 			is_writing_command = true;
 			game_of_life_play();
 		}
+
+		if (in_pong) {
+			is_writing_command = true;
+			pong_play();
+		}
 		
 		is_writing_command = was_writing_command; // end of temporary
 		sleep(1);
