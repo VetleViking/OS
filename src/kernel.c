@@ -660,7 +660,7 @@ void check_for_command() {
 		newline();
 		terminal_writestring("meow - prints meow :3");
 		newline();
-		terminal_writestring("color [bg or/and all] [color] - changes the color of the text");
+		terminal_writestring("color [bg or/and all] [(name of color), rainbow or reset] - changes the color of the text");
 		newline();
 		terminal_writestring("uptime - prints the time the kernel has been running");
 	} else if (strcmp(command, "cat") == 0) {
