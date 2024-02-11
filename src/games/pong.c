@@ -124,7 +124,29 @@ void pong_keyboard_handler(c) {
             p2_pos -= 5;
             draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE);
         }
+        if (p2_pos > 0) {
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK);
+            p2_pos -= 5;
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE);
+        }
 	} else if (c == 80) { // down
+        if (p2_pos < 160) {
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK);
+            p2_pos += 5;
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE);
+        }
+    } else if (c == 17) { // w
+        if (p1_pos > 0) {
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK);
+            p1_pos -= 5;
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE);
+        }
+    } else if (c == 31) { // s
+        if (p1_pos < 160) {
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK);
+            p1_pos += 5;
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE);
+        }
         if (p2_pos < 160) {
             draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK);
             p2_pos += 5;
