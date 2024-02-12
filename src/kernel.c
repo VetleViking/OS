@@ -609,7 +609,7 @@ void animation_test() {
 void check_for_command() {
 	newline();
 
-	if (num_commands < MAX_COMMANDS && strlen(command) > 0) {
+	if (num_commands < MAX_COMMANDS && strlen(command) > 0 && strcmp(previous_commands[num_commands - 1], command) != 0) {
         strcpy(previous_commands[num_commands], command);
         num_commands++;
 		at_command = num_commands;
@@ -637,8 +637,6 @@ void check_for_command() {
 	// checks if the command is a normal command
 	if (strcmplen(command, "color ", 6) == 0) {
 		color_command();
-		end_check_for_command();
-		return;
 	} else if (strcmp(command, "clear") == 0) {
 		clear_screen();
 	} else if (strcmp(command, "help") == 0) {

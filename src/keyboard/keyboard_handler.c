@@ -10,12 +10,6 @@ bool caps_lock = false;
 
 // Checks if the key is special (like enter, backspace, etc.)
 void keyboard_handler(unsigned char c) { 
-
-	if (in_TD) {
-		should_print = false;
-		return;
-	}
-
 	if (c == 0) {
 	} else if (c == 1){
 		if (in_text_editor) {
@@ -25,7 +19,7 @@ void keyboard_handler(unsigned char c) {
 			clear_screen();
 			new_kernel_line();
 		}
-	} else if (c == 28) { // enter and writing command
+	} else if (c == 28) { // enter
 		if (in_text_editor) {
 			// TODO: make lower lines move down and delete last line, or something like that
 		} else if (!is_writing_command) {
@@ -55,7 +49,7 @@ void keyboard_handler(unsigned char c) {
 				command[len + 4] = '\0';
 			}
 		}
-	} else if (c == 42) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
+	} else if (c == 42) { // shift pressed
 		if (is_writing_command || in_text_editor) {
 			shift_pressed = true;
 		}
@@ -71,24 +65,38 @@ void keyboard_handler(unsigned char c) {
 		if (in_text_editor) {
 			size_t len = strlen(text_editor_text[terminal_row - 3]);
 			if (len > 0 && terminal_column > 3) {
-				if (terminal_column < len + 3) {
-					text_editor_text[terminal_row - 3][terminal_column - 3] = ' ';
-				} else {
-					text_editor_text[terminal_row - 3][len - 1] = '\0';
+				for (int i = terminal_column - 4; i < len - 1; i++) {
+					text_editor_text[terminal_row - 3][i] = text_editor_text[terminal_row - 3][i + 1];
 				}
-				terminal_column--;
-				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+			
+				terminal_putentryat(' ', terminal_color, len + 2, terminal_row);
+				text_editor_text[terminal_row - 3][len - 1] = '\0';
+
+				int prev_col = terminal_column;
+				terminal_column = 3;
+				in_text_editor = false;
+				terminal_writestring(text_editor_text[terminal_row - 3]);
+				in_text_editor = true;
+
+				terminal_column = prev_col - (prev_col > 3 ? 1 : 0);
 			}
 		} else if (is_writing_command) {
 			size_t len = strlen(command);
 			if (len > 0) { // if there is a command being written, delete last character
-				if (terminal_column < len + 2) {
-					command[terminal_column - 3] = ' ';
-				} else {
-					command[len - 1] = '\0';
+				for (int i = terminal_column - 1; i < len - 1; i++) {
+					command[i] = command[i + 1];
 				}
-				terminal_column--;
-				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+			
+				terminal_putentryat(' ', terminal_color, len + 1, terminal_row);
+				command[len - 1] = '\0';
+
+				int prev_col = terminal_column;
+				terminal_column = 2;
+				is_writing_command = false;
+				terminal_writestring(command);
+				is_writing_command = true;
+
+				terminal_column = prev_col - (prev_col > 2 ? 1 : 0);
 			}
 		}
 	} else if (c == 72) { // up arrow pressed
