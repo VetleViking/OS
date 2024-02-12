@@ -97,15 +97,18 @@ void pong_draw_map_parts() {
         draw_rectangle(159, i, 3, 10, VGA_COLOR_WHITE);
     }
 
-    if (p1_score > 10) {
-        print_number(125, 5, p1_score / 10);
+    if (p1_score >= 10) {
+        print_number(90, 5, p1_score / 10);
     }
     print_number(125, 5, p1_score % 10);
 
-    if (p2_score > 10) {
+    if (p2_score >= 10) {
         print_number(170, 5, p2_score / 10);
+        print_number(205, 5, p2_score % 10);
+    } else {
+        print_number(170, 5, p2_score % 10);
     }
-    print_number(170, 5, p2_score % 10);
+
 }
 
 
@@ -146,11 +149,6 @@ void pong_keyboard_handler(c) {
             draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK);
             p1_pos += 5;
             draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE);
-        }
-        if (p2_pos < 160) {
-            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK);
-            p2_pos += 5;
-            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE);
         }
     } else if (c == 17) { // w
         if (p1_pos > 0) {
@@ -211,20 +209,20 @@ void pong_play() {
 
         switch (ball_dir) {
             case 1:
-                ball_pos[0] -= 3;
-                ball_pos[1] -= 3;
+                ball_pos[0] -= 1;
+                ball_pos[1] -= 1;
                 break;
             case 2:
-                ball_pos[0] += 3;
-                ball_pos[1] -= 3;
+                ball_pos[0] += 1;
+                ball_pos[1] -= 1;
                 break;
             case 3:
-                ball_pos[0] += 3;
-                ball_pos[1] += 3;
+                ball_pos[0] += 1;
+                ball_pos[1] += 1;
                 break;
             case 4:
-                ball_pos[0] -= 3;
-                ball_pos[1] += 3;
+                ball_pos[0] -= 1;
+                ball_pos[1] += 1;
                 break;
             default:
                 ball_pos[0] = 20;

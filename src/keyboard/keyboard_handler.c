@@ -20,8 +20,38 @@ void keyboard_handler(unsigned char c) {
 			new_kernel_line();
 		}
 	} else if (c == 28) { // enter
-		if (in_text_editor) {
-			// TODO: make lower lines move down and delete last line, or something like that
+		if (in_text_editor) { // continue here
+			int len = strlen(text_editor_text[terminal_row - 3]);
+			
+			char buffer[80];
+		
+			for (int i = terminal_row - 3; i < 21; i++) {
+				for (int j = 0; j < 77; j++) {
+					text_editor_text[i][j] = text_editor_text[i + 1][j];
+				}
+			}
+
+			for (int i = terminal_column - 3; i < len; i++) {
+				text_editor_text[terminal_row - 2][i - 1] = text_editor_text[terminal_row - 3][i];
+			}
+			text_editor_text[terminal_row - 2][len - 1] = '\0';
+
+			int prev_row = terminal_row;
+			terminal_row = 3;
+			for (int i = 3; i < 22; i++) {
+				terminal_column = 3;
+				
+				in_text_editor = false;
+				terminal_writestring(text_editor_text[terminal_row]);
+				in_text_editor = true;
+
+				if (i < 21) {
+					terminal_row++;
+				}
+			}
+			terminal_row = prev_row + 1;
+
+
 		} else if (!is_writing_command) {
 			newline();
 		} else {
