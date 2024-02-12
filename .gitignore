@@ -2,7 +2,6 @@
 /*.o
 /src/*.o
 /src/*.bin
-/src/*.iso
 /src/isodir/boot/*.bin
 /old/*.o
 /old/*.bin
