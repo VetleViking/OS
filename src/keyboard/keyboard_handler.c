@@ -82,8 +82,8 @@ void keyboard_handler(unsigned char c) {
 			}
 		} else if (is_writing_command) {
 			size_t len = strlen(command);
-			if (len > 0) { // if there is a command being written, delete last character
-				for (int i = terminal_column - 1; i < len - 1; i++) {
+			if (len > 0 && terminal_column > 2) { // if there is a command being written, delete last character
+				for (int i = terminal_column - 3; i < len - 1; i++) {
 					command[i] = command[i + 1];
 				}
 			
