@@ -10,12 +10,6 @@ bool caps_lock = false;
 
 // Checks if the key is special (like enter, backspace, etc.)
 void keyboard_handler(unsigned char c) { 
-
-	if (in_TD) {
-		should_print = false;
-		return;
-	}
-
 	if (c == 0) {
 	} else if (c == 1){
 		if (in_text_editor) {
@@ -25,37 +19,104 @@ void keyboard_handler(unsigned char c) {
 			clear_screen();
 			new_kernel_line();
 		}
-	} else if (c == 28) { // enter and writing command
-		if (in_text_editor) {
-			// TODO: make lower lines move down and delete last line, or something like that
+	} else if (c == 28) { // enter
+		if (in_text_editor) { // continue here
+			int len = strlen(text_editor_text[terminal_row - 3]);
+			
+			char buffer[80];
+		
+			for (int i = terminal_row - 3; i < 21; i++) {
+				for (int j = 0; j < 77; j++) {
+					text_editor_text[i][j] = text_editor_text[i + 1][j];
+				}
+			}
+
+			for (int i = terminal_column - 3; i < len; i++) {
+				text_editor_text[terminal_row - 2][i - 1] = text_editor_text[terminal_row - 3][i];
+			}
+			text_editor_text[terminal_row - 2][len - 1] = '\0';
+
+			int prev_row = terminal_row;
+			terminal_row = 3;
+			for (int i = 3; i < 22; i++) {
+				terminal_column = 3;
+				
+				in_text_editor = false;
+				terminal_writestring(text_editor_text[terminal_row]);
+				in_text_editor = true;
+
+				if (i < 21) {
+					terminal_row++;
+				}
+			}
+			terminal_row = prev_row + 1;
+
+
 		} else if (!is_writing_command) {
 			newline();
 		} else {
 			check_for_command();
 		}
 	} else if (c == 15) { // tab
-		if (in_text_editor) { // TODO: make it so that it moves the text after the tab, and make it not on end of text if in middle
+		if (in_text_editor) {
 			int len = strlen(text_editor_text[terminal_row - 3]);
 			if (terminal_column + 4 < 80) { 
-				terminal_column += 4;
-				text_editor_text[terminal_row - 3][len] = ' ';
-				text_editor_text[terminal_row - 3][len + 1] = ' ';
-				text_editor_text[terminal_row - 3][len + 2] = ' ';
-				text_editor_text[terminal_row - 3][len + 3] = ' ';
+				char buffer[80];
+				
+				for (int i = terminal_column - 3; i < len; i++) {
+					buffer[i - (terminal_column - 3)] = text_editor_text[terminal_row - 3][i];
+				}
+
+				for (int i = terminal_column - 3; i < len; i++) {
+					text_editor_text[terminal_row - 3][i + 4] = buffer[i - (terminal_column - 3)];
+				}
+
+				text_editor_text[terminal_row - 3][terminal_column - 3] = ' ';
+				text_editor_text[terminal_row - 3][(terminal_column - 3) + 1] = ' ';
+				text_editor_text[terminal_row - 3][(terminal_column - 3) + 2] = ' ';
+				text_editor_text[terminal_row - 3][(terminal_column - 3) + 3] = ' ';
 				text_editor_text[terminal_row - 3][len + 4] = '\0';
+
+				int prev_col = terminal_column;
+				terminal_column = 3;
+
+				in_text_editor = false;
+				terminal_writestring(text_editor_text[terminal_row - 3]);
+				in_text_editor = true;
+
+				terminal_column = prev_col + 4;
 			}
-		} else if (is_writing_command) { // TODO: the same as above
+		} else if (is_writing_command) {
 			int len = strlen(command);
 			if (len + 4 < MAX_COMMAND_LENGTH) {
-				terminal_column += 4;
-				command[len] = ' ';
-				command[len + 1] = ' ';
-				command[len + 2] = ' ';
-				command[len + 3] = ' ';
+
+				char buffer[80];
+
+				for (int i = terminal_column - 2; i < len; i++) {
+					buffer[i - (terminal_column - 2)] = command[i];
+				}
+
+				for (int i = terminal_column - 2; i < len; i++) {
+					command[i + 4] = buffer[i - (terminal_column - 2)];
+				}
+
+				command[terminal_column - 2] = ' ';
+				command[(terminal_column - 2) + 1] = ' ';
+				command[(terminal_column - 2) + 2] = ' ';
+				command[(terminal_column - 2) + 3] = ' ';
 				command[len + 4] = '\0';
+
+				int prev_col = terminal_column;
+				terminal_column = 2;
+
+				is_writing_command = false;
+				terminal_writestring(command);
+				is_writing_command = true;
+
+				terminal_column = prev_col + 4;
 			}
 		}
-	} else if (c == 42) { // shift pressed TODO: inconsistently works (shift_pressed is true after release of shift)
+	} else if (c == 42) { // shift pressed
 		if (is_writing_command || in_text_editor) {
 			shift_pressed = true;
 		}
@@ -71,24 +132,38 @@ void keyboard_handler(unsigned char c) {
 		if (in_text_editor) {
 			size_t len = strlen(text_editor_text[terminal_row - 3]);
 			if (len > 0 && terminal_column > 3) {
-				if (terminal_column < len + 3) {
-					text_editor_text[terminal_row - 3][terminal_column - 3] = ' ';
-				} else {
-					text_editor_text[terminal_row - 3][len - 1] = '\0';
+				for (int i = terminal_column - 4; i < len - 1; i++) {
+					text_editor_text[terminal_row - 3][i] = text_editor_text[terminal_row - 3][i + 1];
 				}
-				terminal_column--;
-				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+			
+				terminal_putentryat(' ', terminal_color, len + 2, terminal_row);
+				text_editor_text[terminal_row - 3][len - 1] = '\0';
+
+				int prev_col = terminal_column;
+				terminal_column = 3;
+				in_text_editor = false;
+				terminal_writestring(text_editor_text[terminal_row - 3]);
+				in_text_editor = true;
+
+				terminal_column = prev_col - (prev_col > 3 ? 1 : 0);
 			}
 		} else if (is_writing_command) {
 			size_t len = strlen(command);
-			if (len > 0) { // if there is a command being written, delete last character
-				if (terminal_column < len + 2) {
-					command[terminal_column - 3] = ' ';
-				} else {
-					command[len - 1] = '\0';
+			if (len > 0 && terminal_column > 2) { // if there is a command being written, delete last character
+				for (int i = terminal_column - 3; i < len - 1; i++) {
+					command[i] = command[i + 1];
 				}
-				terminal_column--;
-				terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+			
+				terminal_putentryat(' ', terminal_color, len + 1, terminal_row);
+				command[len - 1] = '\0';
+
+				int prev_col = terminal_column;
+				terminal_column = 2;
+				is_writing_command = false;
+				terminal_writestring(command);
+				is_writing_command = true;
+
+				terminal_column = prev_col - (prev_col > 2 ? 1 : 0);
 			}
 		}
 	} else if (c == 72) { // up arrow pressed

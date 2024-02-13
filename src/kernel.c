@@ -609,7 +609,7 @@ void animation_test() {
 void check_for_command() {
 	newline();
 
-	if (num_commands < MAX_COMMANDS && strlen(command) > 0) {
+	if (num_commands < MAX_COMMANDS && strlen(command) > 0 && strcmp(previous_commands[num_commands - 1], command) != 0) {
         strcpy(previous_commands[num_commands], command);
         num_commands++;
 		at_command = num_commands;
@@ -637,8 +637,6 @@ void check_for_command() {
 	// checks if the command is a normal command
 	if (strcmplen(command, "color ", 6) == 0) {
 		color_command();
-		end_check_for_command();
-		return;
 	} else if (strcmp(command, "clear") == 0) {
 		clear_screen();
 	} else if (strcmp(command, "help") == 0) {
@@ -764,7 +762,23 @@ void terminal_putchar(unsigned char c) {
 			command[len] = c;
 			command[len + 1] = '\0';
 		} else if (terminal_column < len + 2) {
+			char buffer[80];
+			for (int i = terminal_column - 2; i < len; i ++) {
+				buffer[i - (terminal_column - 2)] = command[i];
+			}
+
+			for (int i = (terminal_column - 2); i < len; i++) {
+				command[i + 1] = buffer[i - (terminal_column - 2)];
+			}
+		
 			command[terminal_column - 2] = c;
+
+			int prev_col = terminal_column;
+			terminal_column = 2;
+			is_writing_command = false;
+			terminal_writestring(command);
+			is_writing_command = true;
+			terminal_column = prev_col;
 		}		
 	}
 
@@ -778,7 +792,23 @@ void terminal_putchar(unsigned char c) {
 			text_editor_text[terminal_row - 3][len] = c;
 			text_editor_text[terminal_row - 3][len + 1] = '\0';
 		} else if (terminal_column < len + 3) {
+			char buffer[80];
+			for (int i = terminal_column - 3; i < len; i ++) {
+				buffer[i - (terminal_column - 3)] = text_editor_text[terminal_row - 3][i];
+			}
+
+			for (int i = (terminal_column - 3); i < len; i++) {
+				text_editor_text[terminal_row - 3][i + 1] = buffer[i - (terminal_column - 3)];
+			}
+		
 			text_editor_text[terminal_row - 3][terminal_column - 3] = c;
+
+			int prev_col = terminal_column;
+			terminal_column = 3;
+			in_text_editor = false;
+			terminal_writestring(text_editor_text[terminal_row - 3]);
+			in_text_editor = true;
+			terminal_column = prev_col;
 		}
 	}
 
