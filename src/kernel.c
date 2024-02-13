@@ -695,12 +695,21 @@ void check_for_command() {
 		animation_test();
 	} else if (strcmp(command, "kukbart") == 0) { // best code ever written. By banana toucher beats B)
 		terminal_writestring("Kukbart finner ikke lommeboken sin! Kan du hjelpe han? PS: (Riktig svar er nei;))!");
-	} else if (strcmp(command, "vga") == 0) {
+	} 
+	
+
+	// dev commands 
+	else if (strcmp(command, "vga test") == 0) { 
 		vga_enter();
 		draw_rectangle(0, 0, 80, 25, VGA_COLOR_BLUE);
+	} else if (strcmp(command, "exception test") == 0) {
+		int a = 1 / 0;
+		char b[10];
+		itoa(a, b, 10);
+		terminal_writestring(b);
 	}
 
-
+	// if the command is not found in the
 	else {
 		terminal_writestring("Unknown command: ");
 		terminal_writestring(command);
