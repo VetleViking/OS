@@ -754,10 +754,13 @@ void terminal_putchar(unsigned char c) {
 
 	if (is_writing_command) { 
 		int len = strlen(command);
-		if (terminal_column == len + 2) {
+		if (terminal_column == (len < 78 ? len + 2 : len - 78 - 80 * (len / 78))) {
+			terminal_putentryat(c, terminal_color, 0, 24);
 			command[len] = c;
 			command[len + 1] = '\0';
-		} else if (terminal_column < len + 2) {
+		} else if (terminal_column < len < 78 ? len + 2 : len - 78 - 80 * (len / 78)) {
+			terminal_putentryat(c, terminal_color, 1, 24);
+
 			char buffer[80];
 			for (int i = terminal_column - 2; i < len; i ++) {
 				buffer[i - (terminal_column - 2)] = command[i];
@@ -770,11 +773,16 @@ void terminal_putchar(unsigned char c) {
 			command[terminal_column - 2] = c;
 
 			int prev_col = terminal_column;
+			int prev_row = terminal_row;
+
 			terminal_column = 2;
+			terminal_row = terminal_row - (strlen(command) / 78) == 0 ? 0 : 1 + ((strlen(command) - 78) / 80); // soething is wrong here, fix later
+
 			is_writing_command = false;
 			terminal_writestring(command);
 			is_writing_command = true;
 			terminal_column = prev_col;
+			terminal_row = prev_row;
 		}		
 	}
 
@@ -815,6 +823,28 @@ void terminal_putchar(unsigned char c) {
 	if (terminal_column == VGA_WIDTH) {
 		terminal_column = 0;
 		terminal_row++;
+
+		// this is to make the words not break on new lines
+		// its not working, will fix later, not a priority
+
+		// if (is_writing_command) {
+		// 	is_writing_command = false;
+
+		// 	terminal_putentryat('X', terminal_color, 0, 24);
+		// 	int j = 0;
+		// 	for (int i = strlen(command); i > 0; i--) {
+		// 		if (command[i] == ' ') {
+		// 			break;
+		// 		}
+		// 		terminal_putentryat(command[i], terminal_color, j, terminal_row);
+		// 		terminal_putentryat(' ', terminal_color, i + 2, terminal_row - 1);
+				
+		// 		j++;
+		// 	}
+
+		// 	terminal_column = j;
+		// 	is_writing_command = true;
+		// }
 		
 		if (terminal_row == VGA_HEIGHT) {
 			terminal_row++;
