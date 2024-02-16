@@ -23,35 +23,60 @@ void keyboard_handler(unsigned char c) {
 		if (in_text_editor) { // continue here
 			int len = strlen(text_editor_text[terminal_row - 3]);
 			
-			char buffer[80];
-		
-			for (int i = terminal_row - 3; i < 21; i++) {
+			char new_text[22][77];
+
+			for (int i = 0; i < terminal_row - 3; i++) {
 				for (int j = 0; j < 77; j++) {
-					text_editor_text[i][j] = text_editor_text[i + 1][j];
+					new_text[i][j] = text_editor_text[i][j];
 				}
 			}
 
+			new_text[terminal_row - 3][terminal_column - 3] = '\0';
+
 			for (int i = terminal_column - 3; i < len; i++) {
-				text_editor_text[terminal_row - 2][i - 1] = text_editor_text[terminal_row - 3][i];
+				new_text[terminal_row - 3][i - terminal_row + 3] = text_editor_text[terminal_row - 3][i];
 			}
-			text_editor_text[terminal_row - 2][len - 1] = '\0';
+
+			for (int i = terminal_row - 2; i < 22; i++) {
+				for (int j = 0; j < 77; j++) {
+					new_text[i][j] = text_editor_text[i - 1][j];
+				}
+			}
+
+			for (int i = 0; i < 22; i++) {
+				int len = strlen(new_text[i]);
+
+				for (int j = 0; j < 77; j++) {
+					text_editor_text[i][j] = new_text[i][j];
+				}
+			}
 
 			int prev_row = terminal_row;
+
+			in_text_editor = false;
 			terminal_row = 3;
-			for (int i = 3; i < 22; i++) {
-				terminal_column = 3;
+			terminal_column = 3;
+
+			for (int i = 0; i < 22; i++) {
+				int len = strlen(text_editor_text[i]);
+				terminal_writestring(text_editor_text[i]);
 				
-				in_text_editor = false;
-				terminal_writestring(text_editor_text[terminal_row]);
-				in_text_editor = true;
+				for (int j = len + 3; j < 80; j++) {
+					terminal_putentryat(' ', terminal_color, j, terminal_row);
+				}
 
 				if (i < 21) {
+					terminal_column = 3;
 					terminal_row++;
 				}
 			}
-			terminal_row = prev_row + 1;
+			
+			in_text_editor = true;
+			terminal_column = 3;
 
-
+			terminal_row = prev_row + 1 > 24 ? 24 : prev_row + 1;
+			terminal_column = 3;
+			
 		} else if (!is_writing_command) {
 			newline();
 		} else {
