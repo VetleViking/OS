@@ -324,6 +324,8 @@ void game_handler() {
 	else {
 		terminal_writestring("Unknown game: ");
 		terminal_writestring(game);
+		newline();
+		terminal_writestring("Type 'gamelist' to see all games");
 		in_game = false;
 	}
 }
@@ -618,13 +620,7 @@ void check_for_command() {
 	is_writing_command = false;
 
 	// checks if the command is a game command
-	char is_game[6];
-	for (int i = 0; i < 6; i++) {
-		is_game[i] = command[i];
-	}
-	is_game[5] = '\0';
-
-	if (strcmp(is_game, "game ") == 0 && !in_game) {
+	if (strcmplen(command, "game", 4) == 0 && !in_game) {
 		game_handler(game_round);
 		end_check_for_command();
 		return;
