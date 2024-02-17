@@ -77,7 +77,8 @@ void gol_keyboard_handler(c) {
     } else if (c == 1) { // escape
         in_game_of_life = false;
         game_of_life_running = false;
-        // exit vga mode coming soon
+        in_game = false;
+        vga_exit();
     } else if (c == 28) { // enter
         if (gol_coords[gol_x][gol_y] == 0) {
             gol_coords[gol_x][gol_y] = 1;
