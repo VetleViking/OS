@@ -243,6 +243,7 @@ void clear_screen() {
 char previous_commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
 int num_commands = 0;
 int at_command = 0;
+int at_in_command = 0;
 char command[MAX_COMMAND_LENGTH];
 bool in_game = false;
 char game[MAX_COMMAND_LENGTH];
@@ -761,29 +762,33 @@ void terminal_putchar(unsigned char c) {
 		} else if (terminal_column < len < 78 ? len + 2 : len - 78 - 80 * (len / 78)) {
 			terminal_putentryat(c, terminal_color, 1, 24);
 
+			int at_in_command = len < 78 ? terminal_column - 2 : len - terminal_column;
+
 			char buffer[80];
-			for (int i = terminal_column - 2; i < len; i ++) {
-				buffer[i - (terminal_column - 2)] = command[i];
+			for (int i = at_in_command; i < len; i ++) {
+				buffer[i - (at_in_command)] = command[i];
 			}
 
-			for (int i = (terminal_column - 2); i < len; i++) {
-				command[i + 1] = buffer[i - (terminal_column - 2)];
+			for (int i = (at_in_command); i < len; i++) {
+				command[i + 1] = buffer[i - (at_in_command)];
 			}
 		
-			command[terminal_column - 2] = c;
+			command[at_in_command] = c;
 
 			int prev_col = terminal_column;
 			int prev_row = terminal_row;
 
 			terminal_column = 2;
-			terminal_row = terminal_row - (strlen(command) / 78) == 0 ? 0 : 1 + ((strlen(command) - 78) / 80); // soething is wrong here, fix later
+			terminal_row = terminal_row - (len < 78 ? 0 : 1 + ((len - 78) / 80)); // soething is wrong here, fix later
 
 			is_writing_command = false;
 			terminal_writestring(command);
 			is_writing_command = true;
 			terminal_column = prev_col;
 			terminal_row = prev_row;
-		}		
+		}
+
+		at_in_command++;		
 	}
 
 	if (in_text_editor) {

@@ -139,6 +139,8 @@ void keyboard_handler(unsigned char c) {
 				is_writing_command = true;
 
 				terminal_column = prev_col + 4;
+
+				at_in_command += 4;
 			}
 		}
 	} else if (c == 42) { // shift pressed
@@ -171,6 +173,8 @@ void keyboard_handler(unsigned char c) {
 				in_text_editor = true;
 
 				terminal_column = prev_col - (prev_col > 3 ? 1 : 0);
+
+				at_in_command--;
 			}
 		} else if (is_writing_command) {
 			size_t len = strlen(command);
@@ -216,6 +220,8 @@ void keyboard_handler(unsigned char c) {
 
 				terminal_writestring(previous_commands[at_command]); // write command
 				is_writing_command = true;
+
+				at_in_command = strlen(command);
 			}
 		}
 	} else if (c == 80) { // down arrow pressed
@@ -245,6 +251,8 @@ void keyboard_handler(unsigned char c) {
 					is_writing_command = false;
 					terminal_writestring(previous_commands[at_command]); // if not last and empty command, write command
 					is_writing_command = true;
+
+					at_in_command = strlen(command);
 				}
 			}
 		}
@@ -254,8 +262,9 @@ void keyboard_handler(unsigned char c) {
 				terminal_column--;
 			}
 		} else if (is_writing_command) {
-			if (terminal_column > 2) {
+			if (terminal_column > 2 || at_in_command > 0) {
 				terminal_column--;
+				at_in_command--;
 			}
 		}
 	} else if (c == 77) { // right arrow pressed
@@ -264,8 +273,9 @@ void keyboard_handler(unsigned char c) {
 				terminal_column++;
 			}
 		} else if (is_writing_command) {
-			if (terminal_column < strlen(command) + 2) {
+			if (terminal_column < strlen(command) + 2 || at_in_command < strlen(command)) {
 				terminal_column++;
+				at_in_command++;
 			}
 		}
 	}
