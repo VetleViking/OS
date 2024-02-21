@@ -747,12 +747,7 @@ void check_for_command() {
 	} else if (strcmp(command, "kalkulator") == 0) {
 		terminal_writestring("Ingen mellomrom ples :)");
 		calculator_start();
-	}  
-	
-	else if (strcmp(command, "kukbart") == 0) { // best code ever written. By banana toucher beats B)
-		terminal_writestring("Kukbart finner ikke lommeboken sin! Kan du hjelpe han? PS: (Riktig svar er nei;))!");
-	} 
-	
+	}
 
 	// dev commands 
 	else if (strcmp(command, "vga test") == 0) { 
