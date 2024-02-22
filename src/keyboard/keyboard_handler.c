@@ -207,16 +207,11 @@ void keyboard_handler(unsigned char c) {
 			}
 		} else if (is_writing_command) {
 			size_t len = strlen(command);
-			if (at_in_command > 0) { // if there is a command being written, delete last character
+			if (at_in_command > 0) { // if there is a command being written, delete character before cursor
 				for (int i = at_in_command - 1; i < len - 1; i++) {
 					command[i] = command[i + 1];
 				}
 
-				int put_at_col = (len + 1) % 80; // fix later
-
-				int put_at_row = command_start_row + (len + 1) / 80;
-			
-				terminal_putentryat(' ', terminal_color, put_at_col, put_at_row);
 				command[len - 1] = '\0';
 
 				int prev_col = terminal_column;
@@ -229,6 +224,7 @@ void keyboard_handler(unsigned char c) {
 
 				is_writing_command = false;
 				terminal_writestring(command);
+				terminal_writestring(" ");
 				is_writing_command = true;
 
 				terminal_row = prev_row;
