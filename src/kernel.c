@@ -116,6 +116,10 @@ void check_kernel_scroll() {
 		}
 		terminal_row--;
 		rainbow_additional_rows++;
+
+		if (is_writing_command) {
+			command_start_row--;
+		}
 	}
 }
 
@@ -130,12 +134,13 @@ void newline() {
 
 bool should_print = true;
 bool is_writing_command = false;
-
+int command_start_row = 0;
 
 // calls newline and prints "> " to indicate that the user can write a command
 void new_kernel_line() {
 	newline();
 	terminal_column = 0;
+	command_start_row = terminal_row;
 	is_writing_command = false;
 	terminal_writestring("> ");
 	is_writing_command = true;
@@ -756,11 +761,9 @@ void terminal_putchar(unsigned char c) {
 	if (is_writing_command) { 
 		int len = strlen(command);
 		if (terminal_column == (len < 78 ? len + 2 : len - 78 - 80 * (len / 78))) {
-			terminal_putentryat(c, terminal_color, 0, 24);
 			command[len] = c;
 			command[len + 1] = '\0';
 		} else if (terminal_column < len < 78 ? len + 2 : len - 78 - 80 * (len / 78)) {
-			terminal_putentryat(c, terminal_color, 1, 24);
 
 			int at_in_command = len < 78 ? terminal_column - 2 : len - terminal_column;
 
@@ -789,6 +792,15 @@ void terminal_putchar(unsigned char c) {
 		}
 
 		at_in_command++;		
+		
+		char test[3];
+		itoa(at_in_command, test, 10);
+		for (int i = 0; i < 3; i++) {
+			if (test[i] == '\0') {
+				break;
+			}
+			terminal_putentryat(test[i], terminal_color, i, 24);
+		}
 	}
 
 	if (in_text_editor) {

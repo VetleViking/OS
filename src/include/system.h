@@ -27,6 +27,7 @@ extern char command[256];
 #define MAX_COMMAND_LENGTH 256
 extern int at_command;
 extern int at_in_command;
+extern int command_start_row;
 extern char previous_commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
 extern int num_commands;
 
@@ -52,7 +53,6 @@ enum vga_color {
 
 extern void terminal_writestring(const char* data);
 extern void newline();
-extern void add_at_in_command(int num);
 extern void terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y);
 extern int rand(int something);
 extern void move_cursor(int x, int y);

@@ -80,6 +80,17 @@ void keyboard_handler(unsigned char c) {
 		} else if (!is_writing_command) {
 			newline();
 		} else {
+			at_in_command = 0;
+			char test[3];
+			itoa(at_in_command, test, 10);
+			for (int i = 0; i < 3; i++) {
+				if (i > strlen(test)) {
+					terminal_putentryat(' ', terminal_color, i, 24);
+					continue;	
+				}
+				terminal_putentryat(test[i], terminal_color, i, 24);
+			}
+			
 			check_for_command();
 		}
 	} else if (c == 15) { // tab
@@ -103,6 +114,7 @@ void keyboard_handler(unsigned char c) {
 				text_editor_text[terminal_row - 3][len + 4] = '\0';
 
 				int prev_col = terminal_column;
+				
 				terminal_column = 3;
 
 				in_text_editor = false;
@@ -117,30 +129,46 @@ void keyboard_handler(unsigned char c) {
 
 				char buffer[80];
 
-				for (int i = terminal_column - 2; i < len; i++) {
-					buffer[i - (terminal_column - 2)] = command[i];
+				for (int i = at_in_command; i < len; i++) {
+					buffer[i - (at_in_command)] = command[i];
 				}
 
-				for (int i = terminal_column - 2; i < len; i++) {
-					command[i + 4] = buffer[i - (terminal_column - 2)];
-				}
+				for (int i = 0; i < len - at_in_command; i++) {
+      				command[i + at_in_command + 4] = buffer[i];
+    			}
 
-				command[terminal_column - 2] = ' ';
-				command[(terminal_column - 2) + 1] = ' ';
-				command[(terminal_column - 2) + 2] = ' ';
-				command[(terminal_column - 2) + 3] = ' ';
+				command[at_in_command] = ' ';
+				command[(at_in_command) + 1] = ' ';
+				command[(at_in_command) + 2] = ' ';
+				command[(at_in_command) + 3] = ' ';
 				command[len + 4] = '\0';
 
 				int prev_col = terminal_column;
-				terminal_column = 2;
+				int prev_row = terminal_row;
+
+				terminal_column = 2; // fix
+				terminal_row = command_start_row;
+
+				
 
 				is_writing_command = false;
 				terminal_writestring(command);
 				is_writing_command = true;
 
 				terminal_column = prev_col + 4;
-
 				at_in_command += 4;
+
+				terminal_row = prev_row;
+				
+				char test[3];
+				itoa(at_in_command, test, 10);
+				for (int i = 0; i < 3; i++) {
+					if (i > strlen(test)) {
+						terminal_putentryat(' ', terminal_color, i, 24);
+						continue;	
+					}
+					terminal_putentryat(test[i], terminal_color, i, 24);
+				}
 			}
 		}
 	} else if (c == 42) { // shift pressed
@@ -175,6 +203,15 @@ void keyboard_handler(unsigned char c) {
 				terminal_column = prev_col - (prev_col > 3 ? 1 : 0);
 
 				at_in_command--;
+				char test[3];
+				itoa(at_in_command, test, 10);
+				for (int i = 0; i < 3; i++) {
+					if (i > strlen(test)) {
+						terminal_putentryat(' ', terminal_color, i, 24);
+						continue;	
+					}
+					terminal_putentryat(test[i], terminal_color, i, 24);
+				}
 			}
 		} else if (is_writing_command) {
 			size_t len = strlen(command);
@@ -222,6 +259,15 @@ void keyboard_handler(unsigned char c) {
 				is_writing_command = true;
 
 				at_in_command = strlen(command);
+				char test[3];
+				itoa(at_in_command, test, 10);
+				for (int i = 0; i < 3; i++) {
+					if (i > strlen(test)) {
+						terminal_putentryat(' ', terminal_color, i, 24);
+						continue;	
+					}
+					terminal_putentryat(test[i], terminal_color, i, 24);
+				}
 			}
 		}
 	} else if (c == 80) { // down arrow pressed
@@ -253,6 +299,14 @@ void keyboard_handler(unsigned char c) {
 					is_writing_command = true;
 
 					at_in_command = strlen(command);
+					char test[3];
+					itoa(at_in_command, test, 10);
+					for (int i = 0; i < 3; i++) {
+						if (i > strlen(test)) {
+							break;
+						}
+						terminal_putentryat(test[i], terminal_color, i, 24);
+					}
 				}
 			}
 		}
@@ -262,9 +316,18 @@ void keyboard_handler(unsigned char c) {
 				terminal_column--;
 			}
 		} else if (is_writing_command) {
-			if (terminal_column > 2 || at_in_command > 0) {
+			if (at_in_command > 0) {
 				terminal_column--;
 				at_in_command--;
+				char test[3];
+				itoa(at_in_command, test, 10);
+				for (int i = 0; i < 3; i++) {
+					if (i > strlen(test)) {
+						terminal_putentryat(' ', terminal_color, i, 24);
+						continue;	
+					}
+					terminal_putentryat(test[i], terminal_color, i, 24);
+				}
 			}
 		}
 	} else if (c == 77) { // right arrow pressed
@@ -273,9 +336,18 @@ void keyboard_handler(unsigned char c) {
 				terminal_column++;
 			}
 		} else if (is_writing_command) {
-			if (terminal_column < strlen(command) + 2 || at_in_command < strlen(command)) {
+			if (at_in_command < strlen(command)) {
 				terminal_column++;
 				at_in_command++;
+				char test[3];
+				itoa(at_in_command, test, 10);
+				for (int i = 0; i < 3; i++) {
+					if (i > strlen(test)) {
+						terminal_putentryat(' ', terminal_color, i, 24);
+						continue;	
+					}
+					terminal_putentryat(test[i], terminal_color, i, 24);
+				}
 			}
 		}
 	}
