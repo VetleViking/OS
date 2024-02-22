@@ -99,6 +99,7 @@ void my_memmove(void* dst, const void* src, size_t count) {
     }
 }
 
+bool rollover = false; // make this false if you want to check for rollover, used in keyboard handlker for commands
 
 // Checks if the kernel should scroll and scrolls if needed
 void check_kernel_scroll() {
@@ -117,9 +118,10 @@ void check_kernel_scroll() {
 		terminal_row--;
 		rainbow_additional_rows++;
 
-		if (is_writing_command) {
-			command_start_row--;
-		}
+		command_start_row--;
+
+		rollover = true;
+		
 	}
 }
 

@@ -30,6 +30,7 @@ extern int at_in_command;
 extern int command_start_row;
 extern char previous_commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
 extern int num_commands;
+extern bool rollover;
 
 // Colors used by the kernel, used so that colors are easier to use
 enum vga_color { 

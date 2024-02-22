@@ -149,7 +149,7 @@ void keyboard_handler(unsigned char c) {
 				terminal_column = 2; // fix
 				terminal_row = command_start_row;
 
-				
+				rollover = false;
 
 				is_writing_command = false;
 				terminal_writestring(command);
@@ -158,8 +158,11 @@ void keyboard_handler(unsigned char c) {
 				terminal_column = prev_col + 4;
 				at_in_command += 4;
 
-				terminal_row = prev_row;
-				
+					terminal_row = prev_row;
+
+				if (rollover) {
+					terminal_row--;
+				}			
 				char test[3];
 				itoa(at_in_command, test, 10);
 				for (int i = 0; i < 3; i++) {
