@@ -134,10 +134,10 @@ void keyboard_handler(unsigned char c) {
 			int len = strlen(command);
 			if (len + 4 < MAX_COMMAND_LENGTH) {
 
-				char buffer[80];
+				char buffer[MAX_COMMAND_LENGTH];
 
 				for (int i = at_in_command; i < len; i++) {
-					buffer[i - (at_in_command)] = command[i];
+					buffer[i - at_in_command] = command[i];
 				}
 
 				for (int i = 0; i < len - at_in_command; i++) {
@@ -145,9 +145,9 @@ void keyboard_handler(unsigned char c) {
     			}
 
 				command[at_in_command] = ' ';
-				command[(at_in_command) + 1] = ' ';
-				command[(at_in_command) + 2] = ' ';
-				command[(at_in_command) + 3] = ' ';
+				command[at_in_command + 1] = ' ';
+				command[at_in_command + 2] = ' ';
+				command[at_in_command + 3] = ' ';
 				command[len + 4] = '\0';
 
 				int prev_col = terminal_column;
@@ -212,7 +212,7 @@ void keyboard_handler(unsigned char c) {
 					command[i] = command[i + 1];
 				}
 
-				int put_at_col = (len + 1) % 80;
+				int put_at_col = (len + 1) % 80; // fix later
 
 				int put_at_row = command_start_row + (len + 1) / 80;
 			
@@ -225,6 +225,8 @@ void keyboard_handler(unsigned char c) {
 				rollover = false;
 
 				terminal_column = 2;
+				terminal_row = command_start_row;
+
 				is_writing_command = false;
 				terminal_writestring(command);
 				is_writing_command = true;
@@ -236,6 +238,7 @@ void keyboard_handler(unsigned char c) {
 				}
 
 				terminal_column = prev_col - 1;
+
 				at_in_command--;
 				test_at_in_command();
 			}

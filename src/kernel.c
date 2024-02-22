@@ -738,6 +738,10 @@ void terminal_putchar(unsigned char c) {
 		keyboard_handler(c);
 	}
 
+	if (is_writing_command && strlen(command) >= MAX_COMMAND_LENGTH) {
+		return;
+	}
+
 	if (!should_print || c == 0) {
 		return;
 	}
@@ -762,21 +766,22 @@ void terminal_putchar(unsigned char c) {
 
 	if (is_writing_command) { 
 		int len = strlen(command);
-		if (terminal_column == (len < 78 ? len + 2 : len - 78 - 80 * (len / 78))) {
+
+		if (at_in_command == len) {
 			command[len] = c;
 			command[len + 1] = '\0';
-		} else if (terminal_column < len < 78 ? len + 2 : len - 78 - 80 * (len / 78)) {
+		} else if (at_in_command < len) {
 
-			int at_in_command = len < 78 ? terminal_column - 2 : len - terminal_column;
-
-			char buffer[80];
-			for (int i = at_in_command; i < len; i ++) {
-				buffer[i - (at_in_command)] = command[i];
+			char buffer[MAX_COMMAND_LENGTH];
+			for (int i = at_in_command; i < len; i++) {
+				buffer[i - at_in_command] = command[i];
 			}
 
-			for (int i = (at_in_command); i < len; i++) {
-				command[i + 1] = buffer[i - (at_in_command)];
+			for (int i = 0; i < len - at_in_command; i++) {
+				command[i + at_in_command + 1] = buffer[i];
 			}
+
+			command[len + 1] = '\0';
 		
 			command[at_in_command] = c;
 
@@ -784,13 +789,20 @@ void terminal_putchar(unsigned char c) {
 			int prev_row = terminal_row;
 
 			terminal_column = 2;
-			terminal_row = terminal_row - (len < 78 ? 0 : 1 + ((len - 78) / 80)); // soething is wrong here, fix later
+			terminal_row = command_start_row;
+
+			rollover = false;
 
 			is_writing_command = false;
 			terminal_writestring(command);
 			is_writing_command = true;
 			terminal_column = prev_col;
 			terminal_row = prev_row;
+
+			if (rollover) {
+				terminal_row--;
+			}
+
 		}
 
 		at_in_command++;		
@@ -834,6 +846,8 @@ void terminal_putchar(unsigned char c) {
 			terminal_column = prev_col;
 		}
 	}
+
+
 
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
 
