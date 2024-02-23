@@ -638,6 +638,12 @@ void check_for_command() {
 		return;
 	}
 
+	if (in_calculator) {
+		calculator_calculate();
+		end_check_for_command();
+		return;
+	}
+
 	// checks if the command is a normal command
 	if (strcmplen(command, "color ", 6) == 0) {
 		color_command();
@@ -695,7 +701,12 @@ void check_for_command() {
 		uptime_command();
 	} else if (strcmp(command, "animation") == 0) {
 		animation_test();
-	} else if (strcmp(command, "kukbart") == 0) { // best code ever written. By banana toucher beats B)
+	} else if (strcmp(command, "kalkulator") == 0) {
+		terminal_writestring("Ingen mellomrom ples :)");
+		calculator_start();
+	}  
+	
+	else if (strcmp(command, "kukbart") == 0) { // best code ever written. By banana toucher beats B)
 		terminal_writestring("Kukbart finner ikke lommeboken sin! Kan du hjelpe han? PS: (Riktig svar er nei;))!");
 	} 
 	
@@ -989,7 +1000,6 @@ void keyboard_interrupt_handler(struct regs *r) {
 	
     unsigned char c;
 	c = inb(0x60);
-
 
 	if (in_TD) { // no, this is not jank, this is unique and sofisticated
 		td_keyboard_handler(kbd_special_characters[c]);

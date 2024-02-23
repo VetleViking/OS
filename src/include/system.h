@@ -140,5 +140,10 @@ extern void draw_rectangle(int x, int y, int width, int height, unsigned short c
 extern void vga_clear_screen();
 extern void vga_plot_pixel(int x, int y, unsigned short color);
 
+/* Calculator */
+extern bool in_calculator;
+extern void calculator_start();
+extern void calculator_calculate();
+
 
 #endif
