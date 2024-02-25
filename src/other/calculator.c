@@ -5,15 +5,7 @@
 #include <stdint.h>
 
 
-
 bool in_calculator = false;
-
-void calculator_play() {
-    is_writing_command = false;
-    while (in_calculator) {
-        sleep(100); // sleep for 1s
-    }
-}  
 
 void calculator_calculate() {
     int len = strlen(command);
