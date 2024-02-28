@@ -145,5 +145,7 @@ extern bool in_calculator;
 extern void calculator_start();
 extern void calculator_calculate();
 
+/* GDT */
+extern void gdt_install();
 
 #endif
