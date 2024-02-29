@@ -1,3 +1,10 @@
+#include <system.h>
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+
 /* Defines an IDT entry */
 struct idt_entry
 {
