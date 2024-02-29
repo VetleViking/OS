@@ -148,4 +148,8 @@ extern void calculator_calculate();
 /* GDT */
 extern void gdt_install();
 
+/* IDT */
+extern void idt_install();
+extern void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags);
+
 #endif
