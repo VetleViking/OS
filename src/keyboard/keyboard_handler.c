@@ -19,14 +19,6 @@ void test_at_in_command() {
 		}
 		terminal_putentryat(test[i], terminal_color, i, 24);
 	}
-	itoa(strlen(command), test, 10);
-	for (int i = 0; i < 3; i++) {
-		if (i > strlen(test)) {
-			terminal_putentryat(' ', terminal_color, i, 23);
-			continue;	
-		}
-		terminal_putentryat(test[i], terminal_color, i, 23);
-	}
 }
 
 
@@ -140,7 +132,7 @@ void keyboard_handler(unsigned char c) {
 			}
 		} else if (is_writing_command) {
 			int len = strlen(command);
-			if (len + 4 < MAX_COMMAND_LENGTH) {
+			if (len + 4 <= MAX_COMMAND_LENGTH) {
 
 				char buffer[MAX_COMMAND_LENGTH];
 
@@ -161,7 +153,7 @@ void keyboard_handler(unsigned char c) {
 				int prev_col = terminal_column;
 				int prev_row = terminal_row;
 
-				terminal_column = 2; // fix
+				terminal_column = 2;
 				terminal_row = command_start_row;
 
 				rollover = false;

@@ -826,14 +826,6 @@ void terminal_putchar(unsigned char c) {
 			}
 			terminal_putentryat(test[i], terminal_color, i, 24);
 		}
-		itoa(strlen(command), test, 10);
-		for (int i = 0; i < 3; i++) {
-			if (i > strlen(test)) {
-				terminal_putentryat(' ', terminal_color, i, 23);
-				continue;	
-			}
-			terminal_putentryat(test[i], terminal_color, i, 23);
-		}
 	}
 
 	if (in_text_editor) {
