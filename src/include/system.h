@@ -22,7 +22,7 @@ extern int chosen_bg_color;
 extern const size_t VGA_WIDTH;
 extern const size_t VGA_HEIGHT;
 extern uint16_t* terminal_buffer;
-extern char command[256];
+extern char command[257];
 #define MAX_COMMANDS 100
 #define MAX_COMMAND_LENGTH 256
 extern int at_command;

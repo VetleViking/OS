@@ -19,6 +19,14 @@ void test_at_in_command() {
 		}
 		terminal_putentryat(test[i], terminal_color, i, 24);
 	}
+	itoa(strlen(command), test, 10);
+	for (int i = 0; i < 3; i++) {
+		if (i > strlen(test)) {
+			terminal_putentryat(' ', terminal_color, i, 23);
+			continue;	
+		}
+		terminal_putentryat(test[i], terminal_color, i, 23);
+	}
 }
 
 
@@ -206,7 +214,7 @@ void keyboard_handler(unsigned char c) {
 				terminal_column = prev_col - (prev_col > 3 ? 1 : 0);
 			}
 		} else if (is_writing_command) {
-			size_t len = strlen(command);
+			int len = strlen(command);
 			if (at_in_command > 0) { // if there is a command being written, delete character before cursor
 				for (int i = at_in_command - 1; i < len - 1; i++) {
 					command[i] = command[i + 1];
@@ -224,7 +232,7 @@ void keyboard_handler(unsigned char c) {
 
 				is_writing_command = false;
 				terminal_writestring(command);
-				terminal_writestring(" ");
+				terminal_writestring("X");
 				is_writing_command = true;
 
 				terminal_row = prev_row;

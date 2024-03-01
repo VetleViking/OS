@@ -251,7 +251,7 @@ char previous_commands[MAX_COMMANDS][MAX_COMMAND_LENGTH];
 int num_commands = 0;
 int at_command = 0;
 int at_in_command = 0;
-char command[MAX_COMMAND_LENGTH];
+char command[MAX_COMMAND_LENGTH + 1];
 bool in_game = false;
 char game[MAX_COMMAND_LENGTH];
 char game_params[20];
@@ -825,6 +825,14 @@ void terminal_putchar(unsigned char c) {
 				break;
 			}
 			terminal_putentryat(test[i], terminal_color, i, 24);
+		}
+		itoa(strlen(command), test, 10);
+		for (int i = 0; i < 3; i++) {
+			if (i > strlen(test)) {
+				terminal_putentryat(' ', terminal_color, i, 23);
+				continue;	
+			}
+			terminal_putentryat(test[i], terminal_color, i, 23);
 		}
 	}
 
