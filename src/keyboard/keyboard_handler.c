@@ -9,18 +9,6 @@ bool shift_pressed = false;
 bool caps_lock = false;
 
 
-void test_at_in_command() {
-	char test[3];
-	itoa(at_in_command, test, 10);
-	for (int i = 0; i < 3; i++) {
-		if (i > strlen(test)) {
-			terminal_putentryat(' ', terminal_color, i, 24);
-			continue;	
-		}
-		terminal_putentryat(test[i], terminal_color, i, 24);
-	}
-}
-
 
 
 // Checks if the key is special (like enter, backspace, etc.)
@@ -96,7 +84,6 @@ void keyboard_handler(unsigned char c) {
 			newline();
 		} else {
 			at_in_command = 0;
-			test_at_in_command();
 			
 			check_for_command();
 		}
@@ -164,7 +151,6 @@ void keyboard_handler(unsigned char c) {
 
 				terminal_column = prev_col + 4;
 				at_in_command += 4;
-				test_at_in_command();
 
 				terminal_row = prev_row;
 
@@ -224,7 +210,7 @@ void keyboard_handler(unsigned char c) {
 
 				is_writing_command = false;
 				terminal_writestring(command);
-				terminal_writestring("X");
+				terminal_writestring(" ");
 				is_writing_command = true;
 
 				terminal_row = prev_row;
@@ -236,7 +222,6 @@ void keyboard_handler(unsigned char c) {
 				terminal_column = prev_col - 1;
 
 				at_in_command--;
-				test_at_in_command();
 			}
 		}
 	} else if (c == 72) { // up arrow pressed
@@ -266,7 +251,6 @@ void keyboard_handler(unsigned char c) {
 				is_writing_command = true;
 
 				at_in_command = strlen(command);
-				test_at_in_command();
 			}
 		}
 	} else if (c == 80) { // down arrow pressed
@@ -298,7 +282,6 @@ void keyboard_handler(unsigned char c) {
 					is_writing_command = true;
 
 					at_in_command = strlen(command);
-					test_at_in_command();
 				}
 			}
 		}
@@ -311,7 +294,6 @@ void keyboard_handler(unsigned char c) {
 			if (at_in_command > 0) {
 				terminal_column--;
 				at_in_command--;
-				test_at_in_command();
 			}
 		}
 	} else if (c == 77) { // right arrow pressed
@@ -323,7 +305,6 @@ void keyboard_handler(unsigned char c) {
 			if (at_in_command < strlen(command)) {
 				terminal_column++;
 				at_in_command++;
-				test_at_in_command();
 			}
 		}
 	}

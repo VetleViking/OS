@@ -817,15 +817,6 @@ void terminal_putchar(unsigned char c) {
 		}
 
 		at_in_command++;		
-		
-		char test[3];
-		itoa(at_in_command, test, 10);
-		for (int i = 0; i < 3; i++) {
-			if (test[i] == '\0') {
-				break;
-			}
-			terminal_putentryat(test[i], terminal_color, i, 24);
-		}
 	}
 
 	if (in_text_editor) {
