@@ -5,11 +5,9 @@
 #include <stdint.h>
 
 
+
 bool shift_pressed = false;
 bool caps_lock = false;
-
-
-
 
 // Checks if the key is special (like enter, backspace, etc.)
 void keyboard_handler(unsigned char c) { 
