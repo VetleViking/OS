@@ -69,6 +69,7 @@ extern int strcmplen(const char *str1, const char *str2, size_t n);
 extern int atoi(const char *str);
 extern void itoa(int value, char* str, int base);
 extern void terminal_putchar(unsigned char c);
+extern void outportb(unsigned short port, unsigned char value);
 
 
 /* Minesweeper */
@@ -151,5 +152,20 @@ extern void gdt_install();
 /* IDT */
 extern void idt_install();
 extern void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags);
+
+/* IRQ */
+struct regs
+{
+	unsigned int gs, fs, es, ds;      /* pushed the segs last */
+	unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* pushed by 'pusha' */
+	unsigned int int_no, err_code;    /* our 'push byte #' and ecodes do this */
+	unsigned int eip, cs, eflags, useresp, ss;   /* pushed by the processor automatically */
+};
+
+extern void irq_install();
+extern void irq_install_handler(int irq, void (*handler)(struct regs *r));
+extern void irq_uninstall_handler(int irq);
+extern void irq_remap();
+
 
 #endif
