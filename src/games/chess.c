@@ -59,13 +59,32 @@ void chess_keyboard_handler(c) {
 }
 
 void draw_piece(int x, int y, char piece) {
-    // draw piece (coming soon)
-    // remember to add 60 to x and multiply by 25 on both
+    int color = VGA_COLOR_BLACK;
+
+    if (piece < 97) {
+        piece += 32;
+        color = VGA_COLOR_WHITE;
+    }
+
+ 
+    if (piece == 'p') { // pawn
+        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color);
+    } else if (piece == 'r') { // rook
+        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color);
+    } else if (piece == 'n') { // knight
+        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color);
+    } else if (piece == 'b') { // bishop
+        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color);
+    } else if (piece == 'q') { // queen
+        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color);
+    } else if (piece == 'k') { // king
+        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color);
+    }
 }
 
 void print_cursor() {
     draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_RED);
-    int color = (cursor_pos[0] + cursor_pos[1]) % 2 == 0 ? VGA_COLOR_WHITE : VGA_COLOR_DARK_GREY;
+    int color = (cursor_pos[0] + cursor_pos[1]) % 2 == 0 ? VGA_COLOR_LIGHT_GREY : VGA_COLOR_DARK_GREY;
     draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, color);
 
     if (chess_board[cursor_pos[1]][cursor_pos[0]] != 0) {
@@ -74,7 +93,7 @@ void print_cursor() {
 }
 
 void remove_cursor() {
-    int color = (cursor_pos[0] + cursor_pos[1]) % 2 == 0 ? VGA_COLOR_WHITE : VGA_COLOR_DARK_GREY;
+    int color = (cursor_pos[0] + cursor_pos[1]) % 2 == 0 ? VGA_COLOR_LIGHT_GREY : VGA_COLOR_DARK_GREY;
     draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, color);
     if (chess_board[cursor_pos[1]][cursor_pos[0]] != 0) {
         draw_piece(cursor_pos[0], cursor_pos[1], chess_board[cursor_pos[1]][cursor_pos[0]]);
@@ -84,9 +103,9 @@ void remove_cursor() {
 void chess_print_board() {
     for (int i = 60; i < 260; i += 50) {
         for (int j = 0; j < 200; j += 50) {
-            draw_rectangle(i, j, 25, 25, VGA_COLOR_WHITE);
+            draw_rectangle(i, j, 25, 25, VGA_COLOR_LIGHT_GREY);
             draw_rectangle(i + 25, j, 25, 25, VGA_COLOR_DARK_GREY);
-            draw_rectangle(i + 25, j + 25, 25, 25, VGA_COLOR_WHITE);
+            draw_rectangle(i + 25, j + 25, 25, 25, VGA_COLOR_LIGHT_GREY);
             draw_rectangle(i, j + 25, 25, 25, VGA_COLOR_DARK_GREY);
         }
     }
