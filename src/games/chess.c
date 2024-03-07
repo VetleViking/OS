@@ -28,13 +28,29 @@ int cursor_pos[2] = {0, 0};
 
 void chess_keyboard_handler(c) {
     if (c == 75) { // left
-
+        if (cursor_pos[0] > 0) {
+            remove_cursor();
+            cursor_pos[0]--;
+            print_cursor();
+        }
     } else if (c == 77) { // right
-
+        if (cursor_pos[0] < 7) {
+            remove_cursor();
+            cursor_pos[0]++;
+            print_cursor();
+        }
     } else if (c == 72) { // up
-
+        if (cursor_pos[1] > 0) {
+            remove_cursor();
+            cursor_pos[1]--;
+            print_cursor();
+        }
 	} else if (c == 80) { // down
-
+        if (cursor_pos[1] < 7) {
+            remove_cursor();
+            cursor_pos[1]++;
+            print_cursor();
+        }
     } else if (c == 28) { // enter
 
     } else if (c == 1) { // esc
@@ -42,8 +58,23 @@ void chess_keyboard_handler(c) {
     }
 }
 
+void draw_piece(int x, int y, char piece) {
+    // draw piece (coming soon)
+    // remember to add 60 to x and multiply by 25 on both
+}
+
 void print_cursor() {
-    draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_RED);
+    draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_RED); // TODO: make center not filled
+    if (chess_board[cursor_pos[1]][cursor_pos[0]] != 0) {
+        draw_piece(cursor_pos[0], cursor_pos[1], chess_board[cursor_pos[1]][cursor_pos[0]]);
+    }
+}
+
+void remove_cursor() {
+    draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_WHITE);
+    if (chess_board[cursor_pos[1]][cursor_pos[0]] != 0) {
+        draw_piece(cursor_pos[0], cursor_pos[1], chess_board[cursor_pos[1]][cursor_pos[0]]);
+    }
 }
 
 void chess_print_board() {
@@ -57,7 +88,7 @@ void chess_print_board() {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             if (chess_board[i][j] != 0) {
-                // draw piece (coming soon)
+                draw_piece(j, i, chess_board[i][j]);
             }
         }
     }
