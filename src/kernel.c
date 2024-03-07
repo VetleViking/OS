@@ -326,6 +326,8 @@ void game_handler() {
 		game_of_life_start();
 	} else if (strcmp(game, "pong") == 0) {
 		pong_start();
+	} else if (strcmp(game, "chess") == 0) {
+		chess_start();
 	}
 
 
@@ -1004,6 +1006,11 @@ void keyboard_interrupt_handler(struct regs *r) {
 		return;
 	}
 
+	if (in_chess) {
+		chess_keyboard_handler(kbd_special_characters[c]);
+		return;
+	}
+
 	if (is_writing_command || in_text_editor) {	
 		terminal_putchar(kbd_special_characters[c]);
 		move_cursor(terminal_column, terminal_row);
@@ -1219,6 +1226,11 @@ void kernel_main(void) {
 		if (in_pong) {
 			is_writing_command = true;
 			pong_play();
+		}
+
+		if (in_chess) {
+			is_writing_command = true;
+			chess_play();
 		}
 		
 		is_writing_command = was_writing_command; // end of temporary

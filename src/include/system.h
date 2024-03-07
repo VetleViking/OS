@@ -102,6 +102,14 @@ extern void pong_play();
 extern void pong_keyboard_handler(c);
 
 
+/* Chess */
+extern bool in_chess;
+
+extern void chess_start();
+extern void chess_play();
+extern void chess_keyboard_handler(c);
+
+
 /* Rock paper scissors */
 extern void rock_paper_scissors();
 
