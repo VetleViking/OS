@@ -20,7 +20,7 @@ setupGrub: combineFiles
 # Combines the all the different object files into a single binary file.
 # If you add something to compileKernel, you need to add the object file it creates here.
 combineFiles: compileKernel
-	cd src && i386-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o pong.o vga.o calculator.o kernel.o test.o gdt.o idt.o irq.o execute_text.o text_editor.o minesweeper.o tower_defense.o game_of_life.o rock_paper_scissors.o keyboard_layouts.o tic_tac_toe.o keyboard_handler.o -lgcc
+	cd src && i386-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o pong.o vga.o calculator.o kernel.o kernel_asm.o gdt.o idt.o irq.o execute_text.o text_editor.o minesweeper.o tower_defense.o game_of_life.o rock_paper_scissors.o keyboard_layouts.o tic_tac_toe.o keyboard_handler.o -lgcc
 
 # Compiles the c and asm files to object files.
 # If you add a new c file, you need to add it to the compileKernel command.
@@ -43,7 +43,7 @@ compileKernel: compileBoot
 	cd src && i386-elf-gcc -c abbreviation_stuff/irq.c -o irq.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
 
 
-	cd src && nasm -f elf32 test.asm -o test.o
+	cd src && nasm -f elf32 kernel_asm.asm -o kernel_asm.o
 
 # Compiles the boot Assembly file to an object file.
 compileBoot:
