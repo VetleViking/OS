@@ -178,6 +178,32 @@ void possible_moves(int x, int y) {
             draw_rectangle(60 + new_x * 25, new_y * 25, 25, 25, VGA_COLOR_RED);
         }
     }
+
+    bool done = false;
+    int test = 0;
+
+    while (!done) {
+        for (int i = 0; i < 8; i++) {
+            if (moves->straight_or_diagonal[0]) {
+                int new_x = x + i;
+                int new_y = y + i;
+
+                draw_rectangle(60 + new_x * 25, new_y * 25, 25, 25, VGA_COLOR_GREEN); // continue here
+
+            } else if (moves->straight_or_diagonal[1]) {
+                int new_x = x + i;
+                int new_y = y + i;
+
+                
+            }
+        }    
+
+        test += 1;
+        if (test == 2) {
+            done = true;
+        }
+    }   
+    
 }
 
 void draw_piece(int x, int y, char piece) {
