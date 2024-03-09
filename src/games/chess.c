@@ -10,7 +10,7 @@
 
 
 
-bool in_chess = false; // bool to track if in the game
+bool in_chess = false;
 
 char chess_board[8][8] = {
     {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
@@ -30,49 +30,43 @@ struct chess_piece_moves {
     bool straight_or_diagonal [2];
     int moves [8][2];
     bool is_pawn;
-    bool is_knight;
+
 };
 
 struct chess_piece_moves p = {
     .straight_or_diagonal = {false, false},
     .moves = {0},
-    .is_pawn = true,
-    .is_knight = false
+    .is_pawn = true 
 };
 
 struct chess_piece_moves r = {
     .straight_or_diagonal = {true, false},
     .moves = {0},
-    .is_pawn = false,
-    .is_knight = false
+    .is_pawn = false 
 };
 
 struct chess_piece_moves n = {
     .straight_or_diagonal = {false, false},
     .moves = {{1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}},
-    .is_pawn = false,
-    .is_knight = true
+    .is_pawn = false 
 };
 
 struct chess_piece_moves b = {
     .straight_or_diagonal = {false, true},
     .moves = {0},
-    .is_pawn = false,
-    .is_knight = false
+    .is_pawn = false 
 };
 
 struct chess_piece_moves q = {
     .straight_or_diagonal = {true, true},
     .moves = {0},
-    .is_pawn = false,
-    .is_knight = false
+    .is_pawn = false 
 };
 
 struct chess_piece_moves k = {
-    .straight_or_diagonal = {true, true},
+    .straight_or_diagonal = {false, false},
     .moves = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}},
-    .is_pawn = false,
-    .is_knight = false
+    .is_pawn = false 
 };
 
 struct chess_piece_moves* find_piece(char piece) {
@@ -102,6 +96,8 @@ int color_dark = VGA_COLOR_DARK_GREY;
 bool chosen_piece = false;
 int chosen_piece_pos [2] = {0};
 
+bool white_turn = true;
+
 void chess_keyboard_handler(c) {
     if (c == 75) { // left
         if (cursor_pos[0] > 0) {
@@ -129,18 +125,21 @@ void chess_keyboard_handler(c) {
         }
     } else if (c == 28) { // enter
         if (chess_board[cursor_pos[1]][cursor_pos[0]] != 0 && !chosen_piece) {
-            len_pm_pos = 0;
-            
-            possible_moves(cursor_pos[0], cursor_pos[1]);
-            
-            chosen_piece_pos[0] = cursor_pos[0];
-            chosen_piece_pos[1] = cursor_pos[1];
-            chosen_piece = true;
+            if ((chess_board[cursor_pos[1]][cursor_pos[0]] < 97 && white_turn) || (chess_board[cursor_pos[1]][cursor_pos[0]] >= 97) && !white_turn) {
+                len_pm_pos = 0;
+                
+                possible_moves(cursor_pos[0], cursor_pos[1]);
+                
+                chosen_piece_pos[0] = cursor_pos[0];
+                chosen_piece_pos[1] = cursor_pos[1];
+                chosen_piece = true;
+            }
         } else if (chosen_piece) {
             for (int i = 0; i < len_pm_pos; i++) {
                 if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
                     chess_board[cursor_pos[1]][cursor_pos[0]] = chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]];
                     chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]] = 0;
+                    white_turn = !white_turn;
                     break;
                 }
             }
@@ -155,7 +154,7 @@ void chess_keyboard_handler(c) {
 
 bool is_possible_move(int x, int y, bool is_white) {
     if (chess_board[y][x] != 0) {
-        if ((is_white && chess_board[y][x] >= 97) || !is_white) {    
+        if ((is_white && chess_board[y][x] >= 97) || (!is_white && chess_board[y][x] < 97)) {    
             draw_rectangle(60 + x * 25, (y) * 25, 25, 25, VGA_COLOR_RED);
             possible_moves_pos[len_pm_pos][0] = x;
             possible_moves_pos[len_pm_pos][1] = y;
