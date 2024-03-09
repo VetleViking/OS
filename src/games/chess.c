@@ -95,6 +95,7 @@ int color_dark = VGA_COLOR_DARK_GREY;
 
 bool chosen_piece = false;
 int chosen_piece_pos [2] = {0};
+bool pawn_moved_two = false; // used for en passant
 
 bool white_turn = true;
 
@@ -137,7 +138,13 @@ void chess_keyboard_handler(c) {
         } else if (chosen_piece) {
             for (int i = 0; i < len_pm_pos; i++) {
                 if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
-                    chess_board[cursor_pos[1]][cursor_pos[0]] = chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]];
+                    char piece[1] = chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]];
+                    
+                    if (piece == 'p' && chosen_piece_pos[1] - cursor_pos[1] == 2 || chosen_piece_pos[1] - cursor_pos[1] == - 2) {
+                        pawn_moved_two = true;
+                    }
+
+                    chess_board[cursor_pos[1]][cursor_pos[0]] = piece;
                     chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]] = 0;
                     white_turn = !white_turn;
                     break;
@@ -202,35 +209,34 @@ void possible_moves(int x, int y) {
     }
 
     // bcause the pawn is a goofy goober, it needs some special treatment
-    // some errors with edges of screen will fix later
     // will need to add un passant and changing at top of board
     if (moves->is_pawn) {
         if (is_white) {
-            if (chess_board[y - 1][x] == 0) { 
+            if (chess_board[y - 1][x] == 0 && y - 1 >= 0) { 
                 is_possible_move(x, y - 1, is_white);
 
-                if (y == 6) {
+                if (y == 6 && chess_board[y - 2][x] == 0) {
                     is_possible_move(x, y - 2, is_white);
                 }
             }
 
-            if (chess_board[y - 1][x - 1] != 0) {
+            if (chess_board[y - 1][x - 1] != 0 && (x - 1 >= 0 && y - 1 >= 0)) {
                 is_possible_move(x - 1, y - 1, is_white);
-            } if (chess_board[y - 1][x + 1] != 0) {
+            } if (chess_board[y - 1][x + 1] != 0 && (x + 1 >= 0 && y - 1 >= 0)) {
                 is_possible_move(x + 1, y - 1, is_white);
             }
         } else {
-            if (chess_board[y + 1][x] == 0) { 
+            if (chess_board[y + 1][x] == 0 && y + 1 < 8) { 
                 is_possible_move(x, y + 1, is_white); 
 
-                if (y == 1) {
+                if (y == 1 && chess_board[y + 2][x] == 0) {
                     is_possible_move(x, y + 2, is_white);
                 }
             }
 
-            if (chess_board[y + 1][x - 1] != 0) {
+            if (chess_board[y + 1][x - 1] != 0 && (x - 1 >= 0 && y + 1 >= 0)) {
                 is_possible_move(x - 1, y + 1, is_white);
-            } if (chess_board[y + 1][x + 1] != 0) {
+            } if (chess_board[y + 1][x + 1] != 0 && (x + 1 >= 0 && y + 1 >= 0)) {
                 is_possible_move(x + 1, y + 1, is_white);
             }
         }
