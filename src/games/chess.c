@@ -16,12 +16,15 @@ char chess_board[8][8] = {
     {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
     {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
     {0},
-    {0},
-    {0, 0, 'Q'},
+    {0, 'p'},
+    {'P', 0, 'Q'},
     {0},
     {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
     {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
 };
+
+char possible_moves_pos[64][2] = {NULL};
+int at_in_pm_pos = 0;
 
 struct chess_piece_moves {
     bool straight_or_diagonal [2];
@@ -97,6 +100,7 @@ int color_light = VGA_COLOR_LIGHT_GREY;
 int color_dark = VGA_COLOR_DARK_GREY;
 
 bool chosen_piece = false;
+int chosen_piece_pos [2] = {NULL};
 
 void chess_keyboard_handler(c) {
     if (c == 75) { // left
@@ -126,14 +130,22 @@ void chess_keyboard_handler(c) {
     } else if (c == 28) { // enter
         if (chess_board[cursor_pos[1]][cursor_pos[0]] != 0 && !chosen_piece) {
             possible_moves(cursor_pos[0], cursor_pos[1]);
+            for (int i = 0; i < at_in_pm_pos; i++) {
+                possible_moves_pos[i][0] = NULL;
+            }
+            at_in_pm_pos = 0;
+            chosen_piece_pos[0] = cursor_pos[0];
+            chosen_piece_pos[1] = cursor_pos[1];
             chosen_piece = true;
-        } else {
+        } else if (chosen_piece) {
             // move piece 
-            chess_print_board();
             chosen_piece = false;
+            chess_print_board();
+            
         }
     } else if (c == 1) { // esc
         in_chess = false;
+        vga_exit(); // not working
     }
 }
 
@@ -141,11 +153,19 @@ bool is_possible_move(int x, int y, bool is_white) {
     if (chess_board[y][x] != 0) {
         if ((is_white && chess_board[y][x] >= 97) || !is_white) {    
             draw_rectangle(60 + x * 25, (y) * 25, 25, 25, VGA_COLOR_RED);
+            possible_moves_pos[at_in_pm_pos][0] = x;
+            possible_moves_pos[at_in_pm_pos][1] = y;
+            at_in_pm_pos++;
         }
-        return false;
+        // not quite true, but need it like this other places
+        // does not seem to interfere with anything, so will keep it like it is for now
+        return false; 
     } else {
         draw_rectangle(60 + x * 25, (y) * 25, 25, 25, VGA_COLOR_GREEN);
     }
+    possible_moves_pos[at_in_pm_pos][0] = x;
+    possible_moves_pos[at_in_pm_pos][1] = y;
+    at_in_pm_pos++;
     return true;
 }
 
@@ -285,10 +305,15 @@ void print_cursor() {
 }
 
 void remove_cursor() {
+    
+
     int color = (cursor_pos[0] + cursor_pos[1]) % 2 == 0 ? color_light : color_dark;
     draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, color);
     if (chess_board[cursor_pos[1]][cursor_pos[0]] != 0) {
         draw_piece(cursor_pos[0], cursor_pos[1], chess_board[cursor_pos[1]][cursor_pos[0]]);
+    }
+    if (chosen_piece) {
+        possible_moves(chosen_piece_pos[0], chosen_piece_pos[1]);
     }
 }
 
