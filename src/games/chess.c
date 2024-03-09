@@ -23,8 +23,8 @@ char chess_board[8][8] = {
     {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
 };
 
-char possible_moves_pos[64][2] = {NULL};
-int at_in_pm_pos = 0;
+int possible_moves_pos[64][2] = {0};
+int len_pm_pos = 0;
 
 struct chess_piece_moves {
     bool straight_or_diagonal [2];
@@ -100,7 +100,7 @@ int color_light = VGA_COLOR_LIGHT_GREY;
 int color_dark = VGA_COLOR_DARK_GREY;
 
 bool chosen_piece = false;
-int chosen_piece_pos [2] = {NULL};
+int chosen_piece_pos [2] = {0};
 
 void chess_keyboard_handler(c) {
     if (c == 75) { // left
@@ -129,19 +129,23 @@ void chess_keyboard_handler(c) {
         }
     } else if (c == 28) { // enter
         if (chess_board[cursor_pos[1]][cursor_pos[0]] != 0 && !chosen_piece) {
+            len_pm_pos = 0;
+            
             possible_moves(cursor_pos[0], cursor_pos[1]);
-            for (int i = 0; i < at_in_pm_pos; i++) {
-                possible_moves_pos[i][0] = NULL;
-            }
-            at_in_pm_pos = 0;
+            
             chosen_piece_pos[0] = cursor_pos[0];
             chosen_piece_pos[1] = cursor_pos[1];
             chosen_piece = true;
         } else if (chosen_piece) {
-            // move piece 
+            for (int i = 0; i < len_pm_pos; i++) {
+                if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
+                    chess_board[cursor_pos[1]][cursor_pos[0]] = chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]];
+                    chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]] = 0;
+                    break;
+                }
+            }
             chosen_piece = false;
             chess_print_board();
-            
         }
     } else if (c == 1) { // esc
         in_chess = false;
@@ -153,9 +157,9 @@ bool is_possible_move(int x, int y, bool is_white) {
     if (chess_board[y][x] != 0) {
         if ((is_white && chess_board[y][x] >= 97) || !is_white) {    
             draw_rectangle(60 + x * 25, (y) * 25, 25, 25, VGA_COLOR_RED);
-            possible_moves_pos[at_in_pm_pos][0] = x;
-            possible_moves_pos[at_in_pm_pos][1] = y;
-            at_in_pm_pos++;
+            possible_moves_pos[len_pm_pos][0] = x;
+            possible_moves_pos[len_pm_pos][1] = y;
+            len_pm_pos++;
         }
         // not quite true, but need it like this other places
         // does not seem to interfere with anything, so will keep it like it is for now
@@ -163,9 +167,9 @@ bool is_possible_move(int x, int y, bool is_white) {
     } else {
         draw_rectangle(60 + x * 25, (y) * 25, 25, 25, VGA_COLOR_GREEN);
     }
-    possible_moves_pos[at_in_pm_pos][0] = x;
-    possible_moves_pos[at_in_pm_pos][1] = y;
-    at_in_pm_pos++;
+    possible_moves_pos[len_pm_pos][0] = x;
+    possible_moves_pos[len_pm_pos][1] = y;
+    len_pm_pos++;
     return true;
 }
 
@@ -199,6 +203,8 @@ void possible_moves(int x, int y) {
     }
 
     // bcause the pawn is a goofy goober, it needs some special treatment
+    // some errors with edges of screen will fix later
+    // will need to add un passant and changing at top of board
     if (moves->is_pawn) {
         if (is_white) {
             if (chess_board[y - 1][x] == 0) { 
