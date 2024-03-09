@@ -17,7 +17,7 @@ char chess_board[8][8] = {
     {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
     {0},
     {0},
-    {0},
+    {0, 0, 'Q'},
     {0},
     {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
     {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
@@ -32,7 +32,7 @@ struct chess_piece_moves {
 
 struct chess_piece_moves p = {
     .straight_or_diagonal = {false, false},
-    .moves = {{0, 1}, {0, 2}},
+    .moves = {0},
     .is_pawn = true,
     .is_knight = false
 };
@@ -129,6 +129,7 @@ void chess_keyboard_handler(c) {
             chosen_piece = true;
         } else {
             // move piece 
+            chess_print_board();
             chosen_piece = false;
         }
     } else if (c == 1) { // esc
@@ -136,13 +137,25 @@ void chess_keyboard_handler(c) {
     }
 }
 
+bool is_possible_move(int x, int y, bool is_white) {
+    if (chess_board[y][x] != 0) {
+        if ((is_white && chess_board[y][x] >= 97) || !is_white) {    
+            draw_rectangle(60 + x * 25, (y) * 25, 25, 25, VGA_COLOR_RED);
+        }
+        return false;
+    } else {
+        draw_rectangle(60 + x * 25, (y) * 25, 25, 25, VGA_COLOR_GREEN);
+    }
+    return true;
+}
+
+
 void possible_moves(int x, int y) {
     char piece = chess_board[y][x];
-    bool is_white = false;
+    bool is_white = !(piece >= 'a' && piece <= 'z');
 
-    if (piece < 97) { // TODO: exactly every other time, the piece is showing the wrong way if its white
-        piece += 32;
-        is_white = true;
+    if (is_white) { // makes all pieces lowercase
+        piece += ('a' - 'A');
     }
 
     struct chess_piece_moves* moves = find_piece(piece);
@@ -150,14 +163,6 @@ void possible_moves(int x, int y) {
     if (moves == NULL) {
         draw_rectangle(0, 0, 25, 25, VGA_COLOR_GREEN);
         return;
-    }
-
-    if (is_white && moves->is_pawn) { // if the piece is white, we need to reverse the moves for pawn
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 2; j++) {
-                moves->moves[i][j] *= -1;
-            }
-        }
     }
 
     for (int i = 0; i < 8; i++) {
@@ -168,43 +173,76 @@ void possible_moves(int x, int y) {
         int new_x = x + moves->moves[i][0];
         int new_y = y + moves->moves[i][1];
 
-        if (new_x < 0 || new_x > 7 || new_y < 0 || new_y > 7) {
-            continue;
-        }
-
-        if (chess_board[new_y][new_x] == 0) {
-            draw_rectangle(60 + new_x * 25, new_y * 25, 25, 25, VGA_COLOR_GREEN);
-        } else {
-            draw_rectangle(60 + new_x * 25, new_y * 25, 25, 25, VGA_COLOR_RED);
+        if ((new_x < 8 && new_x >= 0) && (new_y < 8 && new_y >= 0)) {
+            is_possible_move(new_x, new_y, is_white);
         }
     }
 
-    bool done = false;
-    int test = 0;
+    // bcause the pawn is a goofy goober, it needs some special treatment
+    if (moves->is_pawn) {
+        if (is_white) {
+            if (chess_board[y - 1][x] == 0) { 
+                is_possible_move(x, y - 1, is_white);
 
-    while (!done) {
-        for (int i = 0; i < 8; i++) {
-            if (moves->straight_or_diagonal[0]) {
-                int new_x = x + i;
-                int new_y = y + i;
-
-                draw_rectangle(60 + new_x * 25, new_y * 25, 25, 25, VGA_COLOR_GREEN); // continue here
-
-            } else if (moves->straight_or_diagonal[1]) {
-                int new_x = x + i;
-                int new_y = y + i;
-
-                
+                if (y == 6) {
+                    is_possible_move(x, y - 2, is_white);
+                }
             }
-        }    
 
-        test += 1;
-        if (test == 2) {
-            done = true;
+            if (chess_board[y - 1][x - 1] != 0) {
+                is_possible_move(x - 1, y - 1, is_white);
+            } if (chess_board[y - 1][x + 1] != 0) {
+                is_possible_move(x + 1, y - 1, is_white);
+            }
+        } else {
+            if (chess_board[y + 1][x] == 0) { 
+                is_possible_move(x, y + 1, is_white); 
+
+                if (y == 1) {
+                    is_possible_move(x, y + 2, is_white);
+                }
+            }
+
+            if (chess_board[y + 1][x - 1] != 0) {
+                is_possible_move(x - 1, y + 1, is_white);
+            } if (chess_board[y + 1][x + 1] != 0) {
+                is_possible_move(x + 1, y + 1, is_white);
+            }
         }
-    }   
-    
+        
+    }
+
+    bool has_hit_dir[8] = {false};
+
+    // handles the pieces that go to the edges of the board
+    // for example rook and bishop
+    for (int i = 1; i < 8; i++) { 
+        if (moves->straight_or_diagonal[0]) {
+            if (x + i < 8 && !has_hit_dir[0]) {
+                has_hit_dir[0] = !is_possible_move(x + i, y, is_white);
+            } if (y + i < 8 && !has_hit_dir[1]) {
+                has_hit_dir[1] = !is_possible_move(x, y + i, is_white);
+            } if (x - i >= 0 && !has_hit_dir[2]) {
+                has_hit_dir[2] = !is_possible_move(x - i, y, is_white);
+            } if (y - i >= 0 && !has_hit_dir[3]) {
+                has_hit_dir[3] = !is_possible_move(x, y - i, is_white);
+            }
+        } 
+        
+        if (moves->straight_or_diagonal[1]) {
+            if ((x + i < 8 && y + i < 8) && !has_hit_dir[4]) {
+                has_hit_dir[4] = !is_possible_move(x + i, y + i, is_white);
+            } if ((x + i < 8 && y - i >= 0) && !has_hit_dir[5]) {
+                has_hit_dir[5] = !is_possible_move(x + i, y - i, is_white);
+            } if ((x - i >= 0 && y - i >= 0) && !has_hit_dir[6]) {
+                has_hit_dir[6] = !is_possible_move(x - i, y - i, is_white);
+            } if ((x - i >= 0 && y + i < 8) && !has_hit_dir[7]) {
+                has_hit_dir[7] = !is_possible_move(x - i, y + i, is_white);
+            }
+        }
+    }    
 }
+
 
 void draw_piece(int x, int y, char piece) {
     int color = VGA_COLOR_BLACK;
