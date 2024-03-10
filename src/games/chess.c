@@ -138,9 +138,10 @@ void chess_keyboard_handler(c) {
         } else if (chosen_piece) {
             for (int i = 0; i < len_pm_pos; i++) {
                 if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
-                    char piece[1] = chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]];
+                    char piece[1];
+                    piece[0] = chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]];
                     
-                    if (piece == 'p' && chosen_piece_pos[1] - cursor_pos[1] == 2 || chosen_piece_pos[1] - cursor_pos[1] == - 2) {
+                    if (piece == 'p' && (chosen_piece_pos[1] - cursor_pos[1] == 2) || (chosen_piece_pos[1] - cursor_pos[1] == -2)) {
                         pawn_moved_two = true;
                     }
 
