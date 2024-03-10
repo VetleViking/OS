@@ -30,43 +30,49 @@ struct chess_piece_moves {
     bool straight_or_diagonal [2];
     int moves [8][2];
     bool is_pawn;
-
+    bool is_king;
 };
 
 struct chess_piece_moves p = {
     .straight_or_diagonal = {false, false},
     .moves = {0},
-    .is_pawn = true 
+    .is_pawn = true,
+    .is_king = false 
 };
 
 struct chess_piece_moves r = {
     .straight_or_diagonal = {true, false},
     .moves = {0},
-    .is_pawn = false 
+    .is_pawn = false,
+    .is_king = false  
 };
 
 struct chess_piece_moves n = {
     .straight_or_diagonal = {false, false},
     .moves = {{1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}},
-    .is_pawn = false 
+    .is_pawn = false,
+    .is_king = false  
 };
 
 struct chess_piece_moves b = {
     .straight_or_diagonal = {false, true},
     .moves = {0},
-    .is_pawn = false 
+    .is_pawn = false,
+    .is_king = false  
 };
 
 struct chess_piece_moves q = {
     .straight_or_diagonal = {true, true},
     .moves = {0},
-    .is_pawn = false 
+    .is_pawn = false,
+    .is_king = false  
 };
 
 struct chess_piece_moves k = {
     .straight_or_diagonal = {false, false},
     .moves = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}},
-    .is_pawn = false 
+    .is_pawn = false,
+    .is_king = true  
 };
 
 struct chess_piece_moves* find_piece(char piece) {
@@ -97,6 +103,10 @@ bool chosen_piece = false;
 int chosen_piece_pos[2] = {0, 0};
 bool pawn_moved_two = false; // used for en passant
 int pm_two_pos[2] = {0, 0};
+int since_piece_taken = 0;
+int last_moves[2][2][2] = {{{0, 0}, {0, 0}}, {{0, 0}, {0, 0}}};
+bool castle_rights[3][2] = {{true}, {true}}; // castling rights for each king and the towers
+bool king_threatened = false;
 
 bool white_turn = true;
 
@@ -143,6 +153,15 @@ void chess_keyboard_handler(c) {
                     piece[0] = chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]];
                     piece[1] = '\0';
 
+                    if (chess_board[cursor_pos[1]][cursor_pos[0]] != 0) {
+                        since_piece_taken = 0;
+                    } else {
+                        since_piece_taken++;
+                        if (since_piece_taken >= 50) {
+                            in_chess = false;
+                        }
+                    }
+
                     if (piece[0] == 'p' || piece[0] == 'P') {
                         if (pawn_moved_two && cursor_pos[0] == pm_two_pos[0]) {
                             if (cursor_pos[1] + 1 == pm_two_pos[1] && piece[0] == 'P') {
@@ -161,8 +180,41 @@ void chess_keyboard_handler(c) {
                         }
                     } 
 
+                    if (piece[0] == 'R') {
+                        if (chosen_piece_pos[0] == 0 && chosen_piece_pos[1] == 7) {
+                            castle_rights[0][0] = false;
+                        } else if (chosen_piece_pos[0] == 7 && chosen_piece_pos[1] == 7) {
+                            castle_rights[0][2] = false;
+                        }
+                    } else if (piece[0] == 'r') {
+                        if (chosen_piece_pos[0] == 0 && chosen_piece_pos[1] == 0) {
+                            castle_rights[1][0] = false;
+                        } else if (chosen_piece_pos[0] == 7 && chosen_piece_pos[1] == 0) {
+                            castle_rights[1][2] = false;
+                        }
+                    } 
+
+                    if (piece == 'K') {
+                        castle_rights[0][1] = false;
+                    } else if (piece == 'k') {
+                        castle_rights[1][1] = false;
+                    }
+
                     chess_board[cursor_pos[1]][cursor_pos[0]] = piece[0];
                     chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]] = 0;
+
+                    possible_moves(cursor_pos[0], cursor_pos[1]);
+
+                    king_threatened = false;
+
+                    for (int i = 0; i < len_pm_pos; i++) {
+                        if (chess_board[possible_moves_pos[i][1]][possible_moves_pos[i][0]] == 'k' || chess_board[possible_moves_pos[i][1]][possible_moves_pos[i][0]] == 'K') {
+                            king_threatened = true;
+                        }
+                    }
+
+                    
+                    
                     white_turn = !white_turn;
                     break;
                 }
@@ -172,7 +224,6 @@ void chess_keyboard_handler(c) {
         }
     } else if (c == 1) { // esc
         in_chess = false;
-        vga_exit(); // not working
     }
 }
 
@@ -196,6 +247,7 @@ bool is_possible_move(int x, int y, bool is_white) {
     return true;
 }
 
+// TODO: add so that you cant put king in danger, either in is_possible_move or possible_moves.
 
 void possible_moves(int x, int y) {
     char piece = chess_board[y][x];
@@ -228,7 +280,7 @@ void possible_moves(int x, int y) {
     // bcause the pawn is a goofy goober, it needs some special treatment
     // will need to add changing at top of board
     if (moves->is_pawn) {
-        if (is_white) {
+        if (is_white) { // white pawn
             if (chess_board[y - 1][x] == 0 && y - 1 >= 0) { 
                 is_possible_move(x, y - 1, is_white);
 
@@ -243,6 +295,7 @@ void possible_moves(int x, int y) {
                 is_possible_move(x + 1, y - 1, is_white);
             }
 
+            // en passant
             if (pawn_moved_two) {
                 if ((pm_two_pos[0] == x - 1 && pm_two_pos[1] == y) && chess_board[y - 1][x - 1] == 0) {
                     is_possible_move(x - 1, y - 1, is_white);
@@ -252,7 +305,7 @@ void possible_moves(int x, int y) {
                     draw_rectangle(60 + (x + 1) * 25, y * 25, 25, 25, VGA_COLOR_RED);
                 }
             }
-        } else {
+        } else { // black pawn
             if (chess_board[y + 1][x] == 0 && y + 1 < 8) { 
                 is_possible_move(x, y + 1, is_white); 
 
@@ -267,7 +320,8 @@ void possible_moves(int x, int y) {
                 is_possible_move(x + 1, y + 1, is_white);
             }
 
-            if (pawn_moved_two) {
+            // en passant
+            if (pawn_moved_two) { 
                 if ((pm_two_pos[0] == x - 1 && pm_two_pos[1] == y) && chess_board[y + 1][x - 1] == 0) {
                     is_possible_move(x - 1, y + 1, is_white);
                     draw_rectangle(60 + (x - 1) * 25, y * 25, 25, 25, VGA_COLOR_RED);
@@ -277,6 +331,11 @@ void possible_moves(int x, int y) {
                 }
             }
         }
+    }
+
+    // for castling
+    if (moves->is_king) {
+        
     }
 
     bool has_hit_dir[8] = {false};
@@ -313,30 +372,33 @@ void possible_moves(int x, int y) {
 
 void draw_piece(int x, int y, char piece) {
     int color = VGA_COLOR_BLACK;
+    int color2 = VGA_COLOR_WHITE;
+
 
     if (piece < 97) {
         piece += 32;
         color = VGA_COLOR_WHITE;
+        color2 = VGA_COLOR_BLACK;
     }
 
  
     if (piece == 'p') { // pawn
-        draw_rectangle(63 + x * 25, 18 + y * 25, 19, 4, color == VGA_COLOR_BLACK ? VGA_COLOR_WHITE : VGA_COLOR_BLACK);
+        draw_rectangle(63 + x * 25, 18 + y * 25, 19, 4, color2);
         draw_rectangle(64 + x * 25, 19 + y * 25, 17, 2, color);
     } else if (piece == 'r') { // rook
-        draw_rectangle(63 + x * 25, 15 + y * 25, 19, 7, color == VGA_COLOR_BLACK ? VGA_COLOR_WHITE : VGA_COLOR_BLACK);
+        draw_rectangle(63 + x * 25, 15 + y * 25, 19, 7, color2);
         draw_rectangle(64 + x * 25, 16 + y * 25, 17, 5, color);
     } else if (piece == 'n') { // knight
-        draw_rectangle(63 + x * 25, 12 + y * 25, 19, 10, color == VGA_COLOR_BLACK ? VGA_COLOR_WHITE : VGA_COLOR_BLACK);
+        draw_rectangle(63 + x * 25, 12 + y * 25, 19, 10, color2);
         draw_rectangle(64 + x * 25, 13 + y * 25, 17, 8, color);
     } else if (piece == 'b') { // bishop
-        draw_rectangle(63 + x * 25, 9 + y * 25, 19, 13, color == VGA_COLOR_BLACK ? VGA_COLOR_WHITE : VGA_COLOR_BLACK);
+        draw_rectangle(63 + x * 25, 9 + y * 25, 19, 13, color2);
         draw_rectangle(64 + x * 25, 10 + y * 25, 17, 11, color);
     } else if (piece == 'q') { // queen
-        draw_rectangle(63 + x * 25, 6 + y * 25, 19, 16, color == VGA_COLOR_BLACK ? VGA_COLOR_WHITE : VGA_COLOR_BLACK);
+        draw_rectangle(63 + x * 25, 6 + y * 25, 19, 16, color2);
         draw_rectangle(64 + x * 25, 7 + y * 25, 17, 14, color);
     } else if (piece == 'k') { // king
-        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color == VGA_COLOR_BLACK ? VGA_COLOR_WHITE : VGA_COLOR_BLACK);
+        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color2);
         draw_rectangle(64 + x * 25, 4 + y * 25, 17, 17, color);
     }
 }
@@ -392,6 +454,10 @@ void chess_play() {
         // this is just so that other stuff wont be running
         // may be adding a clock or something later, that will go here.
     }
+
+    // exit stuff
+    vga_exit(); // not working
+
 }  
 
 void chess_start() {
