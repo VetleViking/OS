@@ -576,6 +576,35 @@ void chess_keyboard_handler(int c) {
                     chess_board[cursor_pos[1]][cursor_pos[0]] = piece[0];
                     chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]] = 0;
 
+                    int king_pos[2] = {0};
+                    int total_moves = 0;
+
+                    for (int i = 0; i < 8; i++) { // y
+                        for (int j = 0; j < 8; j++) { // x
+                            if ((chess_board[i][j] > 97 && white_turn) || (chess_board[i][j] < 97 && chess_board[i][j] > 0 && !white_turn)) {
+                                if (chess_board[i][j] == 'k' || chess_board[i][j] == 'K') {
+                                    king_pos[0] = j;
+                                    king_pos[1] = i;
+                                }
+
+                                possible_moves(j, i, false, chess_board);
+
+                                total_moves += len_pm_pos;
+                            }
+                        }   
+                    }
+
+                    piece_threatened_by(king_pos[0], king_pos[1], piece[0] < 97, chess_board);
+
+                    if (total_moves == 0) {
+                        piece_threatened_by(king_pos[0], king_pos[1], piece[0] < 97, chess_board);
+                        if (threatened_by_len > 0) {
+                            in_chess = false;
+                        } else {
+                            in_chess = false;
+                        }
+                    }
+                    
                     possible_moves(cursor_pos[0], cursor_pos[1], false, chess_board);
 
                     for (int i = 0; i < len_pm_pos; i++) {
