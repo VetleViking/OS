@@ -272,7 +272,7 @@ void possible_moves(int x, int y, bool show_result, char board[8][8]) {
 
             if (board[y - 1][x - 1] != 0 && (x - 1 >= 0 && y - 1 >= 0)) {
                 is_possible_move(x - 1, y - 1, is_white, show_result, board);
-            } if (board[y - 1][x + 1] != 0 && (x + 1 >= 0 && y - 1 >= 0)) {
+            } if (board[y - 1][x + 1] != 0 && (x + 1 < 8 && y - 1 >= 0)) {
                 is_possible_move(x + 1, y - 1, is_white, show_result, board);
             }
 
@@ -299,9 +299,9 @@ void possible_moves(int x, int y, bool show_result, char board[8][8]) {
                 }
             }
 
-            if (board[y + 1][x - 1] != 0 && (x - 1 >= 0 && y + 1 >= 0)) {
+            if (board[y + 1][x - 1] != 0 && (x - 1 >= 0 && y + 1 < 8)) {
                 is_possible_move(x - 1, y + 1, is_white, show_result, board);
-            } if (board[y + 1][x + 1] != 0 && (x + 1 >= 0 && y + 1 >= 0)) {
+            } if (board[y + 1][x + 1] != 0 && (x + 1 < 8 && y + 1 < 8)) {
                 is_possible_move(x + 1, y + 1, is_white, show_result, board);
             }
 
