@@ -534,6 +534,12 @@ void chess_keyboard_handler(int c) {
                         } else {
                             pawn_moved_two = false;
                         }
+
+                        if (cursor_pos == 0 && piece[0] < 97) {
+                            piece[0] = 'Q';
+                        } else if (cursor_pos == 7 && piece[0] >= 97) {
+                            piece[0] = 'q';
+                        }
                     } 
 
                     if (piece[0] == 'R') {
