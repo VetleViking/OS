@@ -604,9 +604,40 @@ void move_piece(int x, int y) {
     chess_print_board();
 }
 
+int is_protected(int x, int y, int is_white, char board[8][8]) {
+    piece_threatened_by(x, y, !is_white, board);
+    int protected_by = threatened_by_len;    
+    piece_threatened_by(x, y, is_white, board);
+
+    if (protected_by < threatened_by_len) {
+        return threatened_by_len - protected_by;
+    }
+
+    return 0;
+}
+
 void chess_bot() {
     int points_best_move = -10;
     int best_move[2][2] = {{0}, {0}};
+
+    int threatened_pieces[64][3] = {{0}, {0}};
+    int threatened_pieces_len = 0;
+
+    for (int i = 0; i < 8; i++) { // y
+        for (int j = 0; j < 8; j++) { // x
+            if (chess_board[i][j] >= 97) { 
+                int protected = is_protected(j, i, false);
+
+                if (protected > 0) {
+                    threatened_pieces[threatened_pieces_len][0] = j;
+                    threatened_pieces[threatened_pieces_len][0] = i;
+                    threatened_pieces[threatened_pieces_len][0] = protected;
+                    threatened_pieces_len++;
+                }
+            } 
+        }
+    }
+
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
@@ -640,14 +671,20 @@ void chess_bot() {
 
 
 
-                    piece_threatened_by(x, y, true, temp_board);
-                    int protected_by = threatened_by_len;    
-                    piece_threatened_by(x, y, false, temp_board);
+                    int protected = is_protected(x, y, false, temp_board);
 
-                    if (protected_by < threatened_by_len) {
+                    if (protected > 0) {
                         struct chess_piece_moves* piece = find_piece(chess_board[i][j]);
 
                         points -= piece->value;     
+                    }
+
+                    for (int l = 0; l < threatened_by_len; l++) { // have not tested in os, needs testing
+                        if (is_protected(threatened_by[l][0], threatened_by[l][1], false, temp_board) > 0 && (threatened_by[l][0] != j && threatened_by[l][1] != i)) {
+                            struct chess_piece_moves* piece = find_piece(chess_board[threatened_by[l][1]][threatened_by[l][0]]);
+
+                            points -= piece->value;
+                        }
                     }
 
                     if (chess_board[i][j] == 'k') {
