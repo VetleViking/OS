@@ -31,48 +31,55 @@ struct chess_piece_moves {
     int moves [8][2];
     bool is_pawn;
     bool is_king;
+    int value;
 };
 
 struct chess_piece_moves p = {
     .straight_or_diagonal = {false, false},
     .moves = {{0}},
     .is_pawn = true,
-    .is_king = false 
+    .is_king = false,
+    .value = 1 
 };
 
 struct chess_piece_moves r = {
     .straight_or_diagonal = {true, false},
     .moves = {{0}},
     .is_pawn = false,
-    .is_king = false  
+    .is_king = false,
+    .value = 5  
 };
 
 struct chess_piece_moves n = {
     .straight_or_diagonal = {false, false},
     .moves = {{1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}},
     .is_pawn = false,
-    .is_king = false  
+    .is_king = false,
+    .value = 3  
 };
 
 struct chess_piece_moves b = {
     .straight_or_diagonal = {false, true},
     .moves = {{0}},
     .is_pawn = false,
-    .is_king = false  
+    .is_king = false,
+    .value = 3  
 };
 
 struct chess_piece_moves q = {
     .straight_or_diagonal = {true, true},
     .moves = {{0}},
     .is_pawn = false,
-    .is_king = false  
+    .is_king = false,
+    .value = 9  
 };
 
 struct chess_piece_moves k = {
     .straight_or_diagonal = {false, false},
     .moves = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}},
     .is_pawn = false,
-    .is_king = true  
+    .is_king = true,
+    .value = 1000  
 };
 
 struct chess_piece_moves* find_piece(char piece) {
@@ -93,6 +100,7 @@ struct chess_piece_moves* find_piece(char piece) {
             return NULL;
     }
 }
+
 
 int cursor_pos[2] = {0, 0};
 
@@ -457,6 +465,234 @@ void chess_print_board() {
     print_cursor();
 }
 
+void move_piece(int x, int y) {
+    for (int i = 0; i < len_pm_pos; i++) {
+        if (possible_moves_pos[i][0] == x && possible_moves_pos[i][1] == y) {
+            char piece[2];
+            piece[0] = chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]];
+            piece[1] = '\0';
+
+            char taken_piece[2];
+            taken_piece[0] = chess_board[y][x];
+            taken_piece[1] = '\0';
+
+            if (taken_piece[0] != 0) {
+                since_piece_taken = 0;
+
+                if (taken_piece[0] == 'k' || taken_piece[0] == 'K') {
+                    in_chess = false;
+                }
+            } else {
+                since_piece_taken++;
+                if (since_piece_taken >= 50) {
+                    in_chess = false;
+                }
+            }
+
+            if (piece[0] == 'p' || piece[0] == 'P') {
+                if (pawn_moved_two && x == pm_two_pos[0]) {
+                    if (y + 1 == pm_two_pos[1] && piece[0] == 'P') {
+                        chess_board[pm_two_pos[1]][pm_two_pos[0]] = 0;
+                    } else if (y - 1 == pm_two_pos[1] && piece[0] == 'p') {
+                        chess_board[pm_two_pos[1]][pm_two_pos[0]] = 0;
+                    } 
+                } 
+                
+                if (chosen_piece_pos[1] - y == 2 || chosen_piece_pos[1] - y == -2) {
+                    pawn_moved_two = true;
+                    pm_two_pos[0] = x;
+                    pm_two_pos[1] = y;
+                } else {
+                    pawn_moved_two = false;
+                }
+
+                if (cursor_pos[1] == 0 && piece[0] < 97) {
+                    piece[0] = 'Q';
+                } else if (cursor_pos[1] == 7 && piece[0] >= 97) {
+                    piece[0] = 'q';
+                }
+            } 
+
+            if (piece[0] == 'R') {
+                if (chosen_piece_pos[0] == 0 && chosen_piece_pos[1] == 7) {
+                    castle_rights[0][0] = false;
+                } else if (chosen_piece_pos[0] == 7 && chosen_piece_pos[1] == 7) {
+                    castle_rights[0][2] = false;
+                }
+            } else if (piece[0] == 'r') {
+                if (chosen_piece_pos[0] == 0 && chosen_piece_pos[1] == 0) {
+                    castle_rights[1][0] = false;
+                } else if (chosen_piece_pos[0] == 7 && chosen_piece_pos[1] == 0) {
+                    castle_rights[1][2] = false;
+                }
+            } 
+
+            if (piece[0] == 'K') {
+                if (x == 2) {
+                    chess_board[7][0] = 0;
+                    chess_board[7][3] = 'R'; 
+                } else if (x == 6) {
+                    chess_board[7][7] = 0;
+                    chess_board[7][5] = 'R'; 
+                }
+
+                castle_rights[0][1] = false;
+            } else if (piece[0] == 'k') {
+                if (x == 2) {
+                    chess_board[0][0] = 0;
+                    chess_board[0][3] = 'r'; 
+                } else if (x == 6) {
+                    chess_board[0][7] = 0;
+                    chess_board[0][5] = 'r'; 
+                }
+            
+                castle_rights[1][1] = false;
+            }
+
+            chess_board[y][x] = piece[0];
+            chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]] = 0;
+
+            int king_pos[2] = {0};
+            int total_moves = 0;
+
+            for (int i = 0; i < 8; i++) { // y
+                for (int j = 0; j < 8; j++) { // x
+                    if ((chess_board[i][j] > 97 && white_turn) || (chess_board[i][j] < 97 && chess_board[i][j] > 0 && !white_turn)) {
+                        chosen_piece_pos[0] = j; // jank, i dont care
+                        chosen_piece_pos[1] = i;
+                        chosen_piece = true;
+
+                        if (chess_board[i][j] == 'k' || chess_board[i][j] == 'K') {
+                            king_pos[0] = j;
+                            king_pos[1] = i;
+                        }
+
+                        possible_moves(j, i, false, chess_board);
+
+                        total_moves += len_pm_pos;
+                    }
+                }   
+            }
+
+            if (total_moves == 0) {
+                piece_threatened_by(king_pos[0], king_pos[1], piece[0] < 97, chess_board);
+                if (threatened_by_len > 0) {
+                    in_chess = false;
+                } else {
+                    in_chess = false;
+                }
+            }
+
+            possible_moves(x, y, false, chess_board);
+
+            for (int i = 0; i < len_pm_pos; i++) {
+                int chess_board_move = chess_board[possible_moves_pos[i][1]][possible_moves_pos[i][0]];
+
+                if (chess_board_move == 'K') {
+                    castle_rights[0][1] = false;
+                } else if (chess_board_move == 'k') {
+                    castle_rights[1][1] = false;
+                }
+            }                   
+            
+            white_turn = !white_turn;
+            break;
+        }
+    }
+
+    chosen_piece = false;
+    chess_print_board();
+}
+
+void chess_bot() {
+    int points_best_move = -10;
+    int best_move[2][2] = {{0}, {0}};
+
+    for (int i = 0; i < 8; i++) { // y
+        for (int j = 0; j < 8; j++) { // x
+            if (chess_board[i][j] >= 97) {
+                chosen_piece_pos[0] = j;
+                chosen_piece_pos[1] = i;
+
+                possible_moves(j, i, false, chess_board);
+
+                for (int k = 0; k < len_pm_pos; k++) {
+                    int x = possible_moves_pos[k][0];
+                    int y = possible_moves_pos[k][1];
+                    int points = 0;
+
+                    char temp_board[8][8] = {0};
+
+                    for (int l = 0; l < 8; l++) {
+                        for (int m = 0; m < 8; m++) {
+                            temp_board[m][l] = chess_board[m][l];
+                        }
+                    }
+
+                    temp_board[y][x] = temp_board[i][j];
+                    temp_board[i][j] = 0;
+
+                    if (chess_board[y][x] != 0) {
+                        struct chess_piece_moves* piece = find_piece(chess_board[y][x] + 32);
+
+                        points += piece->value;                    
+                    }
+
+
+
+                    piece_threatened_by(x, y, true, temp_board);
+                    int protected_by = threatened_by_len;    
+                    piece_threatened_by(x, y, false, temp_board);
+
+                    if (protected_by < threatened_by_len) {
+                        struct chess_piece_moves* piece = find_piece(chess_board[i][j]);
+
+                        points -= piece->value;     
+                    }
+
+                    if (chess_board[i][j] == 'k') {
+                        if (x - j == -2 || x - j == 2) {
+                            points += 2;
+                        } else {
+                            points -= 1;
+                        }
+                    } else if (chess_board[i][j] == 'p') {
+                        if (j < 5 && j > 2) {
+                            points += 1;
+                        } 
+                        
+                        if (castle_rights[1][1] && ((castle_rights[1][0] && j < 3) || castle_rights[1][2] && j > 4)) {
+                            points -= 1;
+                        } else {
+                            for (int l = 0; l < 3; l++) {
+                                if ((chess_board[i][l] == 'k' && j < 3) || (chess_board[i][l + 5] == 'k' && j > 4)) {
+                                    points -= 2;
+                                }
+                            }
+                        }
+                    }
+
+                    if (points_best_move <= points) {
+                        points_best_move = points;
+                        best_move[0][0] = j;
+                        best_move[0][1] = i;
+                        best_move[1][0] = x;
+                        best_move[1][1] = y;
+                    }
+                }                      
+            }
+        }   
+    }
+
+    chosen_piece_pos[0] = best_move[0][0];
+    chosen_piece_pos[1] = best_move[0][1];
+    chosen_piece = true;
+
+    possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board);
+
+    move_piece(best_move[1][0], best_move[1][1]);
+}
+
 void chess_keyboard_handler(int c) {
     if (c == 75) { // left
         if (cursor_pos[0] > 0) {
@@ -496,140 +732,11 @@ void chess_keyboard_handler(int c) {
                 possible_moves(cursor_pos[0], cursor_pos[1], true, chess_board); 
             }
         } else if (chosen_piece) {
-            for (int i = 0; i < len_pm_pos; i++) {
-                if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
-                    piece[0] = chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]];
-                    piece[1] = '\0';
-
-                    char taken_piece[2];
-                    taken_piece[0] = chess_board[cursor_pos[1]][cursor_pos[0]];
-                    taken_piece[1] = '\0';
-
-                    if (taken_piece[0] != 0) {
-                        since_piece_taken = 0;
-
-                        if (taken_piece[0] == 'k' || taken_piece[0] == 'K') {
-                            in_chess = false;
-                        }
-                    } else {
-                        since_piece_taken++;
-                        if (since_piece_taken >= 50) {
-                            in_chess = false;
-                        }
-                    }
-
-                    if (piece[0] == 'p' || piece[0] == 'P') {
-                        if (pawn_moved_two && cursor_pos[0] == pm_two_pos[0]) {
-                            if (cursor_pos[1] + 1 == pm_two_pos[1] && piece[0] == 'P') {
-                                chess_board[pm_two_pos[1]][pm_two_pos[0]] = 0;
-                            } else if (cursor_pos[1] - 1 == pm_two_pos[1] && piece[0] == 'p') {
-                                chess_board[pm_two_pos[1]][pm_two_pos[0]] = 0;
-                            } 
-                        } 
-                        
-                        if (chosen_piece_pos[1] - cursor_pos[1] == 2 || chosen_piece_pos[1] - cursor_pos[1] == -2) {
-                            pawn_moved_two = true;
-                            pm_two_pos[0] = cursor_pos[0];
-                            pm_two_pos[1] = cursor_pos[1];
-                        } else {
-                            pawn_moved_two = false;
-                        }
-
-                        if (cursor_pos == 0 && piece[0] < 97) {
-                            piece[0] = 'Q';
-                        } else if (cursor_pos == 7 && piece[0] >= 97) {
-                            piece[0] = 'q';
-                        }
-                    } 
-
-                    if (piece[0] == 'R') {
-                        if (chosen_piece_pos[0] == 0 && chosen_piece_pos[1] == 7) {
-                            castle_rights[0][0] = false;
-                        } else if (chosen_piece_pos[0] == 7 && chosen_piece_pos[1] == 7) {
-                            castle_rights[0][2] = false;
-                        }
-                    } else if (piece[0] == 'r') {
-                        if (chosen_piece_pos[0] == 0 && chosen_piece_pos[1] == 0) {
-                            castle_rights[1][0] = false;
-                        } else if (chosen_piece_pos[0] == 7 && chosen_piece_pos[1] == 0) {
-                            castle_rights[1][2] = false;
-                        }
-                    } 
-
-                    if (piece[0] == 'K') {
-                        if (cursor_pos[0] == 2) {
-                            chess_board[7][0] = 0;
-                            chess_board[7][3] = 'R'; 
-                        } else if (cursor_pos[0] == 6) {
-                            chess_board[7][7] = 0;
-                            chess_board[7][5] = 'R'; 
-                        }
-
-                        castle_rights[0][1] = false;
-                    } else if (piece[0] == 'k') {
-                        if (cursor_pos[0] == 2) {
-                            chess_board[0][0] = 0;
-                            chess_board[0][3] = 'r'; 
-                        } else if (cursor_pos[0] == 6) {
-                            chess_board[0][7] = 0;
-                            chess_board[0][5] = 'r'; 
-                        }
-                    
-                        castle_rights[1][1] = false;
-                    }
-
-                    chess_board[cursor_pos[1]][cursor_pos[0]] = piece[0];
-                    chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]] = 0;
-
-                    int king_pos[2] = {0};
-                    int total_moves = 0;
-
-                    for (int i = 0; i < 8; i++) { // y
-                        for (int j = 0; j < 8; j++) { // x
-                            if ((chess_board[i][j] > 97 && white_turn) || (chess_board[i][j] < 97 && chess_board[i][j] > 0 && !white_turn)) {
-                                chosen_piece_pos[0] = j; // jank, i dont care
-                                chosen_piece_pos[1] = i;
-                                chosen_piece = true;
-
-                                if (chess_board[i][j] == 'k' || chess_board[i][j] == 'K') {
-                                    king_pos[0] = j;
-                                    king_pos[1] = i;
-                                }
-
-                                possible_moves(j, i, false, chess_board);
-
-                                total_moves += len_pm_pos;
-                            }
-                        }   
-                    }
-
-                    if (total_moves == 0) {
-                        piece_threatened_by(king_pos[0], king_pos[1], piece[0] < 97, chess_board);
-                        if (threatened_by_len > 0) {
-                            in_chess = false;
-                        } else {
-                            in_chess = false;
-                        }
-                    }
-
-                    possible_moves(cursor_pos[0], cursor_pos[1], false, chess_board);
-
-                    for (int i = 0; i < len_pm_pos; i++) {
-                        int chess_board_move = chess_board[possible_moves_pos[i][1]][possible_moves_pos[i][0]];
-
-                        if (chess_board_move == 'K') {
-                            castle_rights[0][1] = false;
-                        } else if (chess_board_move == 'k') {
-                            castle_rights[1][1] = false;
-                        }
-                    }                   
-                    
-                    white_turn = !white_turn;
-                    break;
-                }
+            move_piece(cursor_pos[0], cursor_pos[1]);
+            
+            if (!white_turn) { // add multiplayer later
+                chess_bot();
             }
-            chosen_piece = false;
-            chess_print_board();
         }
     } else if (c == 1) { // esc
         in_chess = false;
