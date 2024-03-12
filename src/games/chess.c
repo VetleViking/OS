@@ -506,9 +506,9 @@ void move_piece(int x, int y) {
                     pawn_moved_two = false;
                 }
 
-                if (cursor_pos[1] == 0 && piece[0] < 97) {
+                if (y == 0 && piece[0] == 'P') {
                     piece[0] = 'Q';
-                } else if (cursor_pos[1] == 7 && piece[0] >= 97) {
+                } else if (y == 7 && piece[0] == 'p') {
                     piece[0] = 'q';
                 }
             } 
