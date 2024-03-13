@@ -1,5 +1,5 @@
 # OS
-Trying to make an os, because i am so good in Assembly, and want to learn a bit of C (and forcing Kasper to join me)
+Trying to make an os, because i am so good in Assembly, and want to learn a bit more of C
 
 
 ## Running the OS
