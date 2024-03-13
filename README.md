@@ -35,7 +35,7 @@ The only things you need here are insert and quit though, so i can explain that.
 to quit, you exit insert mode, and then write :wq to write and quit.
 
 
-Save the file, close and reopen WSL. Now well download GRUB. Its three commands, and you will need to do them in order:
+Save the file, close and reopen WSL. Now well download GRUB. Its three commands, and you will need to do them in this order:
 ```bash
 sudo apt install grub2-common
 sudo apt install xorriso
