@@ -28,7 +28,9 @@ Go to the bottom, and add
 ```bash
 export PATH="$PATH:/usr/local/i386elfgcc/bin"
 ```
-Its way too much to explain here how vim works, so eiter search it up or use an editor you already know.
+Its way too much to explain here how vim works, so eiter search it up or use an editor you already know. 
+The only things you need here are insert and quit though, so i can explain that. To enter insert mode, you press i. To exit insert mode you press esc.
+to quit, you exit insert mode, and then write :wq to write and quit.
 Save the file, close and reopen WSL. Now well download GRUB. Its three commands, and you will need to do them in order:
 ```bash
 sudo apt install grub2-common
