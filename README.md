@@ -41,7 +41,7 @@ sudo apt install grub2-common
 sudo apt install xorriso
 sudo apt-get install grub-pc-bin
 ```
-Now, navigate to the folder where you have the project downloaded, and run the command
+Now, navigate to the folder where you have the project downloaded in WSL, and run the command
 ```bash
 make
 ```
