@@ -4,7 +4,9 @@ Trying to make an os, because i am so good in Assembly, and want to learn a bit 
 
 ## Running the OS
 You can download the latest version i think is production ready from the releases, which you can just run in any vm that takes .iso files. 
-But if you want to try the absolute lastest, you can compile this yourself if you want, and i can give a quick tutorial. 
+
+## Compiling the OS
+If you want to try the absolute lastest i am working on or mess around and edit the os yourself, you can compile this yourself. I can give a quick tutorial on how to do that. 
 
 You have to start with downloading the necessary tools, NASM, QEMU, GCC, GRUB and WSL (Windows subsystem for Linux), because all of this is much easier with the linux terminal.
 We will start with WSL, so that we can download the other stuff there:
@@ -31,6 +33,8 @@ export PATH="$PATH:/usr/local/i386elfgcc/bin"
 Its way too much to explain here how vim works, so eiter search it up or use an editor you already know. 
 The only things you need here are insert and quit though, so i can explain that. To enter insert mode, you press i. To exit insert mode you press esc.
 to quit, you exit insert mode, and then write :wq to write and quit.
+
+
 Save the file, close and reopen WSL. Now well download GRUB. Its three commands, and you will need to do them in order:
 ```bash
 sudo apt install grub2-common
