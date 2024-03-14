@@ -729,7 +729,7 @@ void chess_bot() {
                             points += 1;
                         } 
                         
-                        if (castle_rights[1][1] && ((castle_rights[1][0] && j < 3) || castle_rights[1][2] && j > 4)) {
+                        if (castle_rights[1][1] && ((castle_rights[1][0] && j < 3) || (castle_rights[1][2] && j > 4))) {
                             points -= 1;
                         } else {
                             for (int l = 0; l < 3; l++) {
