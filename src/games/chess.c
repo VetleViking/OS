@@ -780,7 +780,39 @@ void chess_keyboard_handler(int c) {
                 draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_LIGHT_RED);
             }
         } else if (c == 28) { // enter
-            // reset all counters and stuff, then set in_chess_game to true and in_chess to false.
+            // reset all counters and stuff.
+            vga_clear_screen();
+
+            cursor_pos[0] = 0;
+            cursor_pos[1] = 7;
+
+            chosen_piece = false;
+            pawn_moved_two = false; // used for en passant
+            since_piece_taken = 0;
+            castle_rights[2][3] = {{true, true, true}, {true, true, true}}; // castling rights for each king and the towers
+            winner = 0; // 1 = white, 2 = black, 3 = draw
+
+            threatened_by_len = 0;
+
+            white_turn = true;
+
+            test = 0;
+
+            chess_board = {
+                {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+                {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+                {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+            };
+
+            chess_print_board();
+
+            in_chess_game = true;
+            in_chess = false;
         }
  
         return;
