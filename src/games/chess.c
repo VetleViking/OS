@@ -789,7 +789,13 @@ void chess_keyboard_handler(int c) {
             chosen_piece = false;
             pawn_moved_two = false; // used for en passant
             since_piece_taken = 0;
-            castle_rights[2][3] = {{true, true, true}, {true, true, true}}; // castling rights for each king and the towers
+
+            for (int i = 0; i < 3; i++) {
+                castle_rights[0][i] = true;
+                castle_rights[1][i] = true;
+            }
+
+
             winner = 0; // 1 = white, 2 = black, 3 = draw
 
             threatened_by_len = 0;
@@ -798,7 +804,7 @@ void chess_keyboard_handler(int c) {
 
             test = 0;
 
-            chess_board = {
+            char chess_board_orig[8][8] = {
                 {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
                 {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
                 {0, 0, 0, 0, 0, 0, 0, 0},
@@ -808,6 +814,12 @@ void chess_keyboard_handler(int c) {
                 {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
                 {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
             };
+
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
+                    chess_board[i][j] =  chess_board_orig[i][j];
+                }
+            }
 
             chess_print_board();
 
@@ -871,7 +883,7 @@ void chess_keyboard_handler(int c) {
 
 void chess_play() {
     while (in_chess_game) {
-        sleep(100); // sleep for 1s
+        sleep(10); // sleep for 0.1s
 
         // this is just so that other stuff wont be running
         // may be adding a clock or something later, that will go here.
@@ -892,11 +904,13 @@ void chess_play() {
     cursor_pos[0] = 2;
     cursor_pos[1] = 3;
 
-    draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_GREEN);
     draw_rectangle(60 + 75 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_LIGHT_RED);
 
+    print_cursor();
+    draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN);
+
     while (in_chess) {
-        sleep(100); // sleep for 1s
+        sleep(10); // sleep for 1s
     }
 
     if (in_chess_game) { // if it aint broke, dont fix
