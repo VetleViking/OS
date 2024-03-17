@@ -124,6 +124,12 @@ bool white_turn = true;
 
 int test = 0;
 
+int prev_moves_white[256][2][2] = {0};
+int prev_moves_white_len = 0;
+
+int prev_moves_black[256][2][2] = {0};
+int prev_moves_black_len = 0;
+
 
 
 void piece_threatened_by(int x, int y, bool is_white, char board[8][8]) {
@@ -599,7 +605,21 @@ void move_piece(int x, int y) {
                 } else if (chess_board_move == 'k') {
                     castle_rights[1][1] = false;
                 }
-            }                   
+            }
+
+            if (white_turn) {
+                prev_moves_white[prev_moves_white_len][0][0] = chosen_piece_pos[0];
+                prev_moves_white[prev_moves_white_len][0][1] = chosen_piece_pos[1];
+                prev_moves_white[prev_moves_white_len][1][0] = x;
+                prev_moves_white[prev_moves_white_len][1][1] = y;
+                prev_moves_white_len++;
+            } else {
+                prev_moves_black[prev_moves_black_len][0][0] = chosen_piece_pos[0];
+                prev_moves_black[prev_moves_black_len][0][1] = chosen_piece_pos[1];
+                prev_moves_black[prev_moves_black_len][1][0] = x;
+                prev_moves_black[prev_moves_black_len][1][1] = y;
+                prev_moves_black_len++;
+            }                
             
             white_turn = !white_turn;
             break;
@@ -672,8 +692,6 @@ void chess_bot(bool is_white) {
 
 
                 for (int k = 0; k < len_pm_pos; k++) {
-                    
-                    
                     int x = possible_moves_pos[k][0];
                     int y = possible_moves_pos[k][1];
                     int points = 0;
@@ -685,8 +703,6 @@ void chess_bot(bool is_white) {
                             temp_board[m][l] = chess_board[m][l];
                         }
                     }
-
-                    
 
                     temp_board[y][x] = temp_board[i][j];
                     temp_board[i][j] = 0;
@@ -757,6 +773,28 @@ void chess_bot(bool is_white) {
                         }
                     }
 
+                    if ((prev_moves_white_len > 1 && is_white) || (prev_moves_black_len > 1 && !is_white)) {
+                        int pm_from_x = 0;
+                        int pm_from_y = 0;
+                        int pm_to_x = 0;
+                        int pm_to_y = 0;
+
+                        for (int l = 0; l < is_white ? prev_moves_white : prev_moves_black; j++) {
+                            if (is_white) {
+                                pm_from_x = prev_moves_white[l][0][0];
+                                pm_from_y = prev_moves_white[l][0][1];
+                                pm_to_x = prev_moves_white[l][1][0];
+                                pm_to_y = prev_moves_white[l][1][1];
+                            } else {
+                                pm_from_x = prev_moves_black[l][0][0];
+                                pm_from_y = prev_moves_black[l][0][1];
+                                pm_to_x = prev_moves_black[l][1][0];
+                                pm_to_y = prev_moves_black[l][1][1];
+                            }
+
+                            
+                        }
+                    }
 
 
                     if ((chess_board[i][j] == 'K' && is_white) || (chess_board[i][j] == 'k' && !is_white)) {
@@ -801,7 +839,7 @@ void chess_bot(bool is_white) {
     chosen_piece_pos[1] = best_move[0][1];
     chosen_piece = true;
 
-    possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], is_white, chess_board);
+    possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board);
 
     move_piece(best_move[1][0], best_move[1][1]);
 
@@ -845,6 +883,9 @@ void chess_keyboard_handler(int c) {
             winner = 0; // 1 = white, 2 = black, 3 = draw
 
             threatened_by_len = 0;
+
+            prev_moves_white_len = 0;
+            prev_moves_black_len = 0;
 
             white_turn = true;
 
