@@ -109,6 +109,9 @@ extern void chess_start();
 extern void chess_play();
 extern void chess_keyboard_handler(c);
 
+// Chess bot
+extern void chess_bot(bool is_white);
+
 
 /* Rock paper scissors */
 extern void rock_paper_scissors();
