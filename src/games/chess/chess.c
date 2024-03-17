@@ -235,8 +235,6 @@ bool is_possible_move(int x, int y, bool is_white, bool show_result, char board[
     return true;
 }
 
-// TODO: add so that you cant put king in danger, either in is_possible_move or possible_moves.
-
 void possible_moves(int x, int y, bool show_result, char board[8][8]) {
     len_pm_pos = 0;
     char piece = board[y][x];
@@ -377,6 +375,18 @@ void possible_moves(int x, int y, bool show_result, char board[8][8]) {
             }
         }
     }    
+
+    // dont is working :(
+    
+    // for (int i = 0; i < len_pm_pos; i++) {
+    //     if (possible_moves_pos[i][0] == x && possible_moves_pos[i][1] == y) {
+    //         len_pm_pos--;
+    //         for (int j = i; j < len_pm_pos; j++) {
+    //             possible_moves_pos[j][0] = possible_moves_pos[j + 1][0];
+    //             possible_moves_pos[j][1] = possible_moves_pos[j + 1][1];
+    //         }
+    //     }
+    // }
 }
 
 void draw_piece(int x, int y, char piece) {
@@ -445,7 +455,7 @@ void remove_cursor() {
     }
 }
 
-void chess_print_board() {
+void chess_print_board(char board[8][8]) {
     for (int i = 60; i < 260; i += 50) {
         for (int j = 0; j < 200; j += 50) {
             draw_rectangle(i, j, 25, 25, color_light);
@@ -457,8 +467,8 @@ void chess_print_board() {
 
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
-            if (chess_board[i][j] != 0) {
-                draw_piece(j, i, chess_board[i][j]);
+            if (board[i][j] != 0) {
+                draw_piece(j, i, board[i][j]);
             }
         }
     }
@@ -622,7 +632,7 @@ void move_piece(int x, int y) {
     }
 
     chosen_piece = false;
-    chess_print_board();
+    chess_print_board(chess_board);
 }
 
 int is_protected(int x, int y, int is_white, char board[8][8]) {
@@ -702,7 +712,7 @@ void chess_keyboard_handler(int c) {
                 }
             }
 
-            chess_print_board();
+            chess_print_board(chess_board);
 
             in_chess_game = true;
             in_chess = false;
@@ -814,7 +824,7 @@ void chess_start() {
 
     cursor_pos[0] = 0;
     cursor_pos[1] = 7;
-    chess_print_board();
+    chess_print_board(chess_board);
 }
 
 

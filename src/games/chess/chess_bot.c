@@ -13,8 +13,9 @@
 #include <stdint.h>
 
 void chess_bot(bool is_white) {
-    int points_best_move = -10;
+    int points_best_move = 0;
     int best_move[2][2] = {{0}, {0}};
+    bool chosen_move = false;
 
     int threatened_pieces[64][3] = {{0}, {0}, {0}};
     int threatened_pieces_len = 0;
@@ -34,23 +35,25 @@ void chess_bot(bool is_white) {
         }
     }
 
-    int threatening_pieces[64][3] = {{0}, {0}, {0}};
-    int threatening_pieces_len = 0;
+    // dont know if this is working, will keep it for now
 
-    for (int i = 0; i < 8; i++) { // y
-        for (int j = 0; j < 8; j++) { // x
-            if ((chess_board[i][j] < 97 && is_white) || (chess_board[i][j] < 97 && chess_board[i][j] != 0 && !is_white)) { 
-                int protected = is_protected(j, i, !is_white, chess_board);
+    // int threatening_pieces[64][3] = {{0}, {0}, {0}};
+    // int threatening_pieces_len = 0;
 
-                if (protected > 0) {
-                    threatening_pieces[threatening_pieces_len][0] = j;
-                    threatening_pieces[threatening_pieces_len][0] = i;
-                    threatening_pieces[threatening_pieces_len][0] = protected;
-                    threatening_pieces_len++;
-                }
-            } 
-        }
-    }
+    // for (int i = 0; i < 8; i++) { // y
+    //     for (int j = 0; j < 8; j++) { // x
+    //         if ((chess_board[i][j] < 97 && is_white) || (chess_board[i][j] < 97 && chess_board[i][j] != 0 && !is_white)) { 
+    //             int protected = is_protected(j, i, !is_white, chess_board);
+
+    //             if (protected > 0) {
+    //                 threatening_pieces[threatening_pieces_len][0] = j;
+    //                 threatening_pieces[threatening_pieces_len][0] = i;
+    //                 threatening_pieces[threatening_pieces_len][0] = protected;
+    //                 threatening_pieces_len++;
+    //             }
+    //         } 
+    //     }
+    // }
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
@@ -66,6 +69,10 @@ void chess_bot(bool is_white) {
                     int y = possible_moves_pos[k][1];
                     int points = 0;
 
+                    if (x == j && y == i) { // something wron, fix later
+                        continue;
+                    }
+
                     char temp_board[8][8] = {0};
 
                     for (int l = 0; l < 8; l++) {
@@ -74,7 +81,7 @@ void chess_bot(bool is_white) {
                         }
                     }
 
-                    temp_board[y][x] = temp_board[i][j];
+                    temp_board[y][x] = chess_board[i][j];
                     temp_board[i][j] = 0;
 
                     if (chess_board[y][x] != 0) {
@@ -126,22 +133,44 @@ void chess_bot(bool is_white) {
                         }
                     }
 
-                    for (int l = 0; l < threatening_pieces_len; l++) {
-                        char p[2];
-                        p[0] = chess_board[threatening_pieces[l][1]][threatening_pieces[l][0]];
-                        p[1] = '\0';
+                    if (temp_board[y][x] == 0) {
+                        draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_BLUE);
+                        test++;
+                    }
 
-                        if (is_protected(threatening_pieces[l][0], threatening_pieces[l][1], is_white, temp_board) > 0 && p[0] != 0) {
-                            struct chess_piece_moves* piece = find_piece(p[0] < 97 ? p[0] + 32 : p[0]);
+                    possible_moves(x, y, is_white, temp_board);
 
-                            if (piece == NULL) {
-                                draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_BROWN);
-                                test++;
+                    for (int l = 0; l < len_pm_pos; l++) {
+                        int x2 = possible_moves_pos[l][0];
+                        int y2 = possible_moves_pos[l][1];
+
+                        if (is_protected(x2, y2, is_white, temp_board) > 0 && temp_board[y2][x2] != 0) {
+                            points += 1;
+
+                            if (temp_board[y2][x2] == 'K' || temp_board[y2][x2] == 'k') {
+                                points += 2;
                             }
-
-                            points += piece->value / 2;
                         }
                     }
+
+                    // i dont know if this is working, will keep it for now
+
+                    // for (int l = 0; l < threatening_pieces_len; l++) {
+                    //     char p[2];
+                    //     p[0] = chess_board[threatening_pieces[l][1]][threatening_pieces[l][0]];
+                    //     p[1] = '\0';
+
+                    //     if (is_protected(threatening_pieces[l][0], threatening_pieces[l][1], is_white, temp_board) > 0 && p[0] != 0) {
+                    //         struct chess_piece_moves* piece = find_piece(p[0] < 97 ? p[0] + 32 : p[0]);
+
+                    //         if (piece == NULL) {
+                    //             draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_BROWN);
+                    //             test++;
+                    //         }
+
+                    //         points += piece->value / 2;
+                    //     }
+                    // }
 
                     if ((prev_moves_white_len > 1 && is_white) || (prev_moves_black_len > 1 && !is_white)) {
                         int pm_from_x = 0;
@@ -195,12 +224,13 @@ void chess_bot(bool is_white) {
                         }
                     }
 
-                    if (points_best_move <= points) {
+                    if (points_best_move <= points || !chosen_move) {
                         points_best_move = points;
                         best_move[0][0] = j;
                         best_move[0][1] = i;
                         best_move[1][0] = x;
                         best_move[1][1] = y;
+                        chosen_move = true;
                     }
                 }             
 
