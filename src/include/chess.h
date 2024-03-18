@@ -24,8 +24,8 @@ extern struct chess_piece_moves {
     int value;
 };
 
-extern void possible_moves(int x, int y, bool is_white, char board[8][8]);
-extern int is_protected(int x, int y, int is_white, char board[8][8]);
+extern void possible_moves(int x, int y, bool show_result, char board[8][8]);
+extern int is_protected(int x, int y, bool is_white, char board[8][8]);
 extern void move_piece(int x, int y);
 extern void chess_print_board(char board[8][8]);
 extern struct chess_piece_moves* find_piece(char piece);

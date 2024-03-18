@@ -375,18 +375,6 @@ void possible_moves(int x, int y, bool show_result, char board[8][8]) {
             }
         }
     }    
-
-    // dont is working :(
-    
-    // for (int i = 0; i < len_pm_pos; i++) {
-    //     if (possible_moves_pos[i][0] == x && possible_moves_pos[i][1] == y) {
-    //         len_pm_pos--;
-    //         for (int j = i; j < len_pm_pos; j++) {
-    //             possible_moves_pos[j][0] = possible_moves_pos[j + 1][0];
-    //             possible_moves_pos[j][1] = possible_moves_pos[j + 1][1];
-    //         }
-    //     }
-    // }
 }
 
 void draw_piece(int x, int y, char piece) {
@@ -554,7 +542,7 @@ void move_piece(int x, int y) {
                 }
             } 
 
-            if (piece[0] == 'K') {
+            if (piece[0] == 'K' && chosen_piece_pos[0] == 4) {
                 if (x == 2) {
                     chess_board[7][0] = 0;
                     chess_board[7][3] = 'R'; 
@@ -564,11 +552,11 @@ void move_piece(int x, int y) {
                 }
 
                 castle_rights[0][1] = false;
-            } else if (piece[0] == 'k') {
-                if (x == 2) {
+            } else if (piece[0] == 'k' && chosen_piece_pos[0] == 4) {
+                if (x == 2 && y == 0) {
                     chess_board[0][0] = 0;
                     chess_board[0][3] = 'r'; 
-                } else if (x == 6) {
+                } else if (x == 6 && y == 0) {
                     chess_board[0][7] = 0;
                     chess_board[0][5] = 'r'; 
                 }
@@ -635,7 +623,7 @@ void move_piece(int x, int y) {
     chess_print_board(chess_board);
 }
 
-int is_protected(int x, int y, int is_white, char board[8][8]) {
+int is_protected(int x, int y, bool is_white, char board[8][8]) {
     piece_threatened_by(x, y, !is_white, board);
     int protected_by = threatened_by_len;    
     piece_threatened_by(x, y, is_white, board);
@@ -766,7 +754,11 @@ void chess_keyboard_handler(int c) {
         winner = 1;
         in_chess_game = false;
     } else if (c == 48) { // b
-        chess_bot(white_turn);
+        if (white_turn) {
+            chess_bot(white_turn);
+        } else {
+            chess_bot_experimental(white_turn);
+        }
     }
 }
 
