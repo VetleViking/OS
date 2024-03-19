@@ -323,6 +323,9 @@ void chess_bot_experimental(bool is_white) {
                     temp_board[y][x] = chess_board[i][j];
                     temp_board[i][j] = 0;
 
+                    bool taking_piece = false;
+                    bool piece_not_protected = false;
+
                     if (chess_board[y][x] != 0) {
                         char p[2];
                         p[0] = chess_board[y][x];
@@ -335,7 +338,7 @@ void chess_bot_experimental(bool is_white) {
                             test++;
                         }
 
-                        points += piece->value * 10;                    
+                        taking_piece = true;
                     }
 
                     int protected = is_protected(x, y, is_white, temp_board);
