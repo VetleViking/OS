@@ -261,6 +261,8 @@ void chess_bot_experimental(bool is_white) {
     int best_move[2][2] = {{0}, {0}};
     bool chosen_move = false;
 
+
+    // if other of bots pieces are threatened
     int threatened_pieces[64][3] = {{0}, {0}, {0}};
     int threatened_pieces_len = 0;
 
@@ -280,13 +282,13 @@ void chess_bot_experimental(bool is_white) {
     }
 
     // dont know if this is working, will keep it for now
-
+    // if enemy pieces are threatened
     int threatening_pieces[64][3] = {{0}, {0}, {0}};
     int threatening_pieces_len = 0;
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
-            if ((chess_board[i][j] < 97 && is_white) || (chess_board[i][j] < 97 && chess_board[i][j] != 0 && !is_white)) { 
+            if ((chess_board[i][j] >= 97 && is_white) || (chess_board[i][j] < 97 && chess_board[i][j] != 0 && !is_white)) { 
                 int protected = is_protected(j, i, !is_white, chess_board);
 
                 if (protected > 0) {
@@ -298,6 +300,18 @@ void chess_bot_experimental(bool is_white) {
             } 
         }
     }
+
+    // points for the bot, makes it easier to tweak the bot
+    // currently all pieces are 10x points, and other things are calculated from that
+
+    int take_lose_multiplier = 10; // subtracts 1 if taking a piece, so that the move is beneficial, not just neutral
+    int threaten_bonus = 6; 
+    int castling_bonus = 9;
+    int repeat_move_penalty = 5;
+    int check_bonus = 8;
+    int king_move_penalty = 1;
+    int king_protect_bonus = 2;
+    int pawn_move_bonus = 1;
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
@@ -323,9 +337,7 @@ void chess_bot_experimental(bool is_white) {
                     temp_board[y][x] = chess_board[i][j];
                     temp_board[i][j] = 0;
 
-                    bool taking_piece = false;
-                    bool piece_not_protected = false;
-
+                    // taking a piece
                     if (chess_board[y][x] != 0) {
                         char p[2];
                         p[0] = chess_board[y][x];
@@ -338,11 +350,11 @@ void chess_bot_experimental(bool is_white) {
                             test++;
                         }
 
-                        taking_piece = true;
+                        points += piece->value * take_lose_multiplier - 1;
                     }
 
+                    // if the piece that is moving is protected
                     int protected = is_protected(x, y, is_white, temp_board);
-
                     if (protected > 0) {
                         char p[2];
                         p[0] = chess_board[i][j];
@@ -355,9 +367,11 @@ void chess_bot_experimental(bool is_white) {
                             test++;
                         }
 
-                        points -= piece->value * 10;     
+                        points -= piece->value * take_lose_multiplier;    
                     }
 
+                    // if other of bots pieces are threatened
+                    // info gotten higher before the loop
                     for (int l = 0; l < threatened_pieces_len; l++) {
                         char p[2];
                         p[0] = chess_board[threatened_pieces[l][1]][threatened_pieces[l][0]];
@@ -371,41 +385,55 @@ void chess_bot_experimental(bool is_white) {
                                 test++;
                             }
 
-                            points -= piece->value * 5;
+                            points -= piece->value * take_lose_multiplier;
                         }
                     }
 
-                    possible_moves(x, y, false, temp_board);
-
-                    for (int l = 0; l < len_pm_pos; l++) {
-                        int x2 = possible_moves_pos[l][0];
-                        int y2 = possible_moves_pos[l][1];
-
-                        if (is_protected(x2, y2, is_white, temp_board) > 0 && temp_board[y2][x2] != 0) {
-                            points += 1;
-
-                            if (temp_board[y2][x2] == 'K' || temp_board[y2][x2] == 'k') {
-                                points += 2;
-                            }
-                        }
-                    }
-
+                    
                     // i dont know if this is working, will keep it for now
 
+                    // if enemys pieces are threatened
+                    // info gotten higher before the loop
                     for (int l = 0; l < threatening_pieces_len; l++) {
                         char p[2];
                         p[0] = chess_board[threatening_pieces[l][1]][threatening_pieces[l][0]];
                         p[1] = '\0';
 
-                        if (is_protected(threatening_pieces[l][0], threatening_pieces[l][1], is_white, temp_board) > 0 && p[0] != 0) {
-                            struct chess_piece_moves* piece = find_piece(p[0] < 97 ? p[0] + 32 : p[0]);
+                        int protected = is_protected(threatening_pieces[l][0], threatening_pieces[l][1], is_white, temp_board);
 
-                            if (piece == NULL) {
-                                draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_BROWN);
-                                test++;
+                        if (protected >= threatening_pieces[l][2] && p[0] != 0) {
+                            if (p[0] == 'K' || p[0] == 'k') {
+                                possible_moves(threatening_pieces[l][0], threatening_pieces[l][1], false, temp_board);
+                                if (len_pm_pos == 0) {
+                                    points += 1000; // checkmate
+                                } else {
+                                    points += check_bonus; // check
+                                }
+                            } else {
+                                points += threaten_bonus;
                             }
+                        }
+                    }
 
-                            points += piece->value / 2;
+                    // if the piece that is moving is threatening pieces
+                    possible_moves(x, y, false, temp_board);
+                    
+                    for (int l = 0; l < len_pm_pos; l++) {
+                        int x2 = possible_moves_pos[l][0];
+                        int y2 = possible_moves_pos[l][1];
+
+                        if (is_protected(x2, y2, is_white, temp_board) > 0 && temp_board[y2][x2] != 0) {
+                            if (temp_board[y2][x2] == 'K' || temp_board[y2][x2] == 'k') { 
+                                possible_moves(x2, y2, false, temp_board);
+                                if (len_pm_pos == 0) {
+                                    points += 1000; // checkmate
+                                } else {
+                                    points += check_bonus; // check
+                                }
+                                possible_moves(x, y, false, temp_board);
+                            } else {
+                                points += threaten_bonus;
+                            }
                         }
                     }
 
@@ -431,32 +459,52 @@ void chess_bot_experimental(bool is_white) {
                             }
 
                             if (pm_from_x == x && pm_from_y == y && pm_to_x == j && pm_to_y == i) {
-                                points -= 2;
+                                points -= repeat_move_penalty;
                             }
                         }
                     }
 
 
-                    if ((chess_board[i][j] == 'K' && is_white) || (chess_board[i][j] == 'k' && !is_white)) {
+                    if (chess_board[i][j] == 'K' || chess_board[i][j] == 'k') {
                         if (x - j == -2 || x - j == 2) {
-                            points += 2;
+                            points += castling_bonus;
                         } else {
-                            points -= 1;
+                            points -= king_move_penalty;
                         }
-                    } else if ((chess_board[i][j] == 'P' && is_white) || (chess_board[i][j] == 'p' && !is_white)) {
+                    } else if (chess_board[i][j] == 'P' || chess_board[i][j] == 'p') {
                         if (j < 5 && j > 2) {
-                            points += 1;
-                        } 
-                        
-                        int castle_thing = is_white ? 0 : 1;
+                            points += pawn_move_bonus;
+                        }
 
-                        if (castle_rights[castle_thing][1] && ((castle_rights[castle_thing][0] && j < 3) || (castle_rights[castle_thing][2] && j > 4))) {
-                            points -= 1;
-                        } else {
-                            for (int l = 0; l < 3; l++) {
-                                if ((((chess_board[i][l] == 'K' && is_white) || (chess_board[i][l] == 'k' && !is_white)) && j < 3) || (((chess_board[i][l + 5] == 'K' && is_white) || (chess_board[i][l + 5] == 'k' && !is_white)) && j > 4)) {
-                                    points -= 2;
+                        if (i - y == 2 || i + y == 2) {
+                            points += pawn_move_bonus;
+                        }
+                    }
+
+
+                    // checks if the king is protected
+                    int king_x = 0;
+                    int king_y = 0;
+
+                    for (int l = 0; l < 8; l++) {
+                        for (int m = 0; m < 8; m++) {
+                            if ((temp_board[l][m] == 'K' && is_white) || (temp_board[l][m] == 'k' && !is_white)) {
+                                king_x = m;
+                                king_y = l;
+                            }
+                        }
+                    }
+
+                    for (int l = king_y - 1; l < king_y + 2; l++) {
+                        for (int m = king_x - 1; l < king_x + 2; l++) {
+                            if (l >= 0 && l < 8 && m >= 0 && m < 8) {
+                                if ((temp_board[l][m] != 0 && temp_board[l][m] < 97 && is_white) || (temp_board[l][m] >= 97 && !is_white) && (l != king_y || m != king_x)) {
+                                    if (temp_board[l][m] == 'P' || temp_board[l][m] == 'p') {
+                                        points += king_protect_bonus;
+                                    }
                                 }
+                            } else {
+                                points += king_protect_bonus;
                             }
                         }
                     }
@@ -484,3 +532,4 @@ void chess_bot_experimental(bool is_white) {
 
     move_piece(best_move[1][0], best_move[1][1]);
 }
+
