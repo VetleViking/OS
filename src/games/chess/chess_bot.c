@@ -528,33 +528,39 @@ void chess_bot_experimental(bool is_white) {
     chosen_piece_pos[1] = best_move[0][1];
     chosen_piece = true;
     
-  
+    print_whole_num(0, 0, points_best_move);
 
     possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board);
 
     move_piece(best_move[1][0], best_move[1][1]);  
     
     
+        
+}
+
+
+void print_whole_num(int x, int y, int number) {
     char p[10];
-    itoa(points_best_move, p, 10);
+    itoa(number, p, 10);
+
+    draw_rectangle(0, 0, 60, 40, VGA_COLOR_BLACK);
+
 
     for (int i = 0; i < 10; i++) {
         if (p[i] == '\0') {
             break; 
         } else if (p[i] == '-') {
-            draw_rectangle((i * 30), 0, 25, 40, VGA_COLOR_BLACK);
-            draw_rectangle((i * 30), 19, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x + (i * 30), y, 25, 40, VGA_COLOR_BLACK);
+            draw_rectangle(x + (i * 30), y + 19, 25, 3, VGA_COLOR_WHITE);
         } else {
-            print_num(i * 30, 0, p[i] - '0');
+            print_num(x + (i * 30), y, p[i] - '0');
         }
-    }    
+    }
 }
 
 
 void print_num(int x, int y, int number) {
     draw_rectangle(x, y, 25, 40, VGA_COLOR_BLACK);
-
-    sleep(100);
 
     switch (number) {
         case 0:
