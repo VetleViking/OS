@@ -429,22 +429,30 @@ void chess_bot_experimental(bool is_white) {
 
                     // if the piece that is moving is threatening pieces
                     possible_moves(x, y, false, temp_board);
-                    
-                    for (int l = 0; l < len_pm_pos; l++) {
-                        int x2 = possible_moves_pos[l][0];
-                        int y2 = possible_moves_pos[l][1];
 
-                        if (is_protected(x2, y2, is_white, temp_board) > 0 && temp_board[y2][x2] != 0) {
+                    int possible_moves_pos_temp[64][2] = {{0}, {0}};
+                    int len_pm_pos_temp = len_pm_pos;
+
+                    for (int l = 0; l < len_pm_pos; l++) {
+                        possible_moves_pos_temp[l][0] = possible_moves_pos[l][0];
+                        possible_moves_pos_temp[l][1] = possible_moves_pos[l][1];
+                    }
+                    
+                    for (int l = 0; l < len_pm_pos_temp; l++) {
+                        int x2 = possible_moves_pos_temp[l][0];
+                        int y2 = possible_moves_pos_temp[l][1];
+
+                        int protected = is_protected(x2, y2, !is_white, temp_board);
+
+                        if (protected > 0 && temp_board[y2][x2] != 0) {
                             if (temp_board[y2][x2] == 'K' || temp_board[y2][x2] == 'k') { 
-                                possible_moves(x2, y2, false, temp_board);
-                                if (len_pm_pos == 0) {
+                                if (check_mate(!is_white, temp_board)) {
                                     points += 1000; // checkmate
                                     test2[4] += 1000;
                                 } else {
                                     points += check_bonus; // check
                                     test2[4] += check_bonus;
                                 }
-                                possible_moves(x, y, false, temp_board);
                             } else {
                                 points += threaten_bonus;
                                 test2[4] += threaten_bonus;

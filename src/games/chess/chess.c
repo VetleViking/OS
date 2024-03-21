@@ -642,6 +642,39 @@ int is_protected(int x, int y, bool is_white, char board[8][8]) {
     return 0;
 }
 
+bool check_mate(bool king_white, char board[8][8]) {
+    int king_pos[2] = {0};
+    int total_moves = 0;
+
+    for (int i = 0; i < 8; i++) { // y
+        for (int j = 0; j < 8; j++) { // x
+            if ((chess_board[i][j] > 97 && !king_white) || (chess_board[i][j] < 97 && chess_board[i][j] > 0 && king_white)) {
+                chosen_piece_pos[0] = j; // jank, i dont care
+                chosen_piece_pos[1] = i;
+
+                if (chess_board[i][j] == 'k' || chess_board[i][j] == 'K') {
+                    king_pos[0] = j;
+                    king_pos[1] = i;
+                }
+
+                possible_moves(j, i, false, chess_board);
+
+                total_moves += len_pm_pos;
+            }
+        }   
+    }
+
+    if (total_moves == 0) {
+        piece_threatened_by(king_pos[0], king_pos[1], !king_white, chess_board);
+
+        if (threatened_by_len > 0) {
+            return true;
+        }
+    } else {
+        return false;
+    }
+}
+
 
 
 void chess_keyboard_handler(int c) {
