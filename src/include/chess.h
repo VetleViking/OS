@@ -15,6 +15,7 @@ extern int prev_moves_white_len;
 extern int prev_moves_black_len;
 extern bool castle_rights[2][3];
 extern bool chosen_piece;
+extern bool have_castled[2];
 
 extern struct chess_piece_moves {
     bool straight_or_diagonal [2];

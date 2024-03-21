@@ -107,6 +107,8 @@ bool pawn_moved_two = false; // used for en passant
 int pm_two_pos[2] = {0, 0};
 int since_piece_taken = 0;
 bool castle_rights[2][3] = {{true, true, true}, {true, true, true}}; // castling rights for each king and the towers
+bool have_castled[2] = {false, false};
+
 bool in_threatened_by = false;
 int winner = 0; // 1 = white, 2 = black, 3 = draw
 
@@ -122,6 +124,7 @@ int prev_moves_white_len = 0;
 
 int prev_moves_black[256][2][2] = {0};
 int prev_moves_black_len = 0;
+
 
 
 
@@ -546,19 +549,23 @@ void move_piece(int x, int y) {
                 if (x == 2) {
                     chess_board[7][0] = 0;
                     chess_board[7][3] = 'R'; 
+                    have_castled[0] = true;
                 } else if (x == 6) {
                     chess_board[7][7] = 0;
                     chess_board[7][5] = 'R'; 
+                    have_castled[0] = true;
                 }
 
                 castle_rights[0][1] = false;
             } else if (piece[0] == 'k' && chosen_piece_pos[0] == 4) {
                 if (x == 2 && y == 0) {
                     chess_board[0][0] = 0;
-                    chess_board[0][3] = 'r'; 
+                    chess_board[0][3] = 'r';
+                    have_castled[1] = true; 
                 } else if (x == 6 && y == 0) {
                     chess_board[0][7] = 0;
                     chess_board[0][5] = 'r'; 
+                    have_castled[1] = true;
                 }
             
                 castle_rights[1][1] = false;

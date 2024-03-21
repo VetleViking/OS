@@ -313,6 +313,9 @@ void chess_bot_experimental(bool is_white) {
     int king_protect_bonus = 2;
     int pawn_move_bonus = 1;
 
+    
+    int test3[10] = {0};
+
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
             if ((chess_board[i][j] != 0 && chess_board[i][j] < 97 && is_white) || (chess_board[i][j] >= 97 && !is_white)) {
@@ -325,6 +328,7 @@ void chess_bot_experimental(bool is_white) {
                     int x = possible_moves_pos[k][0];
                     int y = possible_moves_pos[k][1];
                     int points = 0;
+                    int test2[10] = {0};
 
                     char temp_board[8][8] = {0};
 
@@ -351,6 +355,7 @@ void chess_bot_experimental(bool is_white) {
                         }
 
                         points += piece->value * take_lose_multiplier - 1;
+                        test2[0] += piece->value * take_lose_multiplier - 1;
                     }
 
                     // if the piece that is moving is protected
@@ -368,6 +373,7 @@ void chess_bot_experimental(bool is_white) {
                         }
 
                         points -= piece->value * take_lose_multiplier;    
+                        test2[1] += piece->value * take_lose_multiplier;
                     }
 
                     // if other of bots pieces are threatened
@@ -386,6 +392,7 @@ void chess_bot_experimental(bool is_white) {
                             }
 
                             points -= piece->value * take_lose_multiplier;
+                            test2[2] += piece->value * take_lose_multiplier;
                         }
                     }
 
@@ -406,14 +413,19 @@ void chess_bot_experimental(bool is_white) {
                                 possible_moves(threatening_pieces[l][0], threatening_pieces[l][1], false, temp_board);
                                 if (len_pm_pos == 0) {
                                     points += 1000; // checkmate
+                                    test2[3] += 1000;
                                 } else {
                                     points += check_bonus; // check
+                                    test2[3] += check_bonus;
                                 }
                             } else {
                                 points += threaten_bonus;
+                                test2[3] += threaten_bonus;
                             }
                         }
                     }
+
+
 
                     // if the piece that is moving is threatening pieces
                     possible_moves(x, y, false, temp_board);
@@ -427,12 +439,15 @@ void chess_bot_experimental(bool is_white) {
                                 possible_moves(x2, y2, false, temp_board);
                                 if (len_pm_pos == 0) {
                                     points += 1000; // checkmate
+                                    test2[4] += 1000;
                                 } else {
                                     points += check_bonus; // check
+                                    test2[4] += check_bonus;
                                 }
                                 possible_moves(x, y, false, temp_board);
                             } else {
                                 points += threaten_bonus;
+                                test2[4] += threaten_bonus;
                             }
                         }
                     }
@@ -460,6 +475,7 @@ void chess_bot_experimental(bool is_white) {
 
                             if (pm_from_x == x && pm_from_y == y && pm_to_x == j && pm_to_y == i) {
                                 points -= repeat_move_penalty;
+                                test2[5] += repeat_move_penalty;
                             }
                         }
                     }
@@ -468,43 +484,50 @@ void chess_bot_experimental(bool is_white) {
                     if (chess_board[i][j] == 'K' || chess_board[i][j] == 'k') {
                         if (x - j == -2 || x - j == 2) {
                             points += castling_bonus;
+                            test2[6] += castling_bonus;
                         } else {
                             points -= king_move_penalty;
+                            test2[6] += king_move_penalty;
                         }
                     } else if (chess_board[i][j] == 'P' || chess_board[i][j] == 'p') {
                         if (j < 5 && j > 2) {
                             points += pawn_move_bonus;
+                            test2[7] += pawn_move_bonus;
                         }
 
-                        if (i - y == 2 || i + y == 2) {
+                        if (i - y == 2 || y - i == 2) {
                             points += pawn_move_bonus;
+                            test2[7] += pawn_move_bonus;
                         }
                     }
 
+                    // checks if the king is protected if it has castled
+                    if (have_castled[0] || have_castled[1]) {
+                        int king_x = 0;
+                        int king_y = 0;
 
-                    // checks if the king is protected
-                    int king_x = 0;
-                    int king_y = 0;
-
-                    for (int l = 0; l < 8; l++) {
-                        for (int m = 0; m < 8; m++) {
-                            if ((temp_board[l][m] == 'K' && is_white) || (temp_board[l][m] == 'k' && !is_white)) {
-                                king_x = m;
-                                king_y = l;
+                        for (int l = 0; l < 8; l++) {
+                            for (int m = 0; m < 8; m++) {
+                                if ((temp_board[l][m] == 'K' && is_white) || (temp_board[l][m] == 'k' && !is_white)) {
+                                    king_x = m;
+                                    king_y = l;
+                                }
                             }
                         }
-                    }
 
-                    for (int l = king_y - 1; l < king_y + 2; l++) {
-                        for (int m = king_x - 1; l < king_x + 2; l++) {
-                            if (l >= 0 && l < 8 && m >= 0 && m < 8) {
-                                if ((temp_board[l][m] != 0 && temp_board[l][m] < 97 && is_white) || (temp_board[l][m] >= 97 && !is_white) && (l != king_y || m != king_x)) {
-                                    if (temp_board[l][m] == 'P' || temp_board[l][m] == 'p') {
-                                        points += king_protect_bonus;
+                        for (int l = king_y - 1; l < king_y + 2; l++) {
+                            for (int m = king_x - 1; m < king_x + 2; m++) {
+                                if (l >= 0 && l < 8 && m >= 0 && m < 8) {
+                                    if ((temp_board[l][m] != 0 && temp_board[l][m] < 97 && is_white) || (temp_board[l][m] >= 97 && !is_white) && (l != king_y || m != king_x)) {
+                                        if (temp_board[l][m] == 'P' || temp_board[l][m] == 'p') {
+                                            points += king_protect_bonus;
+                                            test2[8] += king_protect_bonus;
+                                        }
                                     }
+                                } else {
+                                    points += king_protect_bonus;
+                                    test2[8] += king_protect_bonus;
                                 }
-                            } else {
-                                points += king_protect_bonus;
                             }
                         }
                     }
@@ -516,6 +539,10 @@ void chess_bot_experimental(bool is_white) {
                         best_move[1][0] = x;
                         best_move[1][1] = y;
                         chosen_move = true;
+
+                        for (int l = 0; l < 10; l++) {
+                            test3[l] = test2[l];
+                        }
                     }
 
                     possible_moves(j, i, false, chess_board);
@@ -528,14 +555,22 @@ void chess_bot_experimental(bool is_white) {
     chosen_piece_pos[1] = best_move[0][1];
     chosen_piece = true;
     
+    draw_rectangle(0, 0, 60, 200, VGA_COLOR_BLACK);
+
     print_whole_num(0, 0, points_best_move);
+    
+    for (int i = 0; i < 10; i++) {
+        print_whole_num(0, 20 + (i * 20), test3[i]);
+    }
+// 1 + (taking piece), 2 - (moving piece threatened)
+//3 - (other of bots pieces threatened), 4 + (enemies pieces threatened)
+// 5 + (if piece moving is threatening pieces), 6 - (repeat move)
+// 7 -/+ (castling / king moving), 8 + (middle pawn moving / pawn moving two), 9 + (king protecting bonus)
+
 
     possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board);
 
     move_piece(best_move[1][0], best_move[1][1]);  
-    
-    
-        
 }
 
 
@@ -543,92 +578,90 @@ void print_whole_num(int x, int y, int number) {
     char p[10];
     itoa(number, p, 10);
 
-    draw_rectangle(0, 0, 60, 40, VGA_COLOR_BLACK);
-
-
     for (int i = 0; i < 10; i++) {
         if (p[i] == '\0') {
             break; 
         } else if (p[i] == '-') {
-            draw_rectangle(x + (i * 30), y, 25, 40, VGA_COLOR_BLACK);
-            draw_rectangle(x + (i * 30), y + 19, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x + (i * 10), y, 10, 20, VGA_COLOR_BLACK);
+            draw_rectangle(x + (i * 10), y + 8, 9, 2, VGA_COLOR_WHITE);
         } else {
-            print_num(x + (i * 30), y, p[i] - '0');
+            print_num(x + (i * 10), y, p[i] - '0');
         }
     }
 }
+// 1 +, 2 -, 3 -, 4 +, 5 +, 6 -, 7 -/+, 8 +, 9 +
 
 
 void print_num(int x, int y, int number) {
-    draw_rectangle(x, y, 25, 40, VGA_COLOR_BLACK);
+    draw_rectangle(x, y, 10, 20, VGA_COLOR_BLACK);
 
     switch (number) {
         case 0:
-            draw_rectangle(x, y, 25, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x + 3, y + 3, 19, 34, VGA_COLOR_BLACK);            
+            draw_rectangle(x, y, 9, 18, VGA_COLOR_WHITE);
+            draw_rectangle(x + 2, y + 2, 5, 14, VGA_COLOR_BLACK);            
             break;
 
         case 1:
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);            
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE);            
             break;
 
         case 2:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 20, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x + 7, y, 2, 10, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 9, 2, 9, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE);
             break;
 
         case 3:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE);
             break;
 
         case 4: 
-            draw_rectangle(x, y, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 2, 9, VGA_COLOR_WHITE);
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE);
             break;
 
         case 5:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y + 20, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 2, 9, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x + 7, y + 9, 2, 9, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE);
             break;
 
         case 6:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y, 3, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y + 20, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 2, 18, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x + 7, y + 9, 2, 9, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE);
             break;
 
         case 7:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE);
             break;
 
         case 8:
-            draw_rectangle(x, y, 25, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x + 3, y + 3, 19, 34, VGA_COLOR_BLACK); 
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 9, 18, VGA_COLOR_WHITE);
+            draw_rectangle(x + 2, y + 2, 5, 14, VGA_COLOR_BLACK); 
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE);
             break;
 
         case 9:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 2, 9, VGA_COLOR_WHITE);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE);
             break;
         default:
-            draw_rectangle(x, y, 25, 40, VGA_COLOR_RED);
+            draw_rectangle(x, y, 9, 18, VGA_COLOR_RED);
             break;
     };
 }
