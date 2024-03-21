@@ -574,7 +574,6 @@ void move_piece(int x, int y) {
             chess_board[y][x] = piece[0];
             chess_board[chosen_piece_pos[1]][chosen_piece_pos[0]] = 0;
 
-            int king_pos[2] = {0};
             int total_moves = 0;
 
             for (int i = 0; i < 8; i++) { // y
@@ -584,11 +583,6 @@ void move_piece(int x, int y) {
                         chosen_piece_pos[1] = i;
                         chosen_piece = true;
 
-                        if (chess_board[i][j] == 'k' || chess_board[i][j] == 'K') {
-                            king_pos[0] = j;
-                            king_pos[1] = i;
-                        }
-
                         possible_moves(j, i, false, chess_board);
 
                         total_moves += len_pm_pos;
@@ -597,9 +591,8 @@ void move_piece(int x, int y) {
             }
 
             if (total_moves == 0) {
-                piece_threatened_by(king_pos[0], king_pos[1], piece[0] < 97, chess_board);
-                if (threatened_by_len > 0) {
-                    winner = piece < 97 ? 1 : 2;
+                if (check_mate(!white_turn, chess_board)) {
+                    winner = white_turn ? 1 : 2;
                     in_chess_game = false;
                 } else {
                     winner = 3;
@@ -648,16 +641,16 @@ bool check_mate(bool king_white, char board[8][8]) {
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
-            if ((chess_board[i][j] > 97 && !king_white) || (chess_board[i][j] < 97 && chess_board[i][j] > 0 && king_white)) {
+            if ((board[i][j] > 97 && !king_white) || (board[i][j] < 97 && board[i][j] > 0 && king_white)) {
                 chosen_piece_pos[0] = j; // jank, i dont care
                 chosen_piece_pos[1] = i;
 
-                if (chess_board[i][j] == 'k' || chess_board[i][j] == 'K') {
+                if (board[i][j] == 'k' || board[i][j] == 'K') {
                     king_pos[0] = j;
                     king_pos[1] = i;
                 }
 
-                possible_moves(j, i, false, chess_board);
+                possible_moves(j, i, false, board);
 
                 total_moves += len_pm_pos;
             }
@@ -665,14 +658,14 @@ bool check_mate(bool king_white, char board[8][8]) {
     }
 
     if (total_moves == 0) {
-        piece_threatened_by(king_pos[0], king_pos[1], !king_white, chess_board);
+        piece_threatened_by(king_pos[0], king_pos[1], king_white, board);
 
         if (threatened_by_len > 0) {
             return true;
         }
-    } else {
-        return false;
     }
+        
+    return false; 
 }
 
 

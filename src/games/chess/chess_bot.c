@@ -446,7 +446,15 @@ void chess_bot_experimental(bool is_white) {
 
                         if (protected > 0 && temp_board[y2][x2] != 0) {
                             if (temp_board[y2][x2] == 'K' || temp_board[y2][x2] == 'k') { 
-                                if (check_mate(!is_white, temp_board)) {
+                                char temp_temp_board[8][8] = {0};
+
+                                for (int m = 0; m < 8; m++) {
+                                    for (int n = 0; n < 8; n++) {
+                                        temp_temp_board[n][m] = temp_board[n][m];
+                                    }
+                                }
+
+                                if (check_mate(!is_white, temp_temp_board)) {
                                     points += 1000; // checkmate
                                     test2[4] += 1000;
                                 } else {
@@ -565,15 +573,19 @@ void chess_bot_experimental(bool is_white) {
     
     draw_rectangle(0, 0, 60, 200, VGA_COLOR_BLACK);
 
-    print_whole_num(0, 0, points_best_move);
+
+    // this is for testing, prints the points and the sources for the points of the best move
+
+    // print_whole_num(0, 0, points_best_move);
     
-    for (int i = 0; i < 10; i++) {
-        print_whole_num(0, 20 + (i * 20), test3[i]);
-    }
-// 1 + (taking piece), 2 - (moving piece threatened)
-//3 - (other of bots pieces threatened), 4 + (enemies pieces threatened)
-// 5 + (if piece moving is threatening pieces), 6 - (repeat move)
-// 7 -/+ (castling / king moving), 8 + (middle pawn moving / pawn moving two), 9 + (king protecting bonus)
+    // for (int i = 0; i < 10; i++) {
+    //     print_whole_num(0, 20 + (i * 20), test3[i]);
+    // }
+
+    // 1 + (taking piece), 2 - (moving piece threatened)
+    //3 - (other of bots pieces threatened), 4 + (enemies pieces threatened)
+    // 5 + (if piece moving is threatening pieces), 6 - (repeat move)
+    // 7 -/+ (castling / king moving), 8 + (middle pawn moving / pawn moving two), 9 + (king protecting bonus)
 
 
     possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board);
