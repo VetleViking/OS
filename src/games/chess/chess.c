@@ -782,6 +782,12 @@ void chess_keyboard_handler(int c) {
             }
         } else if (chosen_piece) {
             move_piece(cursor_pos[0], cursor_pos[1]);
+
+            // for playing with bot
+            if (!white_turn) {
+                //chess_bot(white_turn);
+                chess_bot_experimental(white_turn);  
+            }
         }
     } else if (c == 1) { // esc
         winner = 1;
