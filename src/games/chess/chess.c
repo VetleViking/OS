@@ -844,12 +844,19 @@ void chess_play() {
                 bga_plot_pixel(i, j, 0x00FFFFFF);
             }   
         }
+
+        for (int i = 0; i < 860; i++) {
+            for (int j = 540; j < 1080; j++) {
+                int color = 0x00000000 + (i << 16) + (j << 8) + 0x000000FF;
+                bga_plot_pixel(i, j, color);
+            }   
+        }
     } else {
         draw_rectangle(0, 0, 100, 100, VGA_COLOR_WHITE);
     }
 
     while (in_chess) {
-        sleep(10); // sleep for 0.1s
+        sleep(100); // sleep for 0.1s
     }
 
     if (in_chess_game) { // if it aint broke, dont fix

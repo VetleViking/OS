@@ -1018,6 +1018,28 @@ void keyboard_interrupt_handler(struct regs *r) {
 	
 }
 
+void mouse_interrupt_handler(struct regs *r) {
+    terminal_putentryat('M', terminal_color, terminal_column, terminal_row);
+}
+
+#define PS2_COMMAND_PORT 0x64
+#define PS2_DATA_PORT 0x60
+
+void enable_mouse_irq() {
+    unsigned char status;
+
+    // Get the current status byte
+    outb(PS2_COMMAND_PORT, 0x20);
+    status = inb(PS2_DATA_PORT);
+
+    // Set bit 1 (Enable IRQ12) and clear bit 5 (Disable Mouse Clock)
+    status |= 0x02;
+    status &= ~0x20;
+
+    // Set the modified status byte
+    outb(PS2_COMMAND_PORT, 0x60);
+    outb(PS2_DATA_PORT, status);
+}
 
 void timer_install()
 {
@@ -1028,6 +1050,11 @@ void timer_install()
 void keyboard_install()
 {
 	irq_install_handler(1, keyboard_interrupt_handler);
+}
+
+void mouse_install() {
+	enable_mouse_irq();
+    irq_install_handler(12, mouse_interrupt_handler);
 }
 
 
@@ -1176,6 +1203,7 @@ void kernel_main(void) {
 	timer_install();
 	timer_phase(100);
 	keyboard_install();
+	mouse_install();
 
 	// Prints the cat
 	terminal_writestring("   _____");
