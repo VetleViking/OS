@@ -155,12 +155,16 @@ extern void vga_clear_screen();
 extern void vga_plot_pixel(int x, int y, unsigned short color);
 
 /* BGA */
-extern void BgaWriteRegister(unsigned short IndexValue, unsigned short DataValue);
-extern unsigned short BgaReadRegister(unsigned short IndexValue);
-extern int BgaIsAvailable(void);
+extern void bga_write_register(unsigned short IndexValue, unsigned short DataValue);
+extern unsigned short bga_read_register(unsigned short IndexValue);
+extern int bga_is_available(void);
 extern void BgaSetVideoMode(unsigned int Width, unsigned int Height, unsigned int BitDepth, int UseLinearFrameBuffer, int ClearVideoMemory);
 extern void BgaSetBank(unsigned short BankNumber);
 extern void bga_plot_pixel(int x, int y, unsigned int color);
+extern void bga_clear_screen();
+extern void bga_draw_rectangle(int x, int y, int width, int height, unsigned short color);
+extern void bga_draw_circle(int x, int y, int radius, unsigned short color);
+extern void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color);
 
 /* Calculator */
 extern bool in_calculator;
