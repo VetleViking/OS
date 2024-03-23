@@ -178,3 +178,68 @@ void write_regs(unsigned char *regs)
 	(void)ioport_in(VGA_INSTAT_READ);
 	ioport_out(VGA_AC_INDEX, 0x20);
 }
+
+#define VBE_DISPI_IOPORT_INDEX 0x01CE
+#define VBE_DISPI_IOPORT_DATA 0x01CF
+
+#define VBE_DISPI_INDEX_ID 0x0
+#define VBE_DISPI_INDEX_XRES 0x1
+#define VBE_DISPI_INDEX_YRES 0x2
+#define VBE_DISPI_INDEX_BPP 0x3
+#define VBE_DISPI_INDEX_ENABLE 0x4
+#define VBE_DISPI_INDEX_BANK 0x5
+
+#define VBE_DISPI_DISABLED 0x00
+#define VBE_DISPI_ENABLED 0x01
+#define VBE_DISPI_LFB_ENABLED 0x40
+#define VBE_DISPI_NOCLEARMEM 0x80
+
+#define VBE_DISPI_ID4 0xB0C5
+
+void outpw(unsigned short port, unsigned short value) {
+    __asm__ __volatile__ ("outw %0, %1" : : "a"(value), "Nd"(port));
+}
+
+unsigned short inpw(unsigned short port) {
+    unsigned short value;
+    __asm__ __volatile__ ("inw %1, %0" : "=a"(value) : "Nd"(port));
+    return value;
+}
+
+void BgaWriteRegister(unsigned short IndexValue, unsigned short DataValue) {
+    outpw(VBE_DISPI_IOPORT_INDEX, IndexValue);
+    outpw(VBE_DISPI_IOPORT_DATA, DataValue);
+}
+ 
+unsigned short BgaReadRegister(unsigned short IndexValue) {
+    outpw(VBE_DISPI_IOPORT_INDEX, IndexValue);
+    return inpw(VBE_DISPI_IOPORT_DATA);
+}
+ 
+int BgaIsAvailable(void) {
+    return (BgaReadRegister(VBE_DISPI_INDEX_ID) == VBE_DISPI_ID4);
+}
+ 
+void BgaSetVideoMode(unsigned int Width, unsigned int Height, unsigned int BitDepth, int UseLinearFrameBuffer, int ClearVideoMemory) {
+    BgaWriteRegister(VBE_DISPI_INDEX_ENABLE, VBE_DISPI_DISABLED);
+    BgaWriteRegister(VBE_DISPI_INDEX_XRES, Width);
+    BgaWriteRegister(VBE_DISPI_INDEX_YRES, Height);
+    BgaWriteRegister(VBE_DISPI_INDEX_BPP, BitDepth);
+    BgaWriteRegister(VBE_DISPI_INDEX_ENABLE, VBE_DISPI_ENABLED |
+        (UseLinearFrameBuffer ? VBE_DISPI_LFB_ENABLED : 0) |
+        (ClearVideoMemory ? 0 : VBE_DISPI_NOCLEARMEM));
+}
+ 
+void BgaSetBank(unsigned short BankNumber) {
+    BgaWriteRegister(VBE_DISPI_INDEX_BANK, BankNumber);
+}
+
+#define BGA_VIDEO_MEMORY 0xA0000
+#define BGA_WIDTH 1920
+
+void bga_plot_pixel(int x, int y, unsigned int color) {
+    unsigned int* video_memory = (unsigned int*) BGA_VIDEO_MEMORY;
+    unsigned int offset = y * BGA_WIDTH + x;
+
+    video_memory[offset] = color;
+}

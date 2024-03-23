@@ -835,6 +835,20 @@ void chess_play() {
     draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN);
 
     draw_circle(50, 50, 5, VGA_COLOR_WHITE);
+    draw_triangle(60, 60, 45, 40, 30, 60, VGA_COLOR_WHITE);
+
+    if (BgaIsAvailable()) {
+        BgaSetVideoMode(1920, 1080, 32, 1, 1);
+        for (int i = 0; i < 1920; i++) {
+            for (int j = 0; j < 1080; j++) {
+                bga_plot_pixel(i, j, 0x00FFFFFF);
+            }
+        }
+
+        bga_plot_pixel(100, 100, 0x00FFFF00);
+    } else {
+        draw_rectangle(0, 0, 100, 100, VGA_COLOR_WHITE);
+    }
 
     while (in_chess) {
         sleep(10); // sleep for 0.1s
