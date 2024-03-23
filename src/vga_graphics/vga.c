@@ -88,6 +88,26 @@ void draw_rectangle(int x, int y, int width, int height, unsigned short color) {
 	}
 }
 
+void draw_circle(int x, int y, int radius, unsigned short color) {
+	for (int i = 0; i < 320; i++) {
+		for (int j = 0; j < 200; j++) {
+			if ((i-x)*(i-x) + (j-y)*(j-y) <= radius*radius) {
+				vga_plot_pixel(i,j,color);
+			}
+		}
+	}
+}
+
+void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color) {
+	for (int i = 0; i < 320; i++) {
+		for (int j = 0; j < 200; j++) {
+			if ((i-x1)*(y2-y1) - (x2-x1)*(j-y1) > 0 && (i-x2)*(y3-y2) - (x3-x2)*(j-y2) > 0 && (i-x3)*(y1-y3) - (x1-x3)*(j-y3) > 0) {
+				vga_plot_pixel(i,j,color);
+			}
+		}
+	}
+}
+
 void vga_clear_screen() {
     for (int i = 0; i < 320; i++) {
         for (int j = 0; j < 200; j++) {

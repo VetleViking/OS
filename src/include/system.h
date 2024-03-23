@@ -149,6 +149,8 @@ extern char kbd_special_characters[256];
 extern void vga_enter();
 extern void vga_exit();
 extern void draw_rectangle(int x, int y, int width, int height, unsigned short color);
+extern void draw_circle(int x, int y, int radius, unsigned short color);
+extern void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color);
 extern void vga_clear_screen();
 extern void vga_plot_pixel(int x, int y, unsigned short color);
 

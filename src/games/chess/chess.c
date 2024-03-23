@@ -689,54 +689,58 @@ void chess_keyboard_handler(int c) {
                 draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_LIGHT_RED);
             }
         } else if (c == 28) { // enter
-            // reset all counters and stuff.
-            vga_clear_screen();
+        if (cursor_pos[0] == 2) {
+                // reset all counters and stuff.
+                vga_clear_screen();
 
-            cursor_pos[0] = 0;
-            cursor_pos[1] = 7;
+                cursor_pos[0] = 0;
+                cursor_pos[1] = 7;
 
-            chosen_piece = false;
-            pawn_moved_two = false; // used for en passant
-            since_piece_taken = 0;
+                chosen_piece = false;
+                pawn_moved_two = false; // used for en passant
+                since_piece_taken = 0;
 
-            for (int i = 0; i < 3; i++) {
-                castle_rights[0][i] = true;
-                castle_rights[1][i] = true;
-            }
-
-
-            winner = 0; // 1 = white, 2 = black, 3 = draw
-
-            threatened_by_len = 0;
-
-            prev_moves_white_len = 0;
-            prev_moves_black_len = 0;
-
-            white_turn = true;
-
-            test = 0;
-
-            char chess_board_orig[8][8] = {
-                {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
-                {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
-                {0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0},
-                {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
-                {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
-            };
-
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 8; j++) {
-                    chess_board[i][j] =  chess_board_orig[i][j];
+                for (int i = 0; i < 3; i++) {
+                    castle_rights[0][i] = true;
+                    castle_rights[1][i] = true;
                 }
+
+
+                winner = 0; // 1 = white, 2 = black, 3 = draw
+
+                threatened_by_len = 0;
+
+                prev_moves_white_len = 0;
+                prev_moves_black_len = 0;
+
+                white_turn = true;
+
+                test = 0;
+
+                char chess_board_orig[8][8] = {
+                    {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+                    {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+                    {0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0, 0, 0, 0},
+                    {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+                    {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+                };
+
+                for (int i = 0; i < 8; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        chess_board[i][j] =  chess_board_orig[i][j];
+                    }
+                }
+
+                chess_print_board(chess_board);
+
+                in_chess_game = true;
+                in_chess = false;
+            } else if (cursor_pos[0] == 5) {
+                in_chess = false;
             }
-
-            chess_print_board(chess_board);
-
-            in_chess_game = true;
-            in_chess = false;
         }
  
         return;
@@ -829,6 +833,8 @@ void chess_play() {
 
     print_cursor();
     draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN);
+
+    draw_circle(50, 50, 5, VGA_COLOR_WHITE);
 
     while (in_chess) {
         sleep(10); // sleep for 0.1s
