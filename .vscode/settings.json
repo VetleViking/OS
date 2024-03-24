@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "system.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "chess_pieces.h": "c"
     }
 }

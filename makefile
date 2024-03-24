@@ -46,6 +46,7 @@ compileKernel: compileBoot
 	cd src && i386-elf-gcc -c games/chess/chess_bot.c -o chess_bot.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include	
 
 
+
 	cd src && nasm -f elf32 kernel_asm.asm -o kernel_asm.o
 
 # Compiles the boot Assembly file to an object file.

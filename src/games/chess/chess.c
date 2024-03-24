@@ -4,6 +4,8 @@
 
 #include <system.h> 
 #include <chess.h>
+#include <test_img.h>
+#include <chess_pieces.h>
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -839,17 +841,13 @@ void chess_play() {
 
     if (bga_is_available()) {
         bga_set_video_mode(1920, 1080, 32, 1, 1);
-        for (int i = 0; i < 860; i++) {
-            for (int j = 0; j < 540; j++) {
-                bga_plot_pixel(i, j, 0x00FFFFFF);
-            }   
-        }
+        
+        for (int i = 0; i < TEST_IMG_WIDTH; i++) {
+            for (int j = 0; j < TEST_IMG_HEIGHT; j++) {
+                unsigned int color = test_img[j * TEST_IMG_WIDTH + i];
 
-        for (int i = 0; i < 860; i++) {
-            for (int j = 540; j < 1080; j++) {
-                int color = 0x00000000 + (i << 16) + (j << 8) + 0x000000FF;
                 bga_plot_pixel(i, j, color);
-            }   
+            }
         }
     } else {
         draw_rectangle(0, 0, 100, 100, VGA_COLOR_WHITE);
