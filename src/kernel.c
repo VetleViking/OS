@@ -630,7 +630,7 @@ void check_for_command() {
 	is_writing_command = false;
 
 	// checks if the command is a game command
-	if (strcmplen(command, "game", 4) == 0 && !in_game) {
+	if (strcmplen(command, "game", 4) == 0 && !in_game && strcmp(command, "gamelist") != 0) {
 		game_handler(game_round);
 		end_check_for_command();
 		return;
@@ -717,6 +717,14 @@ void check_for_command() {
 	else if (strcmp(command, "vga test") == 0) { 
 		vga_enter();
 		draw_rectangle(0, 0, 80, 25, VGA_COLOR_BLUE);
+	} else if (strcmp(command, "bga test") == 0) { 
+		if (bga_is_available()) {
+			BgaSetVideoMode(1920, 1080, 32, 1, 1);
+
+			bga_draw_rectangle(0, 0, 800, 600, 0x00FF00);
+		} else {
+			terminal_writestring("BGA is not available");
+		}
 	} else if (strcmp(command, "exception test") == 0) {
 		int a = 1 / 0;
 		char b[10];

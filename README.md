@@ -71,3 +71,7 @@ Finished barebones, looking at this next.<br>
 [Osdever ISRS](http://www.osdever.net/bkerndev/Docs/isrs.htm)<br>
 26/01/2024 - 28/01/2024<br>
 Trying to understand how the GDT, IDT and ISRS works.<br>
+
+[OSDev BGA](https://wiki.osdev.org/Bochs_VBE_Extensions)<br>
+23/03/2024 - 23/03/2024<br>
+Implementing some better graphics for VMs like QEMU.<br>
