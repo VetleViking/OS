@@ -1040,8 +1040,6 @@ void keyboard_install()
 uint8_t mouse_cycle = 0;
 int8_t  mouse_byte[3];
 
-#define PACKETS_IN_PIPE 1024
-#define DISCARD_POINT 32
 
 #define MOUSE_PORT   0x60
 #define MOUSE_STATUS 0x64
