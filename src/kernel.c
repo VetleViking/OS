@@ -1018,28 +1018,28 @@ void keyboard_interrupt_handler(struct regs *r) {
 	
 }
 
-void mouse_interrupt_handler(struct regs *r) {
-    terminal_putentryat('M', terminal_color, terminal_column, terminal_row);
-}
+// void mouse_interrupt_handler(struct regs *r) {
+//     terminal_putentryat('M', terminal_color, terminal_column, terminal_row);
+// }
 
-#define PS2_COMMAND_PORT 0x64
-#define PS2_DATA_PORT 0x60
+// #define PS2_COMMAND_PORT 0x64
+// #define PS2_DATA_PORT 0x60
 
-void enable_mouse_irq() {
-    unsigned char status;
+// void enable_mouse_irq() {
+//     unsigned char status;
 
-    // Get the current status byte
-    outb(PS2_COMMAND_PORT, 0x20);
-    status = inb(PS2_DATA_PORT);
+//     // Get the current status byte
+//     outb(PS2_COMMAND_PORT, 0x20);
+//     status = inb(PS2_DATA_PORT);
 
-    // Set bit 1 (Enable IRQ12) and clear bit 5 (Disable Mouse Clock)
-    status |= 0x02;
-    status &= ~0x20;
+//     // Set bit 1 (Enable IRQ12) and clear bit 5 (Disable Mouse Clock)
+//     status |= 0x02;
+//     status &= ~0x20;
 
-    // Set the modified status byte
-    outb(PS2_COMMAND_PORT, 0x60);
-    outb(PS2_DATA_PORT, status);
-}
+//     // Set the modified status byte
+//     outb(PS2_COMMAND_PORT, 0x60);
+//     outb(PS2_DATA_PORT, status);
+// }
 
 void timer_install()
 {
@@ -1052,11 +1052,116 @@ void keyboard_install()
 	irq_install_handler(1, keyboard_interrupt_handler);
 }
 
-void mouse_install() {
-	enable_mouse_irq();
-    irq_install_handler(12, mouse_interrupt_handler);
+// void mouse_install() {
+// 	outportb(0x64,0xD4);	
+//     irq_install_handler(12, mouse_interrupt_handler);
+// 	terminal_writestring("Enabled mouse IRQ");
+// }
+
+//Mouse.inc by SANiK
+//License: Use as you wish, except to cause damage
+int mouse_cycle=0;     //unsigned char
+int mouse_byte[3];    //signed char
+int mouse_x=0;         //signed char
+int mouse_y=0;         //signed char
+
+//Mouse functions
+void mouse_handler(struct regs *a_r) //struct regs *a_r (not used but just there)
+{
+  switch(mouse_cycle)
+  {
+    case 0:
+      mouse_byte[0]=inb(0x60);
+      mouse_cycle++;
+      break;
+    case 1:
+      mouse_byte[1]=inb(0x60);
+      mouse_cycle++;
+      break;
+    case 2:
+      mouse_byte[2]=inb(0x60);
+      mouse_x=mouse_byte[1];
+      mouse_y=mouse_byte[2];
+      mouse_cycle=0;
+      break;
+  }
 }
 
+inline void mouse_wait(int a_type) //unsigned char
+{
+  int _time_out=100000; //unsigned int
+  if(a_type==0)
+  {
+    while(_time_out--) //Data
+    {
+      if((inb(0x64) & 1)==1)
+      {
+        return;
+      }
+    }
+    return;
+  }
+  else
+  {
+    while(_time_out--) //Signal
+    {
+      if((inb(0x64) & 2)==0)
+      {
+        return;
+      }
+    }
+    return;
+  }
+}
+
+inline void mouse_write(int a_write) //unsigned char
+{
+  //Wait to be able to send a command
+  mouse_wait(1);
+  //Tell the mouse we are sending a command
+  outportb(0x64, 0xD4);
+  //Wait for the final part
+  mouse_wait(1);
+  //Finally write
+  outportb(0x60, a_write);
+}
+
+int mouse_read()
+{
+  //Get's response from mouse
+  mouse_wait(0);
+  return inb(0x60);
+}
+
+void mouse_install()
+{
+  int _status;  //unsigned char
+
+  //Enable the auxiliary mouse device
+  mouse_wait(1);
+  outportb(0x64, 0xA8);
+ 
+  //Enable the interrupts
+  mouse_wait(1);
+  outportb(0x64, 0x20);
+  mouse_wait(0);
+  _status=(inb(0x60) | 2);
+  mouse_wait(1);
+  outportb(0x64, 0x60);
+  mouse_wait(1);
+  outportb(0x60, _status);
+ 
+  //Tell the mouse to use default settings
+  mouse_write(0xF6);
+  mouse_read();  //Acknowledge
+ 
+  //Enable the mouse
+  mouse_write(0xF4);
+  mouse_read();  //Acknowledge
+
+  //Setup the mouse handler
+  irq_install_handler(12, mouse_handler);
+}
 
 extern void isr0();
 extern void isr1();
