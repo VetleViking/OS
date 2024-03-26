@@ -719,7 +719,7 @@ void check_for_command() {
 		draw_rectangle(0, 0, 80, 25, VGA_COLOR_BLUE);
 	} else if (strcmp(command, "bga test") == 0) { 
 		if (bga_is_available()) {
-			BgaSetVideoMode(1920, 1080, 32, 1, 1);
+			bga_set_video_mode(1920, 1080, 32, 1, 1);
 
 			bga_draw_rectangle(0, 0, 800, 600, 0x00FF00);
 		} else {
@@ -1026,29 +1026,6 @@ void keyboard_interrupt_handler(struct regs *r) {
 	
 }
 
-// void mouse_interrupt_handler(struct regs *r) {
-//     terminal_putentryat('M', terminal_color, terminal_column, terminal_row);
-// }
-
-// #define PS2_COMMAND_PORT 0x64
-// #define PS2_DATA_PORT 0x60
-
-// void enable_mouse_irq() {
-//     unsigned char status;
-
-//     // Get the current status byte
-//     outb(PS2_COMMAND_PORT, 0x20);
-//     status = inb(PS2_DATA_PORT);
-
-//     // Set bit 1 (Enable IRQ12) and clear bit 5 (Disable Mouse Clock)
-//     status |= 0x02;
-//     status &= ~0x20;
-
-//     // Set the modified status byte
-//     outb(PS2_COMMAND_PORT, 0x60);
-//     outb(PS2_DATA_PORT, status);
-// }
-
 void timer_install()
 {
     irq_install_handler(0, timer_handler);
@@ -1060,115 +1037,99 @@ void keyboard_install()
 	irq_install_handler(1, keyboard_interrupt_handler);
 }
 
-// void mouse_install() {
-// 	outportb(0x64,0xD4);	
-//     irq_install_handler(12, mouse_interrupt_handler);
-// 	terminal_writestring("Enabled mouse IRQ");
-// }
+uint8_t mouse_cycle = 0;
+int8_t  mouse_byte[3];
 
-//Mouse.inc by SANiK
-//License: Use as you wish, except to cause damage
-int mouse_cycle=0;     //unsigned char
-int mouse_byte[3];    //signed char
-int mouse_x=0;         //signed char
-int mouse_y=0;         //signed char
+#define PACKETS_IN_PIPE 1024
+#define DISCARD_POINT 32
 
-//Mouse functions
-void mouse_handler(struct regs *a_r) //struct regs *a_r (not used but just there)
-{
-  switch(mouse_cycle)
-  {
-    case 0:
-      mouse_byte[0]=inb(0x60);
-      mouse_cycle++;
-      break;
-    case 1:
-      mouse_byte[1]=inb(0x60);
-      mouse_cycle++;
-      break;
-    case 2:
-      mouse_byte[2]=inb(0x60);
-      mouse_x=mouse_byte[1];
-      mouse_y=mouse_byte[2];
-      mouse_cycle=0;
-      break;
-  }
+#define MOUSE_PORT   0x60
+#define MOUSE_STATUS 0x64
+#define MOUSE_ABIT   0x02
+#define MOUSE_BBIT   0x01
+#define MOUSE_WRITE  0xD4
+#define MOUSE_F_BIT  0x20
+#define MOUSE_V_BIT  0x08
+
+void mouse_wait(bool a_type) {
+	uint32_t timeout = 100000;
+	if (!a_type) {
+		while (--timeout) {
+			if ((inb(MOUSE_STATUS) & MOUSE_BBIT) == 1) {
+				return;
+			}
+		}
+		return;
+	} else {
+		while (--timeout) {
+			if (!((inb(MOUSE_STATUS) & MOUSE_ABIT))) {
+				return;
+			}
+		}
+		return;
+	}
 }
 
-inline void mouse_wait(int a_type) //unsigned char
-{
-  int _time_out=100000; //unsigned int
-  if(a_type==0)
-  {
-    while(_time_out--) //Data
-    {
-      if((inb(0x64) & 1)==1)
-      {
-        return;
-      }
-    }
-    return;
-  }
-  else
-  {
-    while(_time_out--) //Signal
-    {
-      if((inb(0x64) & 2)==0)
-      {
-        return;
-      }
-    }
-    return;
-  }
+void mouse_write(uint8_t write) {
+	mouse_wait(true);
+	outportb(MOUSE_STATUS, MOUSE_WRITE);
+	mouse_wait(true);
+	outportb(MOUSE_PORT, write);
 }
 
-inline void mouse_write(int a_write) //unsigned char
-{
-  //Wait to be able to send a command
-  mouse_wait(1);
-  //Tell the mouse we are sending a command
-  outportb(0x64, 0xD4);
-  //Wait for the final part
-  mouse_wait(1);
-  //Finally write
-  outportb(0x60, a_write);
+uint8_t mouse_read() {
+	mouse_wait(false);
+	char t = inb(MOUSE_PORT);
+	return t;
 }
 
-int mouse_read()
-{
-  //Get's response from mouse
-  mouse_wait(0);
-  return inb(0x60);
+void mouse_handler(struct regs *r) {
+	terminal_putentryat('M', terminal_color, terminal_column, terminal_row);
+
+	uint8_t status = inb(MOUSE_STATUS);
+	while (status & MOUSE_BBIT) {
+		int8_t mouse_in = inb(MOUSE_PORT);
+		if (status & MOUSE_F_BIT) {
+			switch (mouse_cycle) {
+				case 0:
+					mouse_byte[0] = mouse_in;
+					if (!(mouse_in & MOUSE_V_BIT)) return;
+					++mouse_cycle;
+					break;
+				case 1:
+					mouse_byte[1] = mouse_in;
+					++mouse_cycle;
+					break;
+				case 2:
+					mouse_byte[2] = mouse_in;
+					terminal_putentryat('M', terminal_color, terminal_column + 1, terminal_row);
+
+					break;
+			}
+		}
+		status = inb(MOUSE_STATUS);
+	}
+
+	outportb(0xA0, 0x20);
 }
 
-void mouse_install()
-{
-  int _status;  //unsigned char
-
-  //Enable the auxiliary mouse device
-  mouse_wait(1);
-  outportb(0x64, 0xA8);
- 
-  //Enable the interrupts
-  mouse_wait(1);
-  outportb(0x64, 0x20);
-  mouse_wait(0);
-  _status=(inb(0x60) | 2);
-  mouse_wait(1);
-  outportb(0x64, 0x60);
-  mouse_wait(1);
-  outportb(0x60, _status);
- 
-  //Tell the mouse to use default settings
-  mouse_write(0xF6);
-  mouse_read();  //Acknowledge
- 
-  //Enable the mouse
-  mouse_write(0xF4);
-  mouse_read();  //Acknowledge
-
-  //Setup the mouse handler
-  irq_install_handler(12, mouse_handler);
+void mouse_install() {
+	uint8_t status;
+	mouse_wait(true);
+	outportb(MOUSE_STATUS, 0xA8);
+	mouse_wait(true);
+	outportb(MOUSE_STATUS, 0x20);
+	mouse_wait(false);
+	status = inb(0x60) | 2;
+	mouse_wait(true);
+	outportb(MOUSE_STATUS, 0x60);
+	mouse_wait(false);
+	outportb(MOUSE_PORT, status);
+	mouse_write(0xF6);
+	mouse_read();
+	mouse_write(0xF4);
+	mouse_read();
+	irq_install_handler(12, mouse_handler);
 }
 
 extern void isr0();
