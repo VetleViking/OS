@@ -1112,6 +1112,7 @@ void mouse_handler(struct regs *r) {
 
 						draw_rectangle(mouse_x, mouse_y, 1, 1, VGA_COLOR_RED);
 
+						mouse_cycle = 0;	
 						break;
 				}
 			}
