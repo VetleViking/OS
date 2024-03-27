@@ -1105,23 +1105,12 @@ void mouse_handler(struct regs *r) {
 							/* x/y overflow? bad packet! */
 							break;
 						}
+						draw_rectangle(mouse_x, mouse_y, 1, 1, VGA_COLOR_BLACK);
 
 						mouse_x += mouse_byte[1] * 1;
 						mouse_y -= mouse_byte[2] * 1;
 
-						if (mouse_x < 0) {
-							mouse_x = 0;
-						} else if (mouse_x >= 320) {
-							mouse_x = 319;
-						}
-
-						if (mouse_y < 0) {
-							mouse_y = 0;
-						} else if (mouse_y >= 200) {
-							mouse_y = 199;
-						}
-
-						draw_rectangle(mouse_x, mouse_y, 10, 10, VGA_COLOR_RED);
+						draw_rectangle(mouse_x, mouse_y, 1, 1, VGA_COLOR_RED);
 
 						break;
 				}
