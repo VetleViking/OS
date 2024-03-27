@@ -730,6 +730,8 @@ void check_for_command() {
 		char b[10];
 		itoa(a, b, 10);
 		terminal_writestring(b);
+	} else if (strcmp(command, "mouse test") == 0) {
+		mouse_test();
 	}
 
 	// if the command is not found in the
@@ -1082,30 +1084,52 @@ uint8_t mouse_read() {
 }
 
 void mouse_handler(struct regs *r) {
-	terminal_putentryat('M', terminal_color, terminal_column, terminal_row);
+	if (in_mouse_test) {
+		uint8_t status = inb(MOUSE_STATUS);
+		while (status & MOUSE_BBIT) {
+			int8_t mouse_in = inb(MOUSE_PORT);
+			if (status & MOUSE_F_BIT) {
+				switch (mouse_cycle) {
+					case 0:
+						mouse_byte[0] = mouse_in;
+						if (!(mouse_in & MOUSE_V_BIT)) return;
+						++mouse_cycle;
+						break;
+					case 1:
+						mouse_byte[1] = mouse_in;
+						++mouse_cycle;
+						break;
+					case 2:
+						mouse_byte[2] = mouse_in;
+						if (mouse_byte[0] & 0x80 || mouse_byte[0] & 0x40) {
+							/* x/y overflow? bad packet! */
+							break;
+						}
 
-	uint8_t status = inb(MOUSE_STATUS);
-	while (status & MOUSE_BBIT) {
-		int8_t mouse_in = inb(MOUSE_PORT);
-		if (status & MOUSE_F_BIT) {
-			switch (mouse_cycle) {
-				case 0:
-					mouse_byte[0] = mouse_in;
-					if (!(mouse_in & MOUSE_V_BIT)) return;
-					++mouse_cycle;
-					break;
-				case 1:
-					mouse_byte[1] = mouse_in;
-					++mouse_cycle;
-					break;
-				case 2:
-					mouse_byte[2] = mouse_in;
-					terminal_putentryat('M', terminal_color, terminal_column + 1, terminal_row);
+						mouse_x += mouse_byte[1] * 1;
+						mouse_y -= mouse_byte[2] * 1;
 
-					break;
+						if (mouse_x < 0) {
+							mouse_x = 0;
+						} else if (mouse_x >= 320) {
+							mouse_x = 319;
+						}
+
+						if (mouse_y < 0) {
+							mouse_y = 0;
+						} else if (mouse_y >= 200) {
+							mouse_y = 199;
+						}
+
+						draw_rectangle(mouse_x, mouse_y, 10, 10, VGA_COLOR_RED);
+
+						break;
+				}
 			}
+			status = inb(MOUSE_STATUS);
 		}
-		status = inb(MOUSE_STATUS);
+	} else {
+		terminal_putentryat('M', terminal_color, terminal_column, terminal_row);
 	}
 
 	outportb(0xA0, 0x20);
@@ -1331,6 +1355,11 @@ void kernel_main(void) {
 		if (in_chess) {
 			is_writing_command = true;
 			chess_play();
+		}
+
+		if (in_mouse_test) {
+			is_writing_command = true;
+			mouse_test_loop();
 		}
 		
 		is_writing_command = was_writing_command; // end of temporary
