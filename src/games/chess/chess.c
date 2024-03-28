@@ -670,7 +670,46 @@ bool check_mate(bool king_white, char board[8][8]) {
     return false; 
 }
 
+void chess_mouse_handler(int8_t mouse_byte[3]) {
+    remove_mouse(mouse_x, mouse_y);
 
+    mouse_x += mouse_byte[1] * 1;
+    mouse_y -= mouse_byte[2] * 1;
+
+    int x = (mouse_x - 60) / 25;
+    int y = mouse_y / 25;
+
+    if (mouse_byte[0] & 0x01) { // left click
+        if (in_chess_game) {
+            if (x >= 0 && x < 8 && y >= 0 && y < 8) {
+                if (!chosen_piece) {
+                    remove_cursor();
+                    cursor_pos[0] = x;
+                    cursor_pos[1] = y;
+                    print_cursor();
+
+                    chosen_piece_pos[0] = cursor_pos[0];
+                    chosen_piece_pos[1] = cursor_pos[1];
+                    chosen_piece = true;
+
+                    possible_moves(x, y, true, chess_board);
+                } else if (chosen_piece) {
+                    move_piece(x, y);
+
+                    // for playing with bot
+                    if (!white_turn) {
+                        //chess_bot(white_turn);
+                        chess_bot_experimental(white_turn);  
+                    }
+                }
+            }
+        }
+    }
+    if (mouse_byte[0] & 0x02) { } // right click
+    if (mouse_byte[0] & 0x04) { } // middle click
+
+    print_mouse(mouse_x, mouse_y);
+}
 
 void chess_keyboard_handler(int c) {
     if (!in_chess_game) {
@@ -875,6 +914,9 @@ void chess_start() {
     vga_enter();
     vga_clear_screen();
 
+    mouse_x = 160;
+    mouse_y = 100;
+    add_mouse_handler(chess_mouse_handler, true);
 
     cursor_pos[0] = 0;
     cursor_pos[1] = 7;

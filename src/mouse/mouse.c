@@ -138,42 +138,38 @@ void remove_mouse(int x, int y) {
 }
 
 void mouse_handler(struct regs *r) {
-	if (in_mouse_test) {
-		uint8_t status = inb(MOUSE_STATUS);
-		while (status & MOUSE_BBIT) {
-			int8_t mouse_in = inb(MOUSE_PORT);
-			if (status & MOUSE_F_BIT) {
-				switch (mouse_cycle) {
-					case 0:
-						mouse_byte[0] = mouse_in;
-						if (!(mouse_in & MOUSE_V_BIT)) return;
-						++mouse_cycle;
-						break;
-					case 1:
-						mouse_byte[1] = mouse_in;
-						++mouse_cycle;
-						break;
-					case 2:
-						mouse_byte[2] = mouse_in;
-						if (mouse_byte[0] & 0x80 || mouse_byte[0] & 0x40) {
-							break;
-						}
+    uint8_t status = inb(MOUSE_STATUS);
+    while (status & MOUSE_BBIT) {
+        int8_t mouse_in = inb(MOUSE_PORT);
+        if (status & MOUSE_F_BIT) {
+            switch (mouse_cycle) {
+                case 0:
+                    mouse_byte[0] = mouse_in;
+                    if (!(mouse_in & MOUSE_V_BIT)) return;
+                    ++mouse_cycle;
+                    break;
+                case 1:
+                    mouse_byte[1] = mouse_in;
+                    ++mouse_cycle;
+                    break;
+                case 2:
+                    mouse_byte[2] = mouse_in;
+                    if (mouse_byte[0] & 0x80 || mouse_byte[0] & 0x40) {
+                        break;
+                    }
 
-                        for (int i = 0; i < MAX_MOUSE_HANDLERS; i++) {
-                            if (mouse_handlers[i].should_call && mouse_handlers[i].func != NULL) {
-                                mouse_handlers[i].func(mouse_byte);
-                            }
+                    for (int i = 0; i < MAX_MOUSE_HANDLERS; i++) {
+                        if (mouse_handlers[i].should_call && mouse_handlers[i].func != NULL) {
+                            mouse_handlers[i].func(mouse_byte);
                         }
+                    }
 
-						mouse_cycle = 0;	
-						break;
-				}
-			}
-			status = inb(MOUSE_STATUS);
-		}
-	} else {
-		terminal_putentryat('M', terminal_color, terminal_column, terminal_row);
-	}
+                    mouse_cycle = 0;	
+                    break;
+            }
+        }
+        status = inb(MOUSE_STATUS);
+    }
 
 	outportb(0xA0, 0x20);
 }
