@@ -1110,6 +1110,16 @@ void mouse_handler(struct regs *r) {
 						mouse_x += mouse_byte[1] * 1;
 						mouse_y -= mouse_byte[2] * 1;
 
+						if (mouse_byte[0] & 0x01) {
+							draw_rectangle(0, 0, 10, 10, VGA_COLOR_BLUE);
+						}
+						if (mouse_byte[0] & 0x02) {
+							draw_rectangle(0, 10, 10, 10, VGA_COLOR_GREEN);
+						}
+						if (mouse_byte[0] & 0x04) {
+							draw_rectangle(0, 20, 10, 10, VGA_COLOR_RED);
+						}
+
 						draw_rectangle(mouse_x, mouse_y, 1, 1, VGA_COLOR_RED);
 
 						mouse_cycle = 0;	
