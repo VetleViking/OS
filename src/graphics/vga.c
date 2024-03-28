@@ -122,6 +122,12 @@ void vga_plot_pixel(int x, int y, unsigned short color) {
     VGA[offset] = color;
 }
 
+unsigned short vga_get_pixel_color(int x, int y) {
+    unsigned short offset = x + 320 * y;
+    unsigned char *VGA = (unsigned char*) VGA_ADDRESS;
+    return VGA[offset];
+}
+
 // Copied code from osdev.org
 
 void write_regs(unsigned char *regs)

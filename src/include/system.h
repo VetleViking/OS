@@ -70,6 +70,7 @@ extern int atoi(const char *str);
 extern void itoa(int value, char* str, int base);
 extern void terminal_putchar(unsigned char c);
 extern void outportb(unsigned short port, unsigned char value);
+extern __inline unsigned char inb (unsigned short int port);
 
 
 /* Minesweeper */
@@ -153,6 +154,7 @@ extern void draw_circle(int x, int y, int radius, unsigned short color);
 extern void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color);
 extern void vga_clear_screen();
 extern void vga_plot_pixel(int x, int y, unsigned short color);
+extern unsigned short vga_get_pixel_color(int x, int y);
 
 /* BGA */
 extern void bga_write_register(unsigned short IndexValue, unsigned short DataValue);
@@ -199,5 +201,13 @@ extern void mouse_test();
 extern bool in_mouse_test;
 extern int mouse_x;
 extern int mouse_y;
+
+/* Mouse */
+extern void mouse_install();
+extern void mouse_handler(struct regs *r);
+extern void add_mouse_handler(void (*handler)(int8_t mouse_byte[3]), bool should_call);
+extern void edit_mouse_handler(void (*handler)(int8_t mouse_byte[3]), bool should_call);
+extern void print_mouse(int x, int y);
+extern void remove_mouse(int x, int y);
 
 #endif
