@@ -676,17 +676,34 @@ void chess_mouse_handler(int8_t mouse_byte[3]) {
     mouse_x += mouse_byte[1] * 1;
     mouse_y -= mouse_byte[2] * 1;
 
+    if (mouse_x < 0) {
+        mouse_x = 0;
+    } else if (mouse_x > 320) {
+        mouse_x = 320;
+    }
+
+    if (mouse_y < 0) {
+        mouse_y = 0;
+    } else if (mouse_y > 200) {
+        mouse_y = 200;
+    }
+
     int x = (mouse_x - 60) / 25;
     int y = mouse_y / 25;
 
     if (mouse_byte[0] & 0x01) { // left click
         if (in_chess_game) {
             if (x >= 0 && x < 8 && y >= 0 && y < 8) {
-                if (!chosen_piece) {
-                    remove_cursor();
-                    cursor_pos[0] = x;
-                    cursor_pos[1] = y;
-                    print_cursor();
+                remove_cursor();
+                cursor_pos[0] = x;
+                cursor_pos[1] = y;
+                print_cursor();
+
+                if (!chosen_piece && chess_board[y][x] != 0) {
+                    bool is_white = !(chess_board[y][x] >= 97);
+                    if (is_white != white_turn) {
+                        return;
+                    }
 
                     chosen_piece_pos[0] = cursor_pos[0];
                     chosen_piece_pos[1] = cursor_pos[1];

@@ -116,6 +116,10 @@ void print_mouse(int x, int y) {
 
             if (color == 0xff) {
                 continue;
+            } else if (x + i >= 320 || y + j >= 200) {
+                continue;
+            } else if (x + i < 0 || y + j < 0) {
+                continue;
             }
 
             vga_plot_pixel(i + x, j + y, color);
