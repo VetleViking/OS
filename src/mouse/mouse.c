@@ -39,7 +39,7 @@ int mouse_img[176] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 
 };
 
-int under_mouse[176] = {0xff};
+int under_mouse[176] = {0};
 
 
 typedef struct {
@@ -72,6 +72,14 @@ void edit_mouse_handler(void (*func)(int8_t mouse_byte[3]), bool should_call) {
         if (mouse_handlers[i].func == func) {
             mouse_handlers[i].should_call = should_call;
             return;
+        }
+    }
+}
+
+void init_under_mouse() {
+    for (int i = 0; i < MOUSE_WIDTH; i++) {
+        for (int j = 0; j < MOUSE_HEIGHT; j++) {
+            under_mouse[j * MOUSE_WIDTH + i] = 0xff;
         }
     }
 }
@@ -196,4 +204,5 @@ void mouse_install() {
 	mouse_read();
 	irq_install_handler(12, mouse_handler);
     init_mouse_handlers();
+    init_under_mouse();
 }
