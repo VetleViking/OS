@@ -25,26 +25,26 @@ combineFiles: compileKernel
 # Compiles the c and asm files to object files.
 # If you add a new c file, you need to add it to the compileKernel command.
 compileKernel: compileBoot
-	cd src && i386-elf-gcc -c kernel.c -o kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c games/minesweeper.c -o minesweeper.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c games/tower_defense.c -o tower_defense.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c games/rock_paper_scissors.c -o rock_paper_scissors.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c games/tic_tac_toe.c -o tic_tac_toe.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c games/game_of_life.c -o game_of_life.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include	
-	cd src && i386-elf-gcc -c games/pong.c -o pong.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include	
-	cd src && i386-elf-gcc -c text_editor/execute_text.c -o execute_text.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c text_editor/text_editor.c -o text_editor.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c keyboard/keyboard_handler.c -o keyboard_handler.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c keyboard/keyboard_layouts.c -o keyboard_layouts.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c graphics/vga.c -o vga.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c graphics/bga.c -o bga.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c other/calculator.c -o calculator.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c abbreviation_stuff/gdt.c -o gdt.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c abbreviation_stuff/idt.c -o idt.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c abbreviation_stuff/irq.c -o irq.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include
-	cd src && i386-elf-gcc -c games/chess/chess.c -o chess.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include	
-	cd src && i386-elf-gcc -c games/chess/chess_bot.c -o chess_bot.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include	
-	cd src && i386-elf-gcc -c mouse/mouse_test.c -o mouse_test.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I include	
+	cd src && i386-elf-gcc -c kernel.c -o kernel.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c games/minesweeper.c -o minesweeper.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c games/tower_defense.c -o tower_defense.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c games/rock_paper_scissors.c -o rock_paper_scissors.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c games/tic_tac_toe.c -o tic_tac_toe.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c games/game_of_life.c -o game_of_life.o -std=gnu99 -ffreestanding -O2 -w -I include	
+	cd src && i386-elf-gcc -c games/pong.c -o pong.o -std=gnu99 -ffreestanding -O2 -w -I include	
+	cd src && i386-elf-gcc -c text_editor/execute_text.c -o execute_text.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c text_editor/text_editor.c -o text_editor.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c keyboard/keyboard_handler.c -o keyboard_handler.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c keyboard/keyboard_layouts.c -o keyboard_layouts.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c graphics/vga.c -o vga.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c graphics/bga.c -o bga.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c other/calculator.c -o calculator.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c abbreviation_stuff/gdt.c -o gdt.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c abbreviation_stuff/idt.c -o idt.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c abbreviation_stuff/irq.c -o irq.o -std=gnu99 -ffreestanding -O2 -w -I include
+	cd src && i386-elf-gcc -c games/chess/chess.c -o chess.o -std=gnu99 -ffreestanding -O2 -w -I include	
+	cd src && i386-elf-gcc -c games/chess/chess_bot.c -o chess_bot.o -std=gnu99 -ffreestanding -O2 -w -I include	
+	cd src && i386-elf-gcc -c mouse/mouse_test.c -o mouse_test.o -std=gnu99 -ffreestanding -O2 -w -I include	
 
 
 
