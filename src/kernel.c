@@ -1,4 +1,5 @@
 #include <system.h>
+#include <test_img.h>
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -724,6 +725,20 @@ void check_for_command() {
 			bga_draw_rectangle(0, 0, 800, 600, 0x00FF00);
 		} else {
 			terminal_writestring("BGA is not available");
+		}
+	} else if (strcmp(command, "bga test 2") == 0) {
+		if (bga_is_available()) {
+			bga_set_video_mode(1920, 1080, 32, 1, 1);
+			
+			for (int i = 0; i < TEST_IMG_WIDTH; i++) {
+				for (int j = 0; j < TEST_IMG_HEIGHT; j++) {
+					unsigned int color = test_img[j * TEST_IMG_WIDTH + i];
+
+					bga_plot_pixel(i, j, color);
+				}
+			}
+		} else {
+			draw_rectangle(0, 0, 100, 100, VGA_COLOR_WHITE);
 		}
 	} else if (strcmp(command, "exception test") == 0) {
 		int a = 1 / 0;

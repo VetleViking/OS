@@ -4,7 +4,6 @@
 
 #include <system.h> 
 #include <chess.h>
-#include <test_img.h>
 #include <chess_pieces.h>
 
 #include <stdbool.h>
@@ -894,20 +893,6 @@ void chess_play() {
 
     draw_circle(50, 50, 5, VGA_COLOR_WHITE);
     draw_triangle(60, 60, 45, 40, 30, 60, VGA_COLOR_WHITE);
-
-    if (bga_is_available()) {
-        bga_set_video_mode(1920, 1080, 32, 1, 1);
-        
-        for (int i = 0; i < TEST_IMG_WIDTH; i++) {
-            for (int j = 0; j < TEST_IMG_HEIGHT; j++) {
-                unsigned int color = test_img[j * TEST_IMG_WIDTH + i];
-
-                bga_plot_pixel(i, j, color);
-            }
-        }
-    } else {
-        draw_rectangle(0, 0, 100, 100, VGA_COLOR_WHITE);
-    }
 
     while (in_chess) {
         sleep(100); // sleep for 0.1s
