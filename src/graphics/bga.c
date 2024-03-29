@@ -80,7 +80,7 @@ void bga_clear_screen() {
     }
 }
 
-void bga_draw_rectangle(int x, int y, int width, int height, unsigned short color) {
+void bga_draw_rectangle(int x, int y, int width, int height, unsigned int color) {
     for (int i = x; i < x + width; i++) {
         for (int j = y; j < y + height; j++) {
             bga_plot_pixel(i, j, color);
@@ -88,7 +88,7 @@ void bga_draw_rectangle(int x, int y, int width, int height, unsigned short colo
     }
 }
 
-void bga_draw_circle(int x, int y, int radius, unsigned short color) {
+void bga_draw_circle(int x, int y, int radius, unsigned int color) {
     for (int i = 0; i < 1920; i++) {
         for (int j = 0; j < 1080; j++) {
             if ((i-x)*(i-x) + (j-y)*(j-y) <= radius*radius) {
@@ -98,7 +98,7 @@ void bga_draw_circle(int x, int y, int radius, unsigned short color) {
     }
 }
 
-void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color) {
+void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned int color) {
     for (int i = 0; i < 1920; i++) {
         for (int j = 0; j < 1080; j++) {
             if ((i-x1)*(y2-y1) - (x2-x1)*(j-y1) > 0 && (i-x2)*(y3-y2) - (x3-x2)*(j-y2) > 0 && (i-x3)*(y1-y3) - (x1-x3)*(j-y3) > 0) {

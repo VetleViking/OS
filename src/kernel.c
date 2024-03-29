@@ -1,5 +1,6 @@
 #include <system.h>
 #include <test_img.h>
+#include <test_img_2.h>
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -730,15 +731,38 @@ void check_for_command() {
 		if (bga_is_available()) {
 			bga_set_video_mode(1920, 1080, 32, 1, 1);
 			
-			for (int i = 0; i < TEST_IMG_WIDTH; i++) {
-				for (int j = 0; j < TEST_IMG_HEIGHT; j++) {
-					unsigned int color = test_img[j * TEST_IMG_WIDTH + i];
+			for (int i = 0; i < TEST_IMG_2_WIDTH; i++) {
+				for (int j = 0; j < TEST_IMG_2_HEIGHT; j++) {
+					unsigned int color = test_img_2[j * TEST_IMG_2_WIDTH + i];
 
 					bga_plot_pixel(i, j, color);
 				}
 			}
 		} else {
-			draw_rectangle(0, 0, 100, 100, VGA_COLOR_WHITE);
+			terminal_writestring("BGA is not available");
+		}
+	} else if (strcmp(command, "bga test 3") == 0) {
+		if (bga_is_available()) {
+			bga_set_video_mode(640, 480, 32, 1, 1);
+			int positions[8][2] = {{0, 0}, {16, 0}, {32, 0}, {48, 0}, {64, 0}, {80, 0}, {0, 16}, {16, 16}};
+			int width = 16;
+			int height = 16;
+
+			for (int i = 0; i < 8; i++) {
+				for (int j = 0; j < width; j++) {
+					for (int k = 0; k < height; k++) {
+						unsigned int color = test_img[(k + positions[i][1]) * TEST_IMG_WIDTH + (j + positions[i][0])];
+
+						bga_draw_rectangle(j * 4, k * 4, 4, 4, color);
+					}
+				}
+				
+				sleep(100);
+			}
+			
+
+		} else {
+			terminal_writestring("BGA is not available");
 		}
 	} else if (strcmp(command, "exception test") == 0) {
 		int a = 1 / 0;

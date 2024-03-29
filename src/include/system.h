@@ -164,9 +164,9 @@ extern void bga_set_video_mode(unsigned int Width, unsigned int Height, unsigned
 extern void bga_set_bank(unsigned short BankNumber);
 extern void bga_plot_pixel(int x, int y, unsigned int color);
 extern void bga_clear_screen();
-extern void bga_draw_rectangle(int x, int y, int width, int height, unsigned short color);
-extern void bga_draw_circle(int x, int y, int radius, unsigned short color);
-extern void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color);
+extern void bga_draw_rectangle(int x, int y, int width, int height, unsigned int color);
+extern void bga_draw_circle(int x, int y, int radius, unsigned int color);
+extern void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned int color);
 
 /* Calculator */
 extern bool in_calculator;
