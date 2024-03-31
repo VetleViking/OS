@@ -210,4 +210,9 @@ extern void edit_mouse_handler(void (*handler)(int8_t mouse_byte[3]), bool shoul
 extern void print_mouse(int x, int y);
 extern void remove_mouse(int x, int y);
 
+/* Keyboard */
+extern void keyboard_install();
+extern void keyboard_interrupt_handler(struct regs *r);
+
+
 #endif
