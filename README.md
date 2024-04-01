@@ -1,5 +1,5 @@
 # OS
-Trying to make an os, because it looks fun, and want to learn more about C and ASM.
+Trying to make an os, because it looks fun, and i want to learn more about C and ASM.
 
 
 ## Running the OS
