@@ -36,7 +36,7 @@ compileKernel: compileBoot
 	cd src && i386-elf-gcc -c text_editor/text_editor.c -o text_editor.o -std=gnu99 -ffreestanding -O2 -w -I include
 	cd src && i386-elf-gcc -c keyboard/keyboard_handler.c -o keyboard_handler.o -std=gnu99 -ffreestanding -O2 -w -I include
 	cd src && i386-elf-gcc -c keyboard/keyboard_layouts.c -o keyboard_layouts.o -std=gnu99 -ffreestanding -O2 -w -I include
-	cd src && i386-elf-gcc -c keyboard.o/keyboard.o.c -o keyboard.o -std=gnu99 -ffreestanding -O2 -w -I include	
+	cd src && i386-elf-gcc -c keyboard/keyboard.c -o keyboard.o -std=gnu99 -ffreestanding -O2 -w -I include	
 	cd src && i386-elf-gcc -c graphics/vga.c -o vga.o -std=gnu99 -ffreestanding -O2 -w -I include
 	cd src && i386-elf-gcc -c graphics/bga.c -o bga.o -std=gnu99 -ffreestanding -O2 -w -I include
 	cd src && i386-elf-gcc -c other/calculator.c -o calculator.o -std=gnu99 -ffreestanding -O2 -w -I include
