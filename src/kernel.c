@@ -1,6 +1,5 @@
 #include <system.h>
 #include <test_img.h>
-#include <test_img_2.h>
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -724,20 +723,6 @@ void check_for_command() {
 			terminal_writestring("BGA is not available");
 		}
 	} else if (strcmp(command, "bga test 2") == 0) {
-		if (bga_is_available()) {
-			bga_set_video_mode(1920, 1080, 32, 1, 1);
-			
-			for (int i = 0; i < TEST_IMG_2_WIDTH; i++) {
-				for (int j = 0; j < TEST_IMG_2_HEIGHT; j++) {
-					unsigned int color = test_img_2[j * TEST_IMG_2_WIDTH + i];
-
-					bga_plot_pixel(i, j, color);
-				}
-			}
-		} else {
-			terminal_writestring("BGA is not available");
-		}
-	} else if (strcmp(command, "bga test 3") == 0) {
 		if (bga_is_available()) {
 			bga_set_video_mode(640, 480, 32, 1, 1);
 			int positions[8][2] = {{0, 0}, {16, 0}, {32, 0}, {48, 0}, {64, 0}, {80, 0}, {0, 16}, {16, 16}};
