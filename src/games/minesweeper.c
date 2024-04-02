@@ -377,6 +377,7 @@ void mine_sweeper_play() {
 	is_writing_command = true;
 	in_mine_sweeper = true;
 
+
 	print_ms_map();
 
 	while (in_mine_sweeper) {
@@ -388,10 +389,17 @@ void mine_sweeper_play() {
 
 		sleep(framerate);
 	}
+
+	remove_keyboard_handler(ms_keyboard_handler);
+	remove_main_loop_call(mine_sweeper_play);
 }
 
 
-void mine_sweeper_start() {
+void mine_sweeper_start() {	
+	
+	add_keyboard_handler(ms_keyboard_handler);
+	add_main_loop_call(mine_sweeper_play);
+
 	start_ms_time = timer_ticks;
 
 	check_scroll = false;	

@@ -43,7 +43,7 @@ void mouse_test() {
     mouse_x = 160;
     mouse_y = 100;
 
-    add_mouse_handler(mouse_test_handler, true);
+    add_mouse_handler(mouse_test_handler);
 }
 
 

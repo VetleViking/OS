@@ -46,7 +46,6 @@ int under_mouse[176] = {0};
 
 typedef struct {
     void (*func)(int8_t mouse_byte[3]);
-    bool should_call;
 } mouse_handler_t;
 
 #define MAX_MOUSE_HANDLERS 10
@@ -55,24 +54,22 @@ mouse_handler_t mouse_handlers[MAX_MOUSE_HANDLERS];
 void init_mouse_handlers() {
     for (int i = 0; i < MAX_MOUSE_HANDLERS; i++) {
         mouse_handlers[i].func = NULL;
-        mouse_handlers[i].should_call = false;
     }
 }
 
-void add_mouse_handler(void (*func)(int8_t mouse_byte[3]), bool should_call) {
+void add_mouse_handler(void (*func)(int8_t mouse_byte[3])) {
     for (int i = 0; i < MAX_MOUSE_HANDLERS; i++) {
         if (mouse_handlers[i].func == NULL) {
             mouse_handlers[i].func = func;
-            mouse_handlers[i].should_call = should_call;
             return;
         }
     }
 }
 
-void edit_mouse_handler(void (*func)(int8_t mouse_byte[3]), bool should_call) {
+void remove_mouse_handler(void (*func)(int8_t mouse_byte[3])) {
     for (int i = 0; i < MAX_MOUSE_HANDLERS; i++) {
         if (mouse_handlers[i].func == func) {
-            mouse_handlers[i].should_call = should_call;
+            mouse_handlers[i].func = NULL;
             return;
         }
     }
@@ -173,7 +170,7 @@ void mouse_handler(struct regs *r) {
                     }
 
                     for (int i = 0; i < MAX_MOUSE_HANDLERS; i++) {
-                        if (mouse_handlers[i].should_call && mouse_handlers[i].func != NULL) {
+                        if (mouse_handlers[i].func != NULL) {
                             mouse_handlers[i].func(mouse_byte);
                         }
                     }

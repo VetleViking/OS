@@ -71,6 +71,8 @@ extern void itoa(int value, char* str, int base);
 extern void terminal_putchar(unsigned char c);
 extern void outportb(unsigned short port, unsigned char value);
 extern __inline unsigned char inb (unsigned short int port);
+extern void add_main_loop_call(void (*func)());
+extern void remove_main_loop_call(void (*func)());
 
 
 /* Minesweeper */
@@ -78,14 +80,6 @@ extern bool in_mine_sweeper;
 
 extern void mine_sweeper_start();
 extern void mine_sweeper_play(); 
-
-
-/* Tower defense */
-extern bool in_TD;
-
-extern void tower_defense_start();
-extern void tower_defense_play();
-
 
 /* Game of life */
 extern bool in_game_of_life;
@@ -205,14 +199,16 @@ extern int mouse_y;
 /* Mouse */
 extern void mouse_install();
 extern void mouse_handler(struct regs *r);
-extern void add_mouse_handler(void (*handler)(int8_t mouse_byte[3]), bool should_call);
-extern void edit_mouse_handler(void (*handler)(int8_t mouse_byte[3]), bool should_call);
+extern void add_mouse_handler(void (*handler)(int8_t mouse_byte[3]));
+extern void edit_mouse_handler(void (*handler)(int8_t mouse_byte[3]));
 extern void print_mouse(int x, int y);
 extern void remove_mouse(int x, int y);
 
 /* Keyboard */
 extern void keyboard_install();
 extern void keyboard_interrupt_handler(struct regs *r);
+extern void add_keyboard_handler(void (*func)(unsigned char c));
+extern void remove_keyboard_handler(void (*func)(unsigned char c));	
 
 
 #endif

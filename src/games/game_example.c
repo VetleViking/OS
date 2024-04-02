@@ -37,6 +37,9 @@ void gamename_play() {
 }  
 
 void gamename_start() {
+    add_keyboard_handler(gamename_keyboard_handler);
+    add_main_loop_call(gamename_play);
+
     in_gamename = true;
 
     vga_enter(); // if the game uses VGA

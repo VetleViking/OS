@@ -906,10 +906,14 @@ void chess_play() {
 
     // exit stuff
     vga_exit(); // not working
-
+    remove_keyboard_handler(chess_keyboard_handler);
+    remove_main_loop_call(chess_play);
 }  
 
 void chess_start() {
+    add_keyboard_handler(chess_keyboard_handler);
+    add_main_loop_call(chess_play);
+
     in_chess = true;
     in_chess_game = true;
 
@@ -918,7 +922,7 @@ void chess_start() {
 
     mouse_x = 160;
     mouse_y = 100;
-    add_mouse_handler(chess_mouse_handler, true);
+    add_mouse_handler(chess_mouse_handler);
 
     cursor_pos[0] = 0;
     cursor_pos[1] = 7;

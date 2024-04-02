@@ -142,12 +142,16 @@ void game_of_life_play() {
                 }
             }            
         }
-
-        // do the other game of life stuff
     }
+
+    remove_keyboard_handler(gol_keyboard_handler);
+    remove_main_loop_call(game_of_life_play);
 }  
 
 void game_of_life_start() {
+    add_keyboard_handler(gol_keyboard_handler);
+    add_main_loop_call(game_of_life_play);
+
     in_game_of_life = true;
 
     vga_enter();

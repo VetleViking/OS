@@ -236,9 +236,14 @@ void pong_play() {
         
         // End ball movement
     }
+
+    remove_keyboard_handler(pong_keyboard_handler);
+    remove_main_loop_call(pong_play);
 }  
 
 void pong_start() {
+    add_keyboard_handler(pong_keyboard_handler);
+    add_main_loop_call(pong_play);
     in_pong = true;
 
     vga_enter();

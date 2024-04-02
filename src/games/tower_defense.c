@@ -1,3 +1,6 @@
+// outdated and jank
+// will maybe make better later, will keep for reference
+
 #include <system.h>
 
 #include <stdbool.h>

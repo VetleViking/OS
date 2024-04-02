@@ -320,8 +320,6 @@ void game_handler() {
 		rock_paper_scissors();
 	} else if (strcmp(game, "tic tac toe") == 0 || strcmp(game, "TTT") == 0) {
 		tic_tac_toe();
-	} else if (strcmp(game, "tower defense") == 0 || strcmp(game, "TD") == 0) {
-		tower_defense_start();
 	} else if (strcmp(game, "minesweeper") == 0 || strcmp(game, "MS") == 0) {
 		mine_sweeper_start();
 	} else if (strcmp(game, "game of life") == 0 || strcmp(game, "GOL") == 0) {
@@ -697,8 +695,6 @@ void check_for_command() {
 		terminal_writestring("rock paper scissors - RPS");
 		newline();
 		terminal_writestring("tic tac toe - TTT");
-		newline();
-		terminal_writestring("tower defense - TD");
 		newline();
 		terminal_writestring("minesweeper - MS params: -w[num] (width), -h[num] (height), -m[num] (mines)");
 	} else if (strcmp(command, "uptime") == 0) {
@@ -1158,7 +1154,36 @@ void fault_handler(struct regs *r) {
 
 
 
+typedef struct {
+    void (*func)();
+} main_loop_call_t;
 
+#define MAX_MAIN_LOOP_CALLS 10
+main_loop_call_t main_loop_calls[MAX_MAIN_LOOP_CALLS];
+
+void init_main_loop_calls() {
+    for (int i = 0; i < MAX_MAIN_LOOP_CALLS; i++) {
+        main_loop_calls[i].func = NULL;
+    }
+}
+
+void add_main_loop_call(void (*func)()) {
+	for (int i = 0; i < MAX_MAIN_LOOP_CALLS; i++) {
+		if (main_loop_calls[i].func == NULL) {
+			main_loop_calls[i].func = func;
+			return;
+		}
+	}
+}
+
+void remove_main_loop_call(void (*func)()) {
+	for (int i = 0; i < MAX_MAIN_LOOP_CALLS; i++) {
+		if (main_loop_calls[i].func == func) {
+			main_loop_calls[i].func = NULL;
+			return;
+		}
+	}
+}
 
 
 bool main_exit_flag = false;
@@ -1170,6 +1195,7 @@ void kernel_main(void) {
 	idt_install();
 	isrs_install();
 	irq_install();
+	init_main_loop_calls();
 	
 	__asm__ __volatile__ ("sti");
 
@@ -1208,40 +1234,12 @@ void kernel_main(void) {
 	move_cursor(terminal_column, terminal_row);
 
 	while (!main_exit_flag) {
-		bool was_writing_command = is_writing_command; // temporary, used for bug testing
-		is_writing_command = false;
-		
-		if (in_TD) {
-			is_writing_command = true;
-			tower_defense_play();
-		}
-
-		if (in_mine_sweeper) {
-			is_writing_command = true;
-			mine_sweeper_play();
-		}
-
-		if (in_game_of_life) {
-			is_writing_command = true;
-			game_of_life_play();
-		}
-
-		if (in_pong) {
-			is_writing_command = true;
-			pong_play();
-		}
-
-		if (in_chess) {
-			is_writing_command = true;
-			chess_play();
-		}
-
-		if (in_mouse_test) {
-			is_writing_command = true;
-			mouse_test_loop();
+		for (int i = 0; i < MAX_MAIN_LOOP_CALLS; i++) {
+			if (main_loop_calls[i].func != NULL) {
+				main_loop_calls[i].func();
+			}
 		}
 		
-		is_writing_command = was_writing_command; // end of temporary
 		sleep(1);
 	}
 }
