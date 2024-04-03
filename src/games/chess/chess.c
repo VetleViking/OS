@@ -699,31 +699,12 @@ void chess_mouse_handler(int8_t mouse_byte[3]) {
     if (mouse_byte[0] & 0x01) { // left click
         if (in_chess_game) {
             if (x >= 0 && x < 8 && y >= 0 && y < 8) {
-                remove_cursor();
                 cursor_pos[0] = x;
                 cursor_pos[1] = y;
+
+                enter_or_left_click();
+
                 print_cursor();
-
-                if (!chosen_piece && chess_board[y][x] != 0) {
-                    bool is_white = !(chess_board[y][x] >= 97);
-                    if (is_white != white_turn) {
-                        return;
-                    }
-
-                    chosen_piece_pos[0] = cursor_pos[0];
-                    chosen_piece_pos[1] = cursor_pos[1];
-                    chosen_piece = true;
-
-                    possible_moves(x, y, true, chess_board);
-                } else if (chosen_piece) {
-                    move_piece(x, y);
-
-                    // for playing with bot
-                    if (!white_turn) {
-                        //chess_bot(white_turn);
-                        chess_bot_experimental(white_turn);  
-                    }
-                }
             }
         }
     }
@@ -833,47 +814,7 @@ void chess_keyboard_handler(int c) {
             chess_print_board(chess_board);
         }
     } else if (c == 28) { // enter
-        char piece[2];
-        piece[0] = chess_board[cursor_pos[1]][cursor_pos[0]];
-        piece[1] = '\0';
-
-        if (piece[0] != 0 && !chosen_piece) {
-            if ((piece[0] < 97 && piece[0] < 97 && white_turn) || (piece[0] >= 97 && !white_turn)) {
-                chosen_piece_pos[0] = cursor_pos[0];
-                chosen_piece_pos[1] = cursor_pos[1];
-                chosen_piece = true;
-            }
-        } else if (chosen_piece) {
-            if (cursor_pos[0] == chosen_piece_pos[0] && cursor_pos[1] == chosen_piece_pos[1]) {
-                chosen_piece = false;
-                chess_print_board(chess_board);
-                return;
-            }
-
-            for (int i = 0; i < len_pm_pos; i++) {
-                if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
-                    move_piece(cursor_pos[0], cursor_pos[1]);
-
-                    // for playing with bot
-                    if (!white_turn) {
-                        //chess_bot(white_turn);
-                        chess_bot_experimental(white_turn);  
-                    }
-
-                    chess_print_board(chess_board);
-                    return;
-                }
-            }
-
-            if ((piece[0] < 97 && piece[0] > 0 && white_turn) || (piece[0] >= 97 && !white_turn)) {
-                chosen_piece_pos[0] = cursor_pos[0];
-                chosen_piece_pos[1] = cursor_pos[1];
-            } else {
-                chosen_piece = false;
-            }
-        }
-        
-        chess_print_board(chess_board);
+        enter_or_left_click();
     } else if (c == 1) { // esc
         winner = 1;
         in_chess_game = false;
@@ -884,6 +825,50 @@ void chess_keyboard_handler(int c) {
             chess_bot_experimental(white_turn);
         }
     }
+}
+
+void enter_or_left_click() {
+    char piece[2];
+    piece[0] = chess_board[cursor_pos[1]][cursor_pos[0]];
+    piece[1] = '\0';
+
+    if (piece[0] != 0 && !chosen_piece) {
+        if ((piece[0] < 97 && piece[0] < 97 && white_turn) || (piece[0] >= 97 && !white_turn)) {
+            chosen_piece_pos[0] = cursor_pos[0];
+            chosen_piece_pos[1] = cursor_pos[1];
+            chosen_piece = true;
+        }
+    } else if (chosen_piece) {
+        if (cursor_pos[0] == chosen_piece_pos[0] && cursor_pos[1] == chosen_piece_pos[1]) {
+            chosen_piece = false;
+            chess_print_board(chess_board);
+            return;
+        }
+
+        for (int i = 0; i < len_pm_pos; i++) {
+            if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
+                move_piece(cursor_pos[0], cursor_pos[1]);
+
+                // for playing with bot
+                if (!white_turn) {
+                    //chess_bot(white_turn);
+                    chess_bot_experimental(white_turn);  
+                }
+
+                chess_print_board(chess_board);
+                return;
+            }
+        }
+
+        if ((piece[0] < 97 && piece[0] > 0 && white_turn) || (piece[0] >= 97 && !white_turn)) {
+            chosen_piece_pos[0] = cursor_pos[0];
+            chosen_piece_pos[1] = cursor_pos[1];
+        } else {
+            chosen_piece = false;
+        }
+    }
+    
+    chess_print_board(chess_board);
 }
 
 void chess_play() {
