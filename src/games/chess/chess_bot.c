@@ -582,11 +582,11 @@ void chess_bot_experimental(bool is_white) {
         print_whole_num(0, 20 + (i * 20), test3[i]);
     }
 
+    // 0 total
     // 1 + (taking piece), 2 - (moving piece threatened)
     //3 - (other of bots pieces threatened), 4 + (enemies pieces threatened)
     // 5 + (if piece moving is threatening pieces), 6 - (repeat move)
     // 7 -/+ (castling / king moving), 8 + (middle pawn moving / pawn moving two), 9 + (king protecting bonus)
-
 
     possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board);
 

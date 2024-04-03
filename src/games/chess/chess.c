@@ -437,7 +437,7 @@ void remove_cursor() {
     int color = (cursor_pos[0] + cursor_pos[1]) % 2 == 0 ? color_light : color_dark;
     draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, color, true);
     if (piece[0] != 0) {
-        draw_piece(cursor_pos[0], cursor_pos[1], piece[0], true);
+        draw_piece(cursor_pos[0], cursor_pos[1], piece[0]);
     }
     if (chosen_piece) {
         for (int i = 0; i < len_pm_pos; i++) {
@@ -466,7 +466,13 @@ void chess_print_board(char board[8][8]) {
         }
     }
 
+    if (chosen_piece) {
+        possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], true, board);
+    }
+
     print_cursor();
+
+    vga_print_frame_buffer();
 }
 
 void move_piece(int x, int y) {
@@ -622,7 +628,6 @@ void move_piece(int x, int y) {
     }
 
     chosen_piece = false;
-    chess_print_board(chess_board);
 }
 
 int is_protected(int x, int y, bool is_white, char board[8][8]) {
@@ -810,24 +815,22 @@ void chess_keyboard_handler(int c) {
             remove_cursor();
             cursor_pos[0]--;
             print_cursor();
+            chess_print_board(chess_board);
         }
     } else if (c == 77) { // right
         if (cursor_pos[0] < 7) {
-            remove_cursor();
             cursor_pos[0]++;
-            print_cursor();
+            chess_print_board(chess_board);
         }
     } else if (c == 72) { // up
         if (cursor_pos[1] > 0) {
-            remove_cursor();
             cursor_pos[1]--;
-            print_cursor();
+            chess_print_board(chess_board);
         }
 	} else if (c == 80) { // down
         if (cursor_pos[1] < 7) {
-            remove_cursor();
             cursor_pos[1]++;
-            print_cursor();
+            chess_print_board(chess_board);
         }
     } else if (c == 28) { // enter
         char piece[2];
@@ -835,22 +838,42 @@ void chess_keyboard_handler(int c) {
         piece[1] = '\0';
 
         if (piece[0] != 0 && !chosen_piece) {
-            if ((piece[0] < 97 && white_turn) || (piece[0] >= 97 && !white_turn)) {
+            if ((piece[0] < 97 && piece[0] < 97 && white_turn) || (piece[0] >= 97 && !white_turn)) {
                 chosen_piece_pos[0] = cursor_pos[0];
                 chosen_piece_pos[1] = cursor_pos[1];
                 chosen_piece = true;
-
-                possible_moves(cursor_pos[0], cursor_pos[1], true, chess_board); 
             }
         } else if (chosen_piece) {
-            move_piece(cursor_pos[0], cursor_pos[1]);
+            if (cursor_pos[0] == chosen_piece_pos[0] && cursor_pos[1] == chosen_piece_pos[1]) {
+                chosen_piece = false;
+                chess_print_board(chess_board);
+                return;
+            }
 
-            // for playing with bot
-            if (!white_turn) {
-                //chess_bot(white_turn);
-                chess_bot_experimental(white_turn);  
+            for (int i = 0; i < len_pm_pos; i++) {
+                if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
+                    move_piece(cursor_pos[0], cursor_pos[1]);
+
+                    // for playing with bot
+                    if (!white_turn) {
+                        //chess_bot(white_turn);
+                        chess_bot_experimental(white_turn);  
+                    }
+
+                    chess_print_board(chess_board);
+                    return;
+                }
+            }
+
+            if ((piece[0] < 97 && piece[0] > 0 && white_turn) || (piece[0] >= 97 && !white_turn)) {
+                chosen_piece_pos[0] = cursor_pos[0];
+                chosen_piece_pos[1] = cursor_pos[1];
+            } else {
+                chosen_piece = false;
             }
         }
+        
+        chess_print_board(chess_board);
     } else if (c == 1) { // esc
         winner = 1;
         in_chess_game = false;

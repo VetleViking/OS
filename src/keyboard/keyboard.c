@@ -44,6 +44,7 @@ void keyboard_interrupt_handler(struct regs *r) {
 	for (int i = 0; i < MAX_KEYBOARD_HANDLERS; i++) {
 		if (keyboard_handlers[i].func != NULL) {
 			keyboard_handlers[i].func(c);
+			return;
 		}
 	}
 
