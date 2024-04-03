@@ -129,7 +129,7 @@ void print_mouse(int x, int y) {
                 continue;
             }
 
-            vga_plot_pixel(i + x, j + y, color);
+            vga_plot_pixel(i + x, j + y, color, false);
         }
     }
 }
@@ -143,7 +143,7 @@ void remove_mouse(int x, int y) {
                 continue;
             }
 
-            vga_plot_pixel(i + x, j + y, color);
+            vga_plot_pixel(i + x, j + y, color, false);
         }
     }
 }

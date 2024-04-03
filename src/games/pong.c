@@ -21,72 +21,72 @@ int ball_dir = 0;
 // this function will draw the number at the given x and y coordinates
 // the number is 40 pixels high and 25 pixels wide
 void print_number(int x, int y, int number) {
-    draw_rectangle(x, y, 25, 40, VGA_COLOR_BLACK);
+    draw_rectangle(x, y, 25, 40, VGA_COLOR_BLACK, false);
 
     switch (number) {
         case 0:
-            draw_rectangle(x, y, 25, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x + 3, y + 3, 19, 34, VGA_COLOR_BLACK);            
+            draw_rectangle(x, y, 25, 40, VGA_COLOR_WHITE, false);
+            draw_rectangle(x + 3, y + 3, 19, 34, VGA_COLOR_BLACK, false);            
             break;
 
         case 1:
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);            
+            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE, false);            
             break;
 
         case 2:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 20, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x + 22, y, 3, 20, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 20, 3, 20, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE, false);
             break;
 
         case 3:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE, false);
             break;
 
         case 4: 
-            draw_rectangle(x, y, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 3, 20, VGA_COLOR_WHITE, false);
+            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE, false);
             break;
 
         case 5:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y + 20, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y, 3, 20, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x + 22, y + 20, 3, 20, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE, false);
             break;
 
         case 6:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y, 3, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y + 20, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y, 3, 40, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x + 22, y + 20, 3, 20, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE, false);
             break;
 
         case 7:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE, false);
             break;
 
         case 8:
-            draw_rectangle(x, y, 25, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x + 3, y + 3, 19, 34, VGA_COLOR_BLACK); 
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 25, 40, VGA_COLOR_WHITE, false);
+            draw_rectangle(x + 3, y + 3, 19, 34, VGA_COLOR_BLACK, false); 
+            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE, false);
             break;
 
         case 9:
-            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE);
-            draw_rectangle(x, y, 3, 20, VGA_COLOR_WHITE);
-            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE);
+            draw_rectangle(x, y, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x + 22, y, 3, 40, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 19, 25, 3, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y, 3, 20, VGA_COLOR_WHITE, false);
+            draw_rectangle(x, y + 37, 25, 3, VGA_COLOR_WHITE, false);
             break;
     };
 }
@@ -94,7 +94,7 @@ void print_number(int x, int y, int number) {
 
 void pong_draw_map_parts() {
     for (int i = 5; i < 200; i += 15) {
-        draw_rectangle(159, i, 3, 10, VGA_COLOR_WHITE);
+        draw_rectangle(159, i, 3, 10, VGA_COLOR_WHITE, false);
     }
 
     if (p1_score >= 10) {
@@ -113,9 +113,9 @@ void pong_draw_map_parts() {
 
 
 void pong_make_map() {
-    draw_rectangle(10, 80, 3, 40, VGA_COLOR_WHITE);
+    draw_rectangle(10, 80, 3, 40, VGA_COLOR_WHITE, false);
 
-    draw_rectangle(310, 80, 3, 40, VGA_COLOR_WHITE);
+    draw_rectangle(310, 80, 3, 40, VGA_COLOR_WHITE, false);
 
     pong_draw_map_parts();
 }
@@ -123,44 +123,44 @@ void pong_make_map() {
 void pong_keyboard_handler(c) {
     if (c == 72) { // up
         if (p2_pos > 0) {
-            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK);
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK, false);
             p2_pos -= 5;
-            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE, false);
         }
         if (p2_pos > 0) {
-            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK);
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK, false);
             p2_pos -= 5;
-            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE, false);
         }
 	} else if (c == 80) { // down
         if (p2_pos < 160) {
-            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK);
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_BLACK, false);
             p2_pos += 5;
-            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(310, p2_pos, 3, 40, VGA_COLOR_WHITE, false);
         }
     } else if (c == 17) { // w
         if (p1_pos > 0) {
-            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK);
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK, false);
             p1_pos -= 5;
-            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE, false);
         }
     } else if (c == 31) { // s
         if (p1_pos < 160) {
-            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK);
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK, false);
             p1_pos += 5;
-            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE, false);
         }
     } else if (c == 17) { // w
         if (p1_pos > 0) {
-            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK);
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK, false);
             p1_pos -= 5;
-            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE, false);
         }
     } else if (c == 31) { // s
         if (p1_pos < 160) {
-            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK);
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_BLACK, false);
             p1_pos += 5;
-            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE);
+            draw_rectangle(10, p1_pos, 3, 40, VGA_COLOR_WHITE, false);
         }
     }
 }
@@ -181,14 +181,14 @@ void pong_play() {
         if (ball_pos[0] < 0) {
             p2_score++;
             print_number(170, 5, p2_score);
-            draw_rectangle(ball_pos[0], ball_pos[1], 3, 40, VGA_COLOR_BLACK);
+            draw_rectangle(ball_pos[0], ball_pos[1], 3, 40, VGA_COLOR_BLACK, false);
             ball_pos[0] = 160;
             ball_pos[1] = 100;
             ball_dir = 0;
         } else if (ball_pos[0] > 315) {
             p1_score++;
             print_number(125, 5, p1_score);
-            draw_rectangle(ball_pos[0], ball_pos[1], 3, 40, VGA_COLOR_BLACK);
+            draw_rectangle(ball_pos[0], ball_pos[1], 3, 40, VGA_COLOR_BLACK, false);
             ball_pos[0] = 160;
             ball_pos[1] = 100;
             ball_dir = 0;
@@ -205,7 +205,7 @@ void pong_play() {
             } while (ball_dir < 1 || ball_dir > 4);
         }
 
-        draw_rectangle(ball_pos[0], ball_pos[1], 3, 3, VGA_COLOR_BLACK);
+        draw_rectangle(ball_pos[0], ball_pos[1], 3, 3, VGA_COLOR_BLACK, false);
 
         switch (ball_dir) {
             case 1:
@@ -232,7 +232,7 @@ void pong_play() {
         }
 
         pong_draw_map_parts();
-        draw_rectangle(ball_pos[0], ball_pos[1], 3, 3, VGA_COLOR_WHITE);
+        draw_rectangle(ball_pos[0], ball_pos[1], 3, 3, VGA_COLOR_WHITE, false);
         
         // End ball movement
     }

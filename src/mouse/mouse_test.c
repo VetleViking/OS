@@ -16,13 +16,13 @@ void mouse_test_handler(int8_t mouse_byte[3]) {
     mouse_y -= mouse_byte[2] * 1;
 
     if (mouse_byte[0] & 0x01) { // left click
-        draw_rectangle(0, 0, 10, 10, VGA_COLOR_BLUE);
+        draw_rectangle(0, 0, 10, 10, VGA_COLOR_BLUE, false);
     }
     if (mouse_byte[0] & 0x02) { // right click
-        draw_rectangle(0, 10, 10, 10, VGA_COLOR_GREEN);
+        draw_rectangle(0, 10, 10, 10, VGA_COLOR_GREEN, false);
     }
     if (mouse_byte[0] & 0x04) { // middle click
-        draw_rectangle(0, 20, 10, 10, VGA_COLOR_RED);
+        draw_rectangle(0, 20, 10, 10, VGA_COLOR_RED, false);
     }
 
     print_mouse(mouse_x, mouse_y);

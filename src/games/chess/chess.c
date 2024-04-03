@@ -129,6 +129,7 @@ int prev_moves_black_len = 0;
 
 
 
+
 void piece_threatened_by(int x, int y, bool is_white, char board[8][8]) {
     threatened_by_len = 0;
 
@@ -210,7 +211,7 @@ bool is_possible_move(int x, int y, bool is_white, bool show_result, char board[
             }
 
             if (show_result) {
-                draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_RED);
+                draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
             }
 
             possible_moves_pos[len_pm_pos][0] = x;
@@ -229,7 +230,7 @@ bool is_possible_move(int x, int y, bool is_white, bool show_result, char board[
         }
 
         if (show_result) {
-            draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_GREEN);
+            draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_GREEN, true);
         }
     }
     possible_moves_pos[len_pm_pos][0] = x;
@@ -251,7 +252,7 @@ void possible_moves(int x, int y, bool show_result, char board[8][8]) {
     struct chess_piece_moves* moves = find_piece(piece);
 
     if (moves == NULL) {
-        draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_GREEN);
+        draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_GREEN, true);
         test++;
         return;
     }
@@ -292,12 +293,12 @@ void possible_moves(int x, int y, bool show_result, char board[8][8]) {
                 if ((pm_two_pos[0] == x - 1 && pm_two_pos[1] == y) && board[y - 1][x - 1] == 0) {
                     is_possible_move(x - 1, y - 1, is_white, show_result, board);
                     if (show_result) {
-                        draw_rectangle(60 + (x - 1) * 25, y * 25, 25, 25, VGA_COLOR_RED);
+                        draw_rectangle(60 + (x - 1) * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
                     }
                 } else if ((pm_two_pos[0] == x + 1 && pm_two_pos[1] == y) && board[y - 1][x + 1] == 0) {
                     is_possible_move(x + 1, y - 1, is_white, show_result, board);
                     if (show_result) {
-                        draw_rectangle(60 + (x + 1) * 25, y * 25, 25, 25, VGA_COLOR_RED);
+                        draw_rectangle(60 + (x + 1) * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
                     }
                 }
             }
@@ -321,12 +322,12 @@ void possible_moves(int x, int y, bool show_result, char board[8][8]) {
                 if ((pm_two_pos[0] == x - 1 && pm_two_pos[1] == y) && board[y + 1][x - 1] == 0) {
                     is_possible_move(x - 1, y + 1, is_white, show_result, board);
                     if (show_result) {
-                        draw_rectangle(60 + (x - 1) * 25, y * 25, 25, 25, VGA_COLOR_RED);
+                        draw_rectangle(60 + (x - 1) * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
                     }
                 } else if ((pm_two_pos[0] == x + 1 && pm_two_pos[1] == y) && board[y + 1][x + 1] == 0) {
                     is_possible_move(x + 1, y + 1, is_white, show_result, board);
                     if (show_result) {
-                        draw_rectangle(60 + (x + 1) * 25, y * 25, 25, 25, VGA_COLOR_RED);
+                        draw_rectangle(60 + (x + 1) * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
                     }
                 }
             }
@@ -394,23 +395,23 @@ void draw_piece(int x, int y, char piece) {
 
  
     if (piece == 'p') { // pawn
-        draw_rectangle(63 + x * 25, 18 + y * 25, 19, 4, color2);
-        draw_rectangle(64 + x * 25, 19 + y * 25, 17, 2, color);
+        draw_rectangle(63 + x * 25, 18 + y * 25, 19, 4, color2, true);
+        draw_rectangle(64 + x * 25, 19 + y * 25, 17, 2, color, true);
     } else if (piece == 'r') { // rook
-        draw_rectangle(63 + x * 25, 15 + y * 25, 19, 7, color2);
-        draw_rectangle(64 + x * 25, 16 + y * 25, 17, 5, color);
+        draw_rectangle(63 + x * 25, 15 + y * 25, 19, 7, color2, true);
+        draw_rectangle(64 + x * 25, 16 + y * 25, 17, 5, color, true);
     } else if (piece == 'n') { // knight
-        draw_rectangle(63 + x * 25, 12 + y * 25, 19, 10, color2);
-        draw_rectangle(64 + x * 25, 13 + y * 25, 17, 8, color);
+        draw_rectangle(63 + x * 25, 12 + y * 25, 19, 10, color2, true);
+        draw_rectangle(64 + x * 25, 13 + y * 25, 17, 8, color, true);
     } else if (piece == 'b') { // bishop
-        draw_rectangle(63 + x * 25, 9 + y * 25, 19, 13, color2);
-        draw_rectangle(64 + x * 25, 10 + y * 25, 17, 11, color);
+        draw_rectangle(63 + x * 25, 9 + y * 25, 19, 13, color2, true);
+        draw_rectangle(64 + x * 25, 10 + y * 25, 17, 11, color, true);
     } else if (piece == 'q') { // queen
-        draw_rectangle(63 + x * 25, 6 + y * 25, 19, 16, color2);
-        draw_rectangle(64 + x * 25, 7 + y * 25, 17, 14, color);
+        draw_rectangle(63 + x * 25, 6 + y * 25, 19, 16, color2, true);
+        draw_rectangle(64 + x * 25, 7 + y * 25, 17, 14, color, true);
     } else if (piece == 'k') { // king
-        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color2);
-        draw_rectangle(64 + x * 25, 4 + y * 25, 17, 17, color);
+        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color2, true);
+        draw_rectangle(64 + x * 25, 4 + y * 25, 17, 17, color, true);
     }
 }
 
@@ -420,8 +421,8 @@ void print_cursor() {
     piece[0] = chess_board[cursor_pos[1]][cursor_pos[0]];
     piece[1] = '\0';
 
-    draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_RED);
-    draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, color);
+    draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_RED, true);
+    draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, color, true);
 
     if (piece[0] != 0) {
         draw_piece(cursor_pos[0], cursor_pos[1], piece[0]);
@@ -434,15 +435,15 @@ void remove_cursor() {
     piece[1] = '\0';
 
     int color = (cursor_pos[0] + cursor_pos[1]) % 2 == 0 ? color_light : color_dark;
-    draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, color);
+    draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, color, true);
     if (piece[0] != 0) {
-        draw_piece(cursor_pos[0], cursor_pos[1], piece[0]);
+        draw_piece(cursor_pos[0], cursor_pos[1], piece[0], true);
     }
     if (chosen_piece) {
         for (int i = 0; i < len_pm_pos; i++) {
             bool is_piece = chess_board[possible_moves_pos[i][1]][possible_moves_pos[i][0]] != 0;
 
-            draw_rectangle(60 + possible_moves_pos[i][0] * 25, possible_moves_pos[i][1] * 25, 25, 25, is_piece ? VGA_COLOR_RED : VGA_COLOR_GREEN);
+            draw_rectangle(60 + possible_moves_pos[i][0] * 25, possible_moves_pos[i][1] * 25, 25, 25, is_piece ? VGA_COLOR_RED : VGA_COLOR_GREEN, true);
         }
     }
 }
@@ -450,10 +451,10 @@ void remove_cursor() {
 void chess_print_board(char board[8][8]) {
     for (int i = 60; i < 260; i += 50) {
         for (int j = 0; j < 200; j += 50) {
-            draw_rectangle(i, j, 25, 25, color_light);
-            draw_rectangle(i + 25, j, 25, 25, color_dark);
-            draw_rectangle(i + 25, j + 25, 25, 25, color_light);
-            draw_rectangle(i, j + 25, 25, 25, color_dark);
+            draw_rectangle(i, j, 25, 25, color_light, true);
+            draw_rectangle(i + 25, j, 25, 25, color_dark, true);
+            draw_rectangle(i + 25, j + 25, 25, 25, color_light, true);
+            draw_rectangle(i, j + 25, 25, 25, color_dark, true);
         }
     }
 
@@ -732,18 +733,18 @@ void chess_keyboard_handler(int c) {
         if (c == 75) { // left
             if (cursor_pos[0] > 4) {
                 remove_cursor();
-                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_LIGHT_RED);
+                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_LIGHT_RED, true);
                 cursor_pos[0] -= 3;
                 print_cursor();
-                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN);
+                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN, true);
             }
         } else if (c == 77) { // right
             if (cursor_pos[0] < 3) {
                 remove_cursor();
-                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_GREEN);
+                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_GREEN, true);
                 cursor_pos[0] += 3;
                 print_cursor();
-                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_LIGHT_RED);
+                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_LIGHT_RED, true);
             }
         } else if (c == 28) { // enter
         if (cursor_pos[0] == 2) {
@@ -875,24 +876,24 @@ void chess_play() {
     vga_clear_screen();
 
     if (winner == 1) {
-        draw_rectangle(0, 0, 25, 25, VGA_COLOR_WHITE);
+        draw_rectangle(0, 0, 25, 25, VGA_COLOR_WHITE, true);
     } else if (winner == 2) {
-        draw_rectangle(0, 0, 25, 25, VGA_COLOR_WHITE);
-        draw_rectangle(1, 1, 23, 23, VGA_COLOR_BLACK);
+        draw_rectangle(0, 0, 25, 25, VGA_COLOR_WHITE, true);
+        draw_rectangle(1, 1, 23, 23, VGA_COLOR_BLACK, true);
     } else if (winner == 3) {
-        draw_rectangle(0, 0, 25, 25, VGA_COLOR_GREEN);
+        draw_rectangle(0, 0, 25, 25, VGA_COLOR_GREEN, true);
     }
 
     cursor_pos[0] = 2;
     cursor_pos[1] = 3;
 
-    draw_rectangle(60 + 75 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_LIGHT_RED);
+    draw_rectangle(60 + 75 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_LIGHT_RED, true);
 
     print_cursor();
-    draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN);
+    draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN, true);
 
-    draw_circle(50, 50, 5, VGA_COLOR_WHITE);
-    draw_triangle(60, 60, 45, 40, 30, 60, VGA_COLOR_WHITE);
+    draw_circle(50, 50, 5, VGA_COLOR_WHITE, true);
+    draw_triangle(60, 60, 45, 40, 30, 60, VGA_COLOR_WHITE, true);
 
     while (in_chess) {
         sleep(100); // sleep for 0.1s

@@ -25,6 +25,7 @@
 #define VGA_NUM_GC_REGS 9
 #define VGA_NUM_SEQ_REGS 5
 
+int frame_buffer[320][200] = {0};
 
 unsigned char g_320x200x256[] =
 {
@@ -80,29 +81,39 @@ void vga_exit() {
 	is_writing_command = true;
 }
 
-void draw_rectangle(int x, int y, int width, int height, unsigned short color) {
-	for (int i = 0; i < width; i++) {
-		for (int j = 0; j < height; j++) {
-			vga_plot_pixel(x+i, y+j, color);
-		}
-	}
-}
-
-void draw_circle(int x, int y, int radius, unsigned short color) {
+void vga_print_frame_buffer() {
 	for (int i = 0; i < 320; i++) {
 		for (int j = 0; j < 200; j++) {
-			if ((i-x)*(i-x) + (j-y)*(j-y) <= radius*radius) {
-				vga_plot_pixel(i,j,color);
+			if (frame_buffer[i][j] != vga_get_pixel_color(i, j)) {
+				vga_plot_pixel(i, j, frame_buffer[i][j], false);
 			}
 		}
 	}
 }
 
-void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color) {
+void draw_rectangle(int x, int y, int width, int height, unsigned short color, bool use_buffer) {
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+			vga_plot_pixel(x+i, y+j, color, use_buffer);
+		}
+	}
+}
+
+void draw_circle(int x, int y, int radius, unsigned short color, bool use_buffer) {
+	for (int i = 0; i < 320; i++) {
+		for (int j = 0; j < 200; j++) {
+			if ((i-x)*(i-x) + (j-y)*(j-y) <= radius*radius) {
+				vga_plot_pixel(i,j,color, use_buffer);
+			}
+		}
+	}
+}
+
+void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer) {
 	for (int i = 0; i < 320; i++) {
 		for (int j = 0; j < 200; j++) {
 			if ((i-x1)*(y2-y1) - (x2-x1)*(j-y1) > 0 && (i-x2)*(y3-y2) - (x3-x2)*(j-y2) > 0 && (i-x3)*(y1-y3) - (x1-x3)*(j-y3) > 0) {
-				vga_plot_pixel(i,j,color);
+				vga_plot_pixel(i,j,color, use_buffer);
 			}
 		}
 	}
@@ -111,15 +122,21 @@ void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned shor
 void vga_clear_screen() {
     for (int i = 0; i < 320; i++) {
         for (int j = 0; j < 200; j++) {
-            vga_plot_pixel(i,j,VGA_COLOR_BLACK);
+            vga_plot_pixel(i,j,VGA_COLOR_BLACK, false);
+			vga_plot_pixel(i,j,VGA_COLOR_BLACK, true);
         }
     }
 }
 
-void vga_plot_pixel(int x, int y, unsigned short color) {
+void vga_plot_pixel(int x, int y, unsigned short color, bool use_buffer) {
     unsigned short offset = x + 320 * y;
     unsigned char *VGA = (unsigned char*) VGA_ADDRESS;
-    VGA[offset] = color;
+	
+	if (use_buffer) {
+		frame_buffer[x][y] = color;
+	} else {	
+    	VGA[offset] = color;
+	}
 }
 
 unsigned short vga_get_pixel_color(int x, int y) {
@@ -180,7 +197,7 @@ void write_regs(unsigned char *regs)
 		regs++;
 	}
 	
-	// lock 16-color palette and unblank display
+	// lock 16-color, bool use_buffer palette and unblank display
 	(void)ioport_in(VGA_INSTAT_READ);
 	ioport_out(VGA_AC_INDEX, 0x20);
 }

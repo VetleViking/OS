@@ -16,15 +16,15 @@ int gol_coords[320][200] = {0};
 int new_gol_coords[320][200] = {0};
 
 void plot_gol_square(int x, int y, unsigned short color) {
-    draw_rectangle(x, y, 5, 5, color);
+    draw_rectangle(x, y, 5, 5, color, false);
 }
 
 void plot_gol_square_border(int x, int y, unsigned short color) {
     for (int i = 0; i < 5; i++) {
-        vga_plot_pixel(x + i, y, color);
-        vga_plot_pixel(x + i, y + 4, color);
-        vga_plot_pixel(x, y + i, color);
-        vga_plot_pixel(x + 4, y + i, color);
+        vga_plot_pixel(x + i, y, color, false);
+        vga_plot_pixel(x + i, y + 4, color, false);
+        vga_plot_pixel(x, y + i, color, false);
+        vga_plot_pixel(x + 4, y + i, color, false);
     }
 }
 

@@ -713,7 +713,7 @@ void check_for_command() {
 	// dev commands 
 	else if (strcmp(command, "vga test") == 0) { 
 		vga_enter();
-		draw_rectangle(0, 0, 80, 25, VGA_COLOR_BLUE);
+		draw_rectangle(0, 0, 80, 25, VGA_COLOR_BLUE, false);
 	} else if (strcmp(command, "bga test") == 0) { 
 		if (bga_is_available()) {
 			bga_set_video_mode(1920, 1080, 32, 1, 1);
