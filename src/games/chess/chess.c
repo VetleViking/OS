@@ -120,13 +120,11 @@ bool white_turn = true;
 
 int test = 0;
 
-int prev_moves_white[256][2][2] = {0};
+int prev_moves_white[256][2][2] = {0}; // use or remove, currently not used
 int prev_moves_white_len = 0;
 
 int prev_moves_black[256][2][2] = {0};
 int prev_moves_black_len = 0;
-
-
 
 
 
@@ -675,6 +673,8 @@ bool check_mate(bool king_white, char board[8][8]) {
     return false; 
 }
 
+bool last_left_click = false;
+
 void chess_mouse_handler(int8_t mouse_byte[3]) {
     remove_mouse(mouse_x, mouse_y);
 
@@ -698,15 +698,21 @@ void chess_mouse_handler(int8_t mouse_byte[3]) {
 
     if (mouse_byte[0] & 0x01) { // left click
         if (in_chess_game) {
-            if (x >= 0 && x < 8 && y >= 0 && y < 8) {
-                cursor_pos[0] = x;
-                cursor_pos[1] = y;
+            if (!last_left_click) {
+                if (x >= 0 && x < 8 && y >= 0 && y < 8) {
+                    cursor_pos[0] = x;
+                    cursor_pos[1] = y;
 
-                enter_or_left_click();
+                    enter_or_left_click();
 
-                print_cursor();
+                    print_cursor();
+                }
             }
         }
+
+        last_left_click = true;
+    } else {
+        last_left_click = false;
     }
     if (mouse_byte[0] & 0x02) { } // right click
     if (mouse_byte[0] & 0x04) { } // middle click
