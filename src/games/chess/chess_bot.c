@@ -751,6 +751,35 @@ move_and_points* get_all_moves_points(bool is_white, char board[8][8]) {
 }
 
 
+
+move_and_points* best_move_points(bool is_white, char board[8][8]) {
+    move_and_points* moves = get_all_moves_points(is_white, board);
+    move_and_points* best_move = malloc(sizeof(move_and_points));
+
+    best_move->points = 0;
+
+    for (int i = 0; i < 128; i++) {
+        move_and_points move = moves[i];
+
+        if (move.from_x == move.to_x && move.from_y == move.to_y) {
+            break;
+        }
+
+        if (best_move->points <= move.points) {
+            best_move->points = move.points;
+            best_move->from_x = move.from_x;
+            best_move->from_y = move.from_y;
+            best_move->to_x = move.to_x;
+            best_move->to_y = move.to_y;
+        }
+    }
+
+    free(moves);
+
+    return best_move;
+} 
+
+
 // This is an experimental version of the chess bot with depth
 void chess_bot_experimental_depth(bool is_white, char board[8][8], int depth) {
     int points_best_move = 0;
@@ -768,75 +797,57 @@ void chess_bot_experimental_depth(bool is_white, char board[8][8], int depth) {
             temp_board[j][i] = board[j][i];
         }
     }
+
     move_and_points* moves = get_all_moves_points(is_white, board);
     
     for (int i = 0; i < 128; i++) {
         move_and_points move = moves[i];
+        int points = move.points;
 
         if (move.from_x == move.to_x && move.from_y == move.to_y) {
             break;
         }
 
+        temp_board[move.to_y][move.to_x] = temp_board[move.from_y][move.from_x];
+        temp_board[move.from_y][move.from_x] = 0;
+
+        bool move_white = !is_white;
+
         for (int j = 0; j < depth; j++) {
-            move_and_points* moves_two = get_all_moves_points(!is_white, temp_board);
-            
-            for (int k = 0; k < 128; k++) {
-                move_and_points move_two = moves_two[k];
+            move_and_points* best_move_depth = best_move_points(move_white, temp_board);
 
-                if (move_two.from_x == move_two.to_x && move_two.from_y == move_two.to_y) {
-                    break;
-                }
+            temp_board[best_move_depth->to_y][best_move_depth->to_x] = temp_board[best_move_depth->from_y][best_move_depth->from_x];
+            temp_board[best_move_depth->from_y][best_move_depth->from_x] = 0;
 
+            move_white = !move_white;
 
+            points += move_white == is_white ? best_move_depth->points : -best_move_depth->points;
+
+            if (best_move_depth != NULL) {
+                free(best_move_depth);            
             }
+        }
 
-            free(moves_two);
+        if (points_best_move <= points || !chosen_move) {
+            points_best_move = points;
+            best_move[0][0] = move.from_x;
+            best_move[0][1] = move.from_y;
+            best_move[1][0] = move.to_x;
+            best_move[1][1] = move.to_y;
+            chosen_move = true;
+        }
+
+        for (int j = 0; j < 8; j++) {
+            for (int k = 0; k < 8; k++) {
+                temp_board[k][j] = board[k][j];
+            }
         }
     }
 
-    free(moves);
-
-    for (int i = 0; i < 8; i++) { // y
-        for (int j = 0; j < 8; j++) { // x
-            if ((board[i][j] != 0 && board[i][j] < 97 && is_white) || (board[i][j] >= 97 && !is_white)) {
-                chosen_piece_pos[0] = j;
-                chosen_piece_pos[1] = i;
-
-                int from_x = j;
-                int from_y = i;
-
-                possible_moves(from_x, from_y, false, board, is_white);
-
-                for (int k = 0; k < len_pm_pos; k++) {
-                    int x = possible_moves_pos[k][0];
-                    int y = possible_moves_pos[k][1];
-                    int points = 0;
-                    
-                    for (int l = 0; l < 10; l++) {
-                        test2_exp[l] = 0;
-                    }
-                    
-                    points = points_move(x, y, from_x, from_y, board, is_white);
-                    
-                    if (points_best_move <= points || !chosen_move) {
-                        points_best_move = points;
-                        best_move[0][0] = from_x;
-                        best_move[0][1] = from_y;
-                        best_move[1][0] = x;
-                        best_move[1][1] = y;
-                        chosen_move = true;
-
-                        for (int l = 0; l < 10; l++) {
-                            test3_exp[l] = test2_exp[l];
-                        }
-                    }
-
-                    possible_moves(from_x, from_y, false, board, is_white);
-                }              
-            }
-        }   
+    if (moves != NULL) {
+        free(moves);
     }
-    
+
     // this is for testing, prints the points and the sources for the points of the best move
 
     draw_rectangle(0, 0, 60, 200, VGA_COLOR_BLACK, false);
