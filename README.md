@@ -75,3 +75,8 @@ Trying to understand how the GDT, IDT and ISRS works.<br>
 [OSDev BGA](https://wiki.osdev.org/Bochs_VBE_Extensions)<br>
 23/03/2024 - 23/03/2024<br>
 Implementing some better graphics for VMs like QEMU.<br>
+
+[OSDev mouse](https://wiki.osdev.org/Mouse_Input)<br>
+[stevej osdev project](https://github.com/stevej/osdev/blob/master/kernel/devices/mouse.c)<br>
+25/03/2024 - 28/03/2024<br>
+Adding mouse support<br>
