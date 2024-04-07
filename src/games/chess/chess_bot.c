@@ -585,7 +585,6 @@ void print_whole_num(int x, int y, int number) {
         }
     }
 }
-// 1 +, 2 -, 3 -, 4 +, 5 +, 6 -, 7 -/+, 8 +, 9 +
 
 
 void print_num(int x, int y, int number) {
