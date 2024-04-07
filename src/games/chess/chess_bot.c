@@ -353,9 +353,7 @@ int points_best_move = 0;
 
 
 
-// This is an experimental version of the chess bot, that uses a different point system
-// currently trying 10x
-
+// This is an experimental version of the chess bot
 void chess_bot_experimental(bool is_white) {
     int points_best_move = 0;
     int best_move[2][2] = {{0}, {0}};
