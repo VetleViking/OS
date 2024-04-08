@@ -399,131 +399,7 @@ void chess_bot_experimental(bool is_white) {
                     temp_board[y][x] = chess_board[i][j];
                     temp_board[i][j] = 0;
 
-                    // taking a piece
-                    if (chess_board[y][x] != 0) {
-                        char p[2];
-                        p[0] = chess_board[y][x];
-                        p[1] = '\0';
-
-                        struct chess_piece_moves* piece = find_piece(p[0] < 97 ? p[0] + 32 : p[0]);
-
-                        if (piece == NULL) {
-                            draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_GREEN, false);
-                            test++;
-                        }
-
-                        points += piece->value * take_lose_multiplier - 1;
-                        test2[0] += piece->value * take_lose_multiplier - 1;
-                    }
-
-                    // if the piece that is moving is protected
-                    int protected = is_protected(x, y, is_white, temp_board);
-                    if (protected > 0) {
-                        char p[2];
-                        p[0] = chess_board[i][j];
-                        p[1] = '\0';
-                        
-                        struct chess_piece_moves* piece = find_piece(p[0] < 97 ? p[0] + 32 : p[0]);
-
-                        if (piece == NULL) {
-                            draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_RED, false);
-                            test++;
-                        }
-
-                        points -= piece->value * take_lose_multiplier;    
-                        test2[1] += piece->value * take_lose_multiplier;
-                    }
-
-                    // if the piece that is moving is threatening pieces
-                    possible_moves(x, y, false, temp_board);
-
-                    int possible_moves_pos_temp[64][2] = {{0}, {0}};
-                    int len_pm_pos_temp = len_pm_pos;
-
-                    for (int l = 0; l < len_pm_pos; l++) {
-                        possible_moves_pos_temp[l][0] = possible_moves_pos[l][0];
-                        possible_moves_pos_temp[l][1] = possible_moves_pos[l][1];
-                    }
                     
-                    for (int l = 0; l < len_pm_pos_temp; l++) {
-                        int x2 = possible_moves_pos_temp[l][0];
-                        int y2 = possible_moves_pos_temp[l][1];
-
-                        int protected = is_protected(x2, y2, !is_white, temp_board);
-
-                        if (protected > 0 && temp_board[y2][x2] != 0) {
-                            if (temp_board[y2][x2] == 'K' || temp_board[y2][x2] == 'k') { 
-                                char temp_temp_board[8][8] = {0};
-
-                                for (int m = 0; m < 8; m++) {
-                                    for (int n = 0; n < 8; n++) {
-                                        temp_temp_board[n][m] = temp_board[n][m];
-                                    }
-                                }
-
-                                if (check_mate(!is_white, temp_temp_board)) {
-                                    points += 1000; // checkmate
-                                    test2[4] += 1000;
-                                } else {
-                                    points += check_bonus; // check
-                                    test2[4] += check_bonus;
-                                }
-                            } else {
-                                points += threaten_bonus;
-                                test2[4] += threaten_bonus;
-                            }
-                        }
-                    }
-
-                    if ((prev_moves_white_len > 1 && is_white) || (prev_moves_black_len > 1 && !is_white)) {
-                        int pm_from_x = 0;
-                        int pm_from_y = 0;
-                        int pm_to_x = 0;
-                        int pm_to_y = 0;
-
-                        int len = is_white ? prev_moves_white_len : prev_moves_black_len;
-
-                        for (int l = 0; l < len; l++) {
-                            if (is_white) {
-                                pm_from_x = prev_moves_white[l][0][0];
-                                pm_from_y = prev_moves_white[l][0][1];
-                                pm_to_x = prev_moves_white[l][1][0];
-                                pm_to_y = prev_moves_white[l][1][1];
-                            } else {
-                                pm_from_x = prev_moves_black[l][0][0];
-                                pm_from_y = prev_moves_black[l][0][1];
-                                pm_to_x = prev_moves_black[l][1][0];
-                                pm_to_y = prev_moves_black[l][1][1];
-                            }
-
-                            if (pm_from_x == x && pm_from_y == y && pm_to_x == j && pm_to_y == i) {
-                                points -= repeat_move_penalty;
-                                test2[5] += repeat_move_penalty;
-                            }
-                        }
-                    }
-
-
-                    if (chess_board[i][j] == 'K' || chess_board[i][j] == 'k') {
-                        if (x - j == -2 || x - j == 2) {
-                            points += castling_bonus;
-                            test2[6] += castling_bonus;
-                        } else {
-                            points -= king_move_penalty;
-                            test2[6] += king_move_penalty;
-                        }
-                    } else if (chess_board[i][j] == 'P' || chess_board[i][j] == 'p') {
-                        if (j < 5 && j > 2) {
-                            points += pawn_move_bonus;
-                            test2[7] += pawn_move_bonus;
-                        }
-
-                        if (i - y == 2 || y - i == 2) {
-                            points += pawn_move_bonus;
-                            test2[7] += pawn_move_bonus;
-                        }
-                    }
-
                     if (points_best_move <= points || !chosen_move) {
                         points_best_move = points;
                         best_move[0][0] = j;
@@ -569,6 +445,136 @@ void chess_bot_experimental(bool is_white) {
     move_piece(best_move[1][0], best_move[1][1]);  
 }
 
+
+int test(int x, int y, char board[8][8]) {
+    int points = 0;
+
+    // taking a piece
+    if (chess_board[y][x] != 0) {
+        char p[2];
+        p[0] = chess_board[y][x];
+        p[1] = '\0';
+
+        struct chess_piece_moves* piece = find_piece(p[0] < 97 ? p[0] + 32 : p[0]);
+
+        if (piece == NULL) {
+            draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_GREEN, false);
+            test++;
+        }
+
+        points += piece->value * take_lose_multiplier - 1;
+        test2[0] += piece->value * take_lose_multiplier - 1;
+    }
+
+    // if the piece that is moving is protected
+    int protected = is_protected(x, y, is_white, temp_board);
+    if (protected > 0) {
+        char p[2];
+        p[0] = chess_board[i][j];
+        p[1] = '\0';
+        
+        struct chess_piece_moves* piece = find_piece(p[0] < 97 ? p[0] + 32 : p[0]);
+
+        if (piece == NULL) {
+            draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_RED, false);
+            test++;
+        }
+
+        points -= piece->value * take_lose_multiplier;    
+        test2[1] += piece->value * take_lose_multiplier;
+    }
+
+    // if the piece that is moving is threatening pieces
+    possible_moves(x, y, false, temp_board);
+
+    int possible_moves_pos_temp[64][2] = {{0}, {0}};
+    int len_pm_pos_temp = len_pm_pos;
+
+    for (int l = 0; l < len_pm_pos; l++) {
+        possible_moves_pos_temp[l][0] = possible_moves_pos[l][0];
+        possible_moves_pos_temp[l][1] = possible_moves_pos[l][1];
+    }
+    
+    for (int l = 0; l < len_pm_pos_temp; l++) {
+        int x2 = possible_moves_pos_temp[l][0];
+        int y2 = possible_moves_pos_temp[l][1];
+
+        int protected = is_protected(x2, y2, !is_white, temp_board);
+
+        if (protected > 0 && temp_board[y2][x2] != 0) {
+            if (temp_board[y2][x2] == 'K' || temp_board[y2][x2] == 'k') { 
+                char temp_temp_board[8][8] = {0};
+
+                for (int m = 0; m < 8; m++) {
+                    for (int n = 0; n < 8; n++) {
+                        temp_temp_board[n][m] = temp_board[n][m];
+                    }
+                }
+
+                if (check_mate(!is_white, temp_temp_board)) {
+                    points += 1000; // checkmate
+                    test2[4] += 1000;
+                } else {
+                    points += check_bonus; // check
+                    test2[4] += check_bonus;
+                }
+            } else {
+                points += threaten_bonus;
+                test2[4] += threaten_bonus;
+            }
+        }
+    }
+
+    if ((prev_moves_white_len > 1 && is_white) || (prev_moves_black_len > 1 && !is_white)) {
+        int pm_from_x = 0;
+        int pm_from_y = 0;
+        int pm_to_x = 0;
+        int pm_to_y = 0;
+
+        int len = is_white ? prev_moves_white_len : prev_moves_black_len;
+
+        for (int l = 0; l < len; l++) {
+            if (is_white) {
+                pm_from_x = prev_moves_white[l][0][0];
+                pm_from_y = prev_moves_white[l][0][1];
+                pm_to_x = prev_moves_white[l][1][0];
+                pm_to_y = prev_moves_white[l][1][1];
+            } else {
+                pm_from_x = prev_moves_black[l][0][0];
+                pm_from_y = prev_moves_black[l][0][1];
+                pm_to_x = prev_moves_black[l][1][0];
+                pm_to_y = prev_moves_black[l][1][1];
+            }
+
+            if (pm_from_x == x && pm_from_y == y && pm_to_x == j && pm_to_y == i) {
+                points -= repeat_move_penalty;
+                test2[5] += repeat_move_penalty;
+            }
+        }
+    }
+
+
+    if (chess_board[i][j] == 'K' || chess_board[i][j] == 'k') {
+        if (x - j == -2 || x - j == 2) {
+            points += castling_bonus;
+            test2[6] += castling_bonus;
+        } else {
+            points -= king_move_penalty;
+            test2[6] += king_move_penalty;
+        }
+    } else if (chess_board[i][j] == 'P' || chess_board[i][j] == 'p') {
+        if (j < 5 && j > 2) {
+            points += pawn_move_bonus;
+            test2[7] += pawn_move_bonus;
+        }
+
+        if (i - y == 2 || y - i == 2) {
+            points += pawn_move_bonus;
+            test2[7] += pawn_move_bonus;
+        }
+    }
+
+}
 
 void print_whole_num(int x, int y, int number) {
     char p[10];
