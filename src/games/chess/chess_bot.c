@@ -349,30 +349,30 @@ int points_best_move = 0;
     move_piece(best_move[1][0], best_move[1][1]);  
 }
 
+// points for the bot, makes it easier to tweak the bot
+// currently all pieces are 10x points, and other things are calculated from that
 
+int take_lose_multiplier = 10; // subtracts 1 if taking a piece, so that the move is beneficial, not just neutral
+int threaten_bonus = 6; 
+int castling_bonus = 9;
+int repeat_move_penalty = 5;
+int check_bonus = 8;
+int king_move_penalty = 1;
+int king_protect_bonus = 2;
+int pawn_move_bonus = 1;
 
-
+int test3[10] = {0};
+int test2[10] = {0};
 
 // This is an experimental version of the chess bot
 void chess_bot_experimental(bool is_white) {
     int points_best_move = 0;
     int best_move[2][2] = {{0}, {0}};
     bool chosen_move = false;
-
-    // points for the bot, makes it easier to tweak the bot
-    // currently all pieces are 10x points, and other things are calculated from that
-
-    int take_lose_multiplier = 10; // subtracts 1 if taking a piece, so that the move is beneficial, not just neutral
-    int threaten_bonus = 6; 
-    int castling_bonus = 9;
-    int repeat_move_penalty = 5;
-    int check_bonus = 8;
-    int king_move_penalty = 1;
-    int king_protect_bonus = 2;
-    int pawn_move_bonus = 1;
-
     
-    int test3[10] = {0};
+    for (int i = 0; i < 10; i++) {
+        test3[i] = 0;
+    }
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
@@ -386,7 +386,10 @@ void chess_bot_experimental(bool is_white) {
                     int x = possible_moves_pos[k][0];
                     int y = possible_moves_pos[k][1];
                     int points = 0;
-                    int test2[10] = {0};
+                    
+                    for (int l = 0; l < 10; l++) {
+                        test2[l] = 0;
+                    }
 
                     char temp_board[8][8] = {0};
 
@@ -399,6 +402,12 @@ void chess_bot_experimental(bool is_white) {
                     temp_board[y][x] = chess_board[i][j];
                     temp_board[i][j] = 0;
 
+                    // calculating points for the move
+                    points += taking_piece(x, y, temp_board, is_white);
+                    points += piece_protected(x, y, i, j, temp_board, is_white);
+                    points += other_players_threatened(x, y, temp_board, is_white);
+                    points += repeat_moves(x, y, i, j, temp_board, is_white);
+                    points += other_bonus_penalties(x, y, i, j, temp_board);
                     
                     if (points_best_move <= points || !chosen_move) {
                         points_best_move = points;
@@ -446,10 +455,9 @@ void chess_bot_experimental(bool is_white) {
 }
 
 
-int test(int x, int y, char board[8][8]) {
+int taking_piece(int x, int y, char board[8][8], bool is_white) {
     int points = 0;
 
-    // taking a piece
     if (chess_board[y][x] != 0) {
         char p[2];
         p[0] = chess_board[y][x];
@@ -466,7 +474,12 @@ int test(int x, int y, char board[8][8]) {
         test2[0] += piece->value * take_lose_multiplier - 1;
     }
 
-    // if the piece that is moving is protected
+    return points;
+}   
+
+int piece_protected(int x, int y, int i, int j, char temp_board[8][8], bool is_white) {
+    int points = 0;
+
     int protected = is_protected(x, y, is_white, temp_board);
     if (protected > 0) {
         char p[2];
@@ -484,7 +497,12 @@ int test(int x, int y, char board[8][8]) {
         test2[1] += piece->value * take_lose_multiplier;
     }
 
-    // if the piece that is moving is threatening pieces
+    return points;
+}
+
+int other_players_threatened(int x, int y, char temp_board[8][8], bool is_white) {
+    int points = 0;
+
     possible_moves(x, y, false, temp_board);
 
     int possible_moves_pos_temp[64][2] = {{0}, {0}};
@@ -525,6 +543,12 @@ int test(int x, int y, char board[8][8]) {
         }
     }
 
+    return points;
+}
+
+int repeat_moves(int x, int y, int i, int j, char temp_board[8][8], bool is_white) {
+    int points = 0;
+
     if ((prev_moves_white_len > 1 && is_white) || (prev_moves_black_len > 1 && !is_white)) {
         int pm_from_x = 0;
         int pm_from_y = 0;
@@ -553,7 +577,12 @@ int test(int x, int y, char board[8][8]) {
         }
     }
 
+    return points;
+}
 
+int other_bonus_penalties(int x, int y, int i, int j, char temp_board[8][8]) {
+    int points = 0;
+    
     if (chess_board[i][j] == 'K' || chess_board[i][j] == 'k') {
         if (x - j == -2 || x - j == 2) {
             points += castling_bonus;
@@ -574,6 +603,7 @@ int test(int x, int y, char board[8][8]) {
         }
     }
 
+    return points;
 }
 
 void print_whole_num(int x, int y, int number) {
