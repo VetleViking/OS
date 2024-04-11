@@ -456,7 +456,7 @@ int piece_protected(int x, int y, char board[8][8], bool is_white) {
     return points;
 }
 
-
+// needs updating, probably not working
 // checks if the other players pieces are threatened
 int other_players_threatened(char board[8][8], bool is_white) {
     int points = 0;
