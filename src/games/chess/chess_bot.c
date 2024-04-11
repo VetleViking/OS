@@ -388,30 +388,15 @@ int taking_piece(int x, int y, char board[8][8], bool is_white) {
     return points;
 }
 
-// make this do it for every piece
+
+// checks if the bots pieces are protected
 int pieces_protected(char board[8][8], bool is_white) {
     int points = 0;
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
             if (board[i][j] != 0 && ((board[i][j] < 97 && is_white) || (board[i][j] >= 97 && !is_white))) {
-                int protected = is_protected(j, i, is_white, board);
-
-                if (protected > 0) {
-                    char p[2];
-                    p[0] = chess_board[i][j];
-                    p[1] = '\0';
-                    
-                    struct chess_piece_moves* piece = find_piece(p[0] < 97 ? p[0] + 32 : p[0]);
-
-                    if (piece == NULL) {
-                        draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_RED, false);
-                        test++;
-                    }
-
-                    points -= piece->value * take_lose_multiplier_exp;    
-                    test2_exp[1] += piece->value * take_lose_multiplier_exp;
-                }
+                piece_protected(j, i, board, is_white);
             }
         }
     }
@@ -419,6 +404,60 @@ int pieces_protected(char board[8][8], bool is_white) {
     return points;
 }
 
+
+// checks if a piece is protected
+int piece_protected(int x, int y, char board[8][8], bool is_white) {
+    int points = 0;
+
+    // finds the pieces threatening and defending the piece
+    piece_threatened_by(x, y, is_white, board);
+    int temp_threatened_by_len = threatened_by_len;
+    piece_threatened_by(x, y, !is_white, board);
+
+    struct chess_piece_moves* piece_taken = find_piece(board[y][x] < 97 ? board[y][x] + 32 : board[y][x]);
+
+    if (piece_taken == NULL) {
+        draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_GREEN, false);
+        test++;
+    }
+
+    // if the piece is threatened by more pieces than it is protected by
+    if (temp_threatened_by_len > threatened_by_len) {
+        points -= piece_taken->value * threaten_multiplier_exp;
+        test2_exp[2] += piece_taken->value * threaten_multiplier_exp;
+
+        return points;
+    }
+
+    // finds the pieces threatening the piece, then loops through them
+    piece_threatened_by(x, y, is_white, board);
+
+    for (int i = 0; i < threatened_by_len; i++) {
+        int x2 = threatened_by[i][0];
+        int y2 = threatened_by[i][1];
+
+        struct chess_piece_moves* piece_taking = find_piece(board[y2][x2] < 97 ? board[y2][x2] + 32 : board[y2][x2]);
+        
+        if (piece_taking == NULL) {
+            draw_rectangle(0, test * 5, 5, 5, VGA_COLOR_BLUE, false);
+            test++;
+        }
+
+        // if the piece taking is worth less than the piece taken
+        // looses points equal to the difference in value
+        if (piece_taking->value < piece_taken->value) {
+            if ((points * -1) / take_lose_multiplier_exp < piece_taken->value - piece_taking->value) {
+                points -= (piece_taken->value - piece_taking->value) * take_lose_multiplier_exp;
+                test2_exp[1] += (piece_taken->value - piece_taking->value) * take_lose_multiplier_exp;
+            }
+        }
+    }
+
+    return points;
+}
+
+
+// checks if the other players pieces are threatened
 int other_players_threatened(char board[8][8], bool is_white) {
     int points = 0;
 
