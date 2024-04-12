@@ -27,14 +27,16 @@ extern struct chess_piece_moves {
 
 extern int threatened_by_len;
 extern int threatened_by[64][2];
+extern int protected_by_len;
+extern int protected_by[64][2];
 
-extern void possible_moves(int x, int y, bool show_result, char board[8][8]);
+extern void possible_moves(int x, int y, bool show_result, char board[8][8], bool is_white);
 extern int is_protected(int x, int y, bool is_white, char board[8][8]);
 extern bool check_mate(bool king_white, char board[8][8]);
 extern void move_piece(int x, int y);
 extern void chess_print_board(char board[8][8]);
 extern struct chess_piece_moves* find_piece(char piece);
 extern void piece_threatened_by(int x, int y, bool is_white, char board[8][8]);
-
+extern void piece_protected_by(int x, int y, bool is_white, char board[8][8]);
 
 #endif

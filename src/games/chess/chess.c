@@ -143,11 +143,11 @@ void piece_threatened_by(int x, int y, bool is_white, char board[8][8]) {
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
-            if (board[i][j] != 0) {
-                possible_moves(j, i, false, board);
+            if (board[i][j] != 0 && ((board[i][j] >= 97 && is_white) || (board[i][j] < 97 && !is_white))){
+                possible_moves(j, i, false, board, !is_white);
 
                 for (int k = 0; k < len_pm_pos; k++) {
-                    if (possible_moves_pos[k][0] == x && possible_moves_pos[k][1] == y && (is_white == (board[i][j] >= 97))) {
+                    if (possible_moves_pos[k][0] == x && possible_moves_pos[k][1] == y) {
                         threatened_by[threatened_by_len][0] = j;
                         threatened_by[threatened_by_len][1] = i;
                         threatened_by_len++;
@@ -164,6 +164,57 @@ void piece_threatened_by(int x, int y, bool is_white, char board[8][8]) {
     }
 
     in_threatened_by = false;
+}
+
+int protected_by_len = 0;
+int protected_by[64][2] = {0};
+bool in_protected_by = false;
+
+void piece_protected_by(int x, int y, bool is_white, char board[8][8]) {
+    in_protected_by = true;
+    protected_by_len = 0;
+
+    char board_temp[8][8] = {0};
+
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            board_temp[i][j] = board[i][j];
+        }
+    }
+
+    // invert the board so we can call possible_moves
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (board_temp[i][j] != 0) {
+                board_temp[i][j] = board_temp[i][j] < 97 ? board_temp[i][j] + 32 : board_temp[i][j] - 32;
+            }
+        }
+    }
+
+    // revert the piece at the position we are checking
+    board_temp[y][x] = board[y][x];
+
+    for (int i = 0; i < 8; i++) { // y
+        for (int j = 0; j < 8; j++) { // x
+            if (board_temp[i][j] != 0 && ((board_temp[i][j] >= 97 && is_white) || (board_temp[i][j] < 97 && !is_white))){
+                possible_moves(j, i, false, board_temp, !is_white);
+
+                for (int k = 0; k < len_pm_pos; k++) {
+                    draw_rectangle(test * 5, 0, 5, 5, VGA_COLOR_GREEN, false);
+                }
+
+                for (int k = 0; k < len_pm_pos; k++) {
+                    if (possible_moves_pos[k][0] == x && possible_moves_pos[k][1] == y) {
+                        protected_by[protected_by_len][0] = j;
+                        protected_by[protected_by_len][1] = i;
+                        protected_by_len++;
+                    }
+                }
+            }
+        }   
+    }
+
+    in_protected_by = false;
 }
 
 bool check_king_threatened(int x, int y, bool is_white, char board[8][8]) {
@@ -202,7 +253,7 @@ bool check_king_threatened(int x, int y, bool is_white, char board[8][8]) {
 bool is_possible_move(int x, int y, bool is_white, bool show_result, char board[8][8]) {
     if (board[y][x] != 0) {
         if ((is_white && board[y][x] >= 97) || (!is_white && board[y][x] < 97)) {    
-            if (!in_threatened_by) {
+            if (!in_threatened_by && !in_protected_by) {
                 if (check_king_threatened(x, y, is_white, board)) {
                     return false;
                 }
@@ -221,7 +272,7 @@ bool is_possible_move(int x, int y, bool is_white, bool show_result, char board[
         // does not seem to interfere with anything, so will keep it like it is for now
         return false; 
     } else {
-        if (!in_threatened_by) {
+        if (!in_threatened_by && !in_protected_by) {
             if (check_king_threatened(x, y, is_white, board)) {
                 return true;
             }
@@ -238,12 +289,11 @@ bool is_possible_move(int x, int y, bool is_white, bool show_result, char board[
     return true;
 }
 
-void possible_moves(int x, int y, bool show_result, char board[8][8]) {
+void possible_moves(int x, int y, bool show_result, char board[8][8], bool is_white) {
     len_pm_pos = 0;
     char piece = board[y][x];
-    bool is_white = !(piece >= 'a' && piece <= 'z');
 
-    if (is_white) { // makes all pieces lowercase
+    if (board[y][x] < 97) { // makes all pieces lowercase
         piece += ('a' - 'A');
     }
 
@@ -465,7 +515,7 @@ void chess_print_board(char board[8][8]) {
     }
 
     if (chosen_piece) {
-        possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], true, board);
+        possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], true, board, white_turn);
     }
 
     print_cursor();
@@ -589,7 +639,7 @@ void move_piece(int x, int y) {
                         chosen_piece_pos[1] = i;
                         chosen_piece = true;
 
-                        possible_moves(j, i, false, chess_board);
+                        possible_moves(j, i, false, chess_board, !white_turn);
 
                         total_moves += len_pm_pos;
                     }
@@ -606,7 +656,7 @@ void move_piece(int x, int y) {
                 }
             }
 
-            possible_moves(x, y, false, chess_board);
+            possible_moves(x, y, false, chess_board, white_turn);
 
             for (int i = 0; i < len_pm_pos; i++) {
                 int chess_board_move = chess_board[possible_moves_pos[i][1]][possible_moves_pos[i][0]];
@@ -655,7 +705,7 @@ bool check_mate(bool king_white, char board[8][8]) {
                     king_pos[1] = i;
                 }
 
-                possible_moves(j, i, false, board);
+                possible_moves(j, i, false, board, king_white);
 
                 total_moves += len_pm_pos;
             }

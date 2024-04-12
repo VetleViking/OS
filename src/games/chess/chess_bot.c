@@ -78,7 +78,7 @@ int points_best_move = 0;
                 chosen_piece_pos[0] = j;
                 chosen_piece_pos[1] = i;
 
-                possible_moves(j, i, false, chess_board);
+                possible_moves(j, i, false, chess_board, is_white);
 
                 for (int k = 0; k < len_pm_pos; k++) {
                     int x = possible_moves_pos[k][0];
@@ -166,7 +166,7 @@ int points_best_move = 0;
 
                         if (protected >= threatening_pieces[l][2] && p[0] != 0) {
                             if (p[0] == 'K' || p[0] == 'k') {
-                                possible_moves(threatening_pieces[l][0], threatening_pieces[l][1], false, temp_board);
+                                possible_moves(threatening_pieces[l][0], threatening_pieces[l][1], false, temp_board, is_white);
                                 if (len_pm_pos == 0) {
                                     points += 1000; // checkmate
                                     test2[3] += 1000;
@@ -184,7 +184,7 @@ int points_best_move = 0;
 
 
                     // if the piece that is moving is threatening pieces
-                    possible_moves(x, y, false, temp_board);
+                    possible_moves(x, y, false, temp_board, is_white);
 
                     int possible_moves_pos_temp[64][2] = {{0}, {0}};
                     int len_pm_pos_temp = len_pm_pos;
@@ -317,7 +317,7 @@ int points_best_move = 0;
                         }
                     }
 
-                    possible_moves(j, i, false, chess_board);
+                    possible_moves(j, i, false, chess_board, is_white);
                 }              
             }
         }   
@@ -344,7 +344,7 @@ int points_best_move = 0;
     // 5 + (if piece moving is threatening pieces), 6 - (repeat move)
     // 7 -/+ (castling / king moving), 8 + (middle pawn moving / pawn moving two), 9 + (king protecting bonus)
 
-    possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board);
+    possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board, is_white);
 
     move_piece(best_move[1][0], best_move[1][1]);  
 }
@@ -388,32 +388,15 @@ int taking_piece(int x, int y, char board[8][8], bool is_white) {
     return points;
 }
 
-
+// i think this works now??? 
+// needs testing
 // checks if a piece is protected
 int piece_protected(int x, int y, char board[8][8], bool is_white) {
     int points = 0;
 
     // finds the pieces threatening and defending the piece
-    piece_threatened_by(x, y, is_white, board);
-    int temp_threatened_by_len = threatened_by_len;
-
-    for (int i = 0; i < temp_threatened_by_len; i++) {
-        draw_rectangle(60 + threatened_by[i][0] * 25, threatened_by[i][1] * 25, 25, 25, VGA_COLOR_BLUE, false);
-    }
-
-    if (temp_threatened_by_len > 0) {
-        sleep(100);    
-    }
-
-    piece_threatened_by(x, y, !is_white, board);
-
-    for (int i = 0; i < threatened_by_len; i++) {
-        draw_rectangle(60 + threatened_by[i][0] * 25, threatened_by[i][1] * 25, 25, 25, VGA_COLOR_RED, false);
-    }
-
-    if (threatened_by_len > 0) {
-        sleep(100);    
-    }z
+    piece_threatened_by(x, y, is_white, board); 
+    piece_protected_by(x, y, is_white, board);
 
     struct chess_piece_moves* piece_taken = find_piece(board[y][x] < 97 ? board[y][x] + 32 : board[y][x]);
 
@@ -423,18 +406,19 @@ int piece_protected(int x, int y, char board[8][8], bool is_white) {
     }
 
     // if the piece is threatened by more pieces than it is protected by
-    if (temp_threatened_by_len > threatened_by_len) {
+    if (protected_by_len < threatened_by_len) {
         points -= piece_taken->value * take_lose_multiplier_exp;
         test2_exp[1] += piece_taken->value * take_lose_multiplier_exp;
-        test2_exp[2] = temp_threatened_by_len;
+        
+        // temporary
+        test2_exp[2] = protected_by_len;
         test2_exp[3] = threatened_by_len;
+        // end of temporary
 
         return points;
     }
 
-    // finds the pieces threatening the piece, then loops through them
-    piece_threatened_by(x, y, is_white, board);
-
+    // loops through the pieces threatening the piece
     for (int i = 0; i < threatened_by_len; i++) {
         int x2 = threatened_by[i][0];
         int y2 = threatened_by[i][1];
@@ -486,7 +470,7 @@ int other_players_threatened(char board[8][8], bool is_white) {
         for (int j = 0; j < 8; j++) { // x
             if (board[i][j] != 0 && ((board[i][j] < 97 && is_white) || (board[i][j] >= 97 && !is_white))) {
 
-                possible_moves(j, i, false, board);
+                possible_moves(j, i, false, board, is_white);
 
                 // saves possible moves to a temp array
                 // so that the original array can be used in the next loop              
@@ -618,7 +602,7 @@ void chess_bot_experimental(bool is_white) {
                 int from_x = j;
                 int from_y = i;
 
-                possible_moves(from_x, from_y, false, chess_board);
+                possible_moves(from_x, from_y, false, chess_board, is_white);
 
                 for (int k = 0; k < len_pm_pos; k++) {
                     int x = possible_moves_pos[k][0];
@@ -660,7 +644,7 @@ void chess_bot_experimental(bool is_white) {
                         }
                     }
 
-                    possible_moves(from_x, from_y, false, chess_board);
+                    possible_moves(from_x, from_y, false, chess_board, is_white);
                 }              
             }
         }   
@@ -688,7 +672,7 @@ void chess_bot_experimental(bool is_white) {
     // 7 -/+ (castling / king moving), 8 + (middle pawn moving / pawn moving two)
     // 9 + (king protecting bonus)
 
-    possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board);
+    possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board, is_white);
 
     move_piece(best_move[1][0], best_move[1][1]);  
 }
