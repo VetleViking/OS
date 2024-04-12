@@ -389,22 +389,6 @@ int taking_piece(int x, int y, char board[8][8], bool is_white) {
 }
 
 
-// checks if the bots pieces are protected
-int pieces_protected(char board[8][8], bool is_white) {
-    int points = 0;
-
-    for (int i = 0; i < 8; i++) { // y
-        for (int j = 0; j < 8; j++) { // x
-            if (board[i][j] != 0 && ((board[i][j] < 97 && is_white) || (board[i][j] >= 97 && !is_white))) {
-                piece_protected(j, i, board, is_white);
-            }
-        }
-    }
-
-    return points;
-}
-
-
 // checks if a piece is protected
 int piece_protected(int x, int y, char board[8][8], bool is_white) {
     int points = 0;
@@ -412,7 +396,24 @@ int piece_protected(int x, int y, char board[8][8], bool is_white) {
     // finds the pieces threatening and defending the piece
     piece_threatened_by(x, y, is_white, board);
     int temp_threatened_by_len = threatened_by_len;
+
+    for (int i = 0; i < temp_threatened_by_len; i++) {
+        draw_rectangle(60 + threatened_by[i][0] * 25, threatened_by[i][1] * 25, 25, 25, VGA_COLOR_BLUE, false);
+    }
+
+    if (temp_threatened_by_len > 0) {
+        sleep(100);    
+    }
+
     piece_threatened_by(x, y, !is_white, board);
+
+    for (int i = 0; i < threatened_by_len; i++) {
+        draw_rectangle(60 + threatened_by[i][0] * 25, threatened_by[i][1] * 25, 25, 25, VGA_COLOR_RED, false);
+    }
+
+    if (threatened_by_len > 0) {
+        sleep(100);    
+    }z
 
     struct chess_piece_moves* piece_taken = find_piece(board[y][x] < 97 ? board[y][x] + 32 : board[y][x]);
 
@@ -423,8 +424,10 @@ int piece_protected(int x, int y, char board[8][8], bool is_white) {
 
     // if the piece is threatened by more pieces than it is protected by
     if (temp_threatened_by_len > threatened_by_len) {
-        points -= piece_taken->value * threaten_multiplier_exp;
-        test2_exp[2] += piece_taken->value * threaten_multiplier_exp;
+        points -= piece_taken->value * take_lose_multiplier_exp;
+        test2_exp[1] += piece_taken->value * take_lose_multiplier_exp;
+        test2_exp[2] = temp_threatened_by_len;
+        test2_exp[3] = threatened_by_len;
 
         return points;
     }
@@ -449,12 +452,30 @@ int piece_protected(int x, int y, char board[8][8], bool is_white) {
             if ((points * -1) / take_lose_multiplier_exp < piece_taken->value - piece_taking->value) {
                 points -= (piece_taken->value - piece_taking->value) * take_lose_multiplier_exp;
                 test2_exp[1] += (piece_taken->value - piece_taking->value) * take_lose_multiplier_exp;
+                test2_exp[2] += 1;
             }
         }
     }
 
     return points;
 }
+
+
+// checks if the bots pieces are protected
+int pieces_protected(char board[8][8], bool is_white) {
+    int points = 0;
+
+    for (int i = 0; i < 8; i++) { // y
+        for (int j = 0; j < 8; j++) { // x
+            if (board[i][j] != 0 && ((board[i][j] < 97 && is_white) || (board[i][j] >= 97 && !is_white))) {
+                points += piece_protected(j, i, board, is_white);
+            }
+        }
+    }
+
+    return points;
+}
+
 
 // needs updating, probably not working
 // checks if the other players pieces are threatened
@@ -662,9 +683,10 @@ void chess_bot_experimental(bool is_white) {
 
     // 0 total
     // 1 + (taking piece), 2 - (bots pieces threatened)
-    //3 (not used), 4 + (not used)
+    // 3 (num times 2 triggered), 4 + (not used)
     // 5 + (enemies pieces threatened), 6 - (repeat move)
-    // 7 -/+ (castling / king moving), 8 + (middle pawn moving / pawn moving two), 9 + (king protecting bonus)
+    // 7 -/+ (castling / king moving), 8 + (middle pawn moving / pawn moving two)
+    // 9 + (king protecting bonus)
 
     possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board);
 
