@@ -469,10 +469,10 @@ void draw_piece(int x, int y, char piece) {
 }
 
 void draw_available_move(int x, int y) {
-    if (chess_board[y][x] != 0) {
-        draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
+    if (chess_board[y][x] != 0) {   
+        draw_circle(60 + x * 25 + 12, y * 25 + 12, 5, VGA_COLOR_RED, true);
     } else {
-        draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_GREEN, true);
+        draw_circle(60 + x * 25 + 12, y * 25 + 12, 5, VGA_COLOR_GREEN, true);
     }
 }
 
@@ -488,6 +488,14 @@ void print_cursor() {
     if (piece[0] != 0) {
         draw_piece(cursor_pos[0], cursor_pos[1], piece[0]);
     }
+    
+    if (chosen_piece) {
+        for (int i = 0; i < len_pm_pos; i++) {
+            if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
+                draw_available_move(cursor_pos[0], cursor_pos[1]);
+            }
+        }
+    }
 }
 
 void remove_cursor() {
@@ -502,9 +510,9 @@ void remove_cursor() {
     }
     if (chosen_piece) {
         for (int i = 0; i < len_pm_pos; i++) {
-            bool is_piece = chess_board[possible_moves_pos[i][1]][possible_moves_pos[i][0]] != 0;
-
-            draw_available_move(possible_moves_pos[i][0], possible_moves_pos[i][1]);
+            if (possible_moves_pos[i][0] == cursor_pos[0] && possible_moves_pos[i][1] == cursor_pos[1]) {
+                draw_available_move(cursor_pos[0], cursor_pos[1]);
+            }
         }
     }
 }
@@ -891,7 +899,7 @@ void chess_keyboard_handler(int c) {
         if (white_turn) {
             chess_bot(white_turn);
         } else {
-            chess_bot_experimental(white_turn);
+            chess_bot_experimental(white_turn, chess_board);
         }
     }
 }
@@ -921,7 +929,7 @@ void enter_or_left_click() {
                 // for playing with bot
                 if (!white_turn) {
                     //chess_bot(white_turn);
-                    chess_bot_experimental(white_turn);  
+                    chess_bot_experimental(white_turn, chess_board);  
                 }
 
                 chess_print_board(chess_board);

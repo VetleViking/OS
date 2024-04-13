@@ -587,9 +587,8 @@ int other_bonus_penalties(int x, int y, int from_y, int from_x, char temp_board[
     return points;
 }
 
-
 // This is an experimental version of the chess bot
-void chess_bot_experimental(bool is_white) {
+void chess_bot_experimental(bool is_white, char board[8][8]) {
     int points_best_move = 0;
     int best_move[2][2] = {{0}, {0}};
     bool chosen_move = false;
@@ -600,14 +599,14 @@ void chess_bot_experimental(bool is_white) {
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
-            if ((chess_board[i][j] != 0 && chess_board[i][j] < 97 && is_white) || (chess_board[i][j] >= 97 && !is_white)) {
+            if ((board[i][j] != 0 && board[i][j] < 97 && is_white) || (board[i][j] >= 97 && !is_white)) {
                 chosen_piece_pos[0] = j;
                 chosen_piece_pos[1] = i;
 
                 int from_x = j;
                 int from_y = i;
 
-                possible_moves(from_x, from_y, false, chess_board, is_white);
+                possible_moves(from_x, from_y, false, board, is_white);
 
                 for (int k = 0; k < len_pm_pos; k++) {
                     int x = possible_moves_pos[k][0];
@@ -622,15 +621,15 @@ void chess_bot_experimental(bool is_white) {
 
                     for (int l = 0; l < 8; l++) {
                         for (int m = 0; m < 8; m++) {
-                            temp_board[m][l] = chess_board[m][l];
+                            temp_board[m][l] = board[m][l];
                         }
                     }
 
-                    temp_board[y][x] = chess_board[from_y][from_x];
+                    temp_board[y][x] = board[from_y][from_x];
                     temp_board[from_y][from_x] = 0;
 
                     // calculating points for the move
-                    points += taking_piece(x, y, chess_board, is_white);
+                    points += taking_piece(x, y, board, is_white);
                     points += pieces_protected(temp_board, is_white);
                     points += opponents_pieces_threatened(temp_board, is_white);
                     points += repeat_moves(x, y, from_y, from_x, is_white);
@@ -649,7 +648,7 @@ void chess_bot_experimental(bool is_white) {
                         }
                     }
 
-                    possible_moves(from_x, from_y, false, chess_board, is_white);
+                    possible_moves(from_x, from_y, false, board, is_white);
                 }              
             }
         }   
@@ -677,11 +676,15 @@ void chess_bot_experimental(bool is_white) {
     // 7 -/+ (castling / king moving), 8 + (middle pawn moving / pawn moving two)
     // 9 + (king protecting bonus)
 
-    possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, chess_board, is_white);
+    possible_moves(chosen_piece_pos[0], chosen_piece_pos[1], false, board, is_white);
 
     move_piece(best_move[1][0], best_move[1][1]);  
 }
 
+
+// void chess_bot_experimental_depth(bool is_white, int depth) {
+
+// }
 
 
 void print_whole_num(int x, int y, int number) {
