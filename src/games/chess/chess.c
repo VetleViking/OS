@@ -260,7 +260,7 @@ bool is_possible_move(int x, int y, bool is_white, bool show_result, char board[
             }
 
             if (show_result) {
-                draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
+                draw_available_move(x, y);
             }
 
             possible_moves_pos[len_pm_pos][0] = x;
@@ -279,7 +279,7 @@ bool is_possible_move(int x, int y, bool is_white, bool show_result, char board[
         }
 
         if (show_result) {
-            draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_GREEN, true);
+            draw_available_move(x, y);
         }
     }
     possible_moves_pos[len_pm_pos][0] = x;
@@ -341,12 +341,12 @@ void possible_moves(int x, int y, bool show_result, char board[8][8], bool is_wh
                 if ((pm_two_pos[0] == x - 1 && pm_two_pos[1] == y) && board[y - 1][x - 1] == 0) {
                     is_possible_move(x - 1, y - 1, is_white, show_result, board);
                     if (show_result) {
-                        draw_rectangle(60 + (x - 1) * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
+                        draw_available_move(x - 1, y - 1);
                     }
                 } else if ((pm_two_pos[0] == x + 1 && pm_two_pos[1] == y) && board[y - 1][x + 1] == 0) {
                     is_possible_move(x + 1, y - 1, is_white, show_result, board);
                     if (show_result) {
-                        draw_rectangle(60 + (x + 1) * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
+                        draw_available_move(x + 1, y - 1);
                     }
                 }
             }
@@ -370,12 +370,12 @@ void possible_moves(int x, int y, bool show_result, char board[8][8], bool is_wh
                 if ((pm_two_pos[0] == x - 1 && pm_two_pos[1] == y) && board[y + 1][x - 1] == 0) {
                     is_possible_move(x - 1, y + 1, is_white, show_result, board);
                     if (show_result) {
-                        draw_rectangle(60 + (x - 1) * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
+                        draw_available_move(x - 1, y + 1);
                     }
                 } else if ((pm_two_pos[0] == x + 1 && pm_two_pos[1] == y) && board[y + 1][x + 1] == 0) {
                     is_possible_move(x + 1, y + 1, is_white, show_result, board);
                     if (show_result) {
-                        draw_rectangle(60 + (x + 1) * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
+                        draw_available_move(x + 1, y + 1);
                     }
                 }
             }
@@ -431,35 +431,48 @@ void possible_moves(int x, int y, bool show_result, char board[8][8], bool is_wh
 }
 
 void draw_piece(int x, int y, char piece) {
-    int color = VGA_COLOR_BLACK;
-    int color2 = VGA_COLOR_WHITE;
+    bool is_white = false;
 
 
     if (piece < 97) {
         piece += 32;
-        color = VGA_COLOR_WHITE;
-        color2 = VGA_COLOR_BLACK;
+        is_white = true;
     }
 
- 
+    int start_x = is_white ? (CHESS_PIECE_WIDTH * 3) : 0;
+    int start_y = 0;
+    
     if (piece == 'p') { // pawn
-        draw_rectangle(63 + x * 25, 18 + y * 25, 19, 4, color2, true);
-        draw_rectangle(64 + x * 25, 19 + y * 25, 17, 2, color, true);
+        start_x += CHESS_PIECE_WIDTH;
     } else if (piece == 'r') { // rook
-        draw_rectangle(63 + x * 25, 15 + y * 25, 19, 7, color2, true);
-        draw_rectangle(64 + x * 25, 16 + y * 25, 17, 5, color, true);
     } else if (piece == 'n') { // knight
-        draw_rectangle(63 + x * 25, 12 + y * 25, 19, 10, color2, true);
-        draw_rectangle(64 + x * 25, 13 + y * 25, 17, 8, color, true);
+        start_x += CHESS_PIECE_WIDTH;
+        start_y += CHESS_PIECE_HEIGHT;
     } else if (piece == 'b') { // bishop
-        draw_rectangle(63 + x * 25, 9 + y * 25, 19, 13, color2, true);
-        draw_rectangle(64 + x * 25, 10 + y * 25, 17, 11, color, true);
+        start_y += CHESS_PIECE_HEIGHT;
     } else if (piece == 'q') { // queen
-        draw_rectangle(63 + x * 25, 6 + y * 25, 19, 16, color2, true);
-        draw_rectangle(64 + x * 25, 7 + y * 25, 17, 14, color, true);
+        start_x += CHESS_PIECE_WIDTH * 2;
+        start_y += CHESS_PIECE_HEIGHT;
     } else if (piece == 'k') { // king
-        draw_rectangle(63 + x * 25, 3 + y * 25, 19, 19, color2, true);
-        draw_rectangle(64 + x * 25, 4 + y * 25, 17, 17, color, true);
+        start_x += CHESS_PIECE_WIDTH * 2;
+    }
+
+    for (int i = 0; i < CHESS_PIECE_WIDTH; i++) {
+        for (int j = 0; j < CHESS_PIECE_HEIGHT; j++) {
+            unsigned int color = chess_pieces[(i + start_y) * CHESS_PIECES_WIDTH + (j + start_x)];
+            
+            if (color != 0xff) {
+                vga_plot_pixel(63 + x * 25 + j,3 + y * 25 + i, color, true);
+            }
+        }
+    }
+}
+
+void draw_available_move(int x, int y) {
+    if (chess_board[y][x] != 0) {
+        draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_RED, true);
+    } else {
+        draw_rectangle(60 + x * 25, y * 25, 25, 25, VGA_COLOR_GREEN, true);
     }
 }
 
@@ -491,7 +504,7 @@ void remove_cursor() {
         for (int i = 0; i < len_pm_pos; i++) {
             bool is_piece = chess_board[possible_moves_pos[i][1]][possible_moves_pos[i][0]] != 0;
 
-            draw_rectangle(60 + possible_moves_pos[i][0] * 25, possible_moves_pos[i][1] * 25, 25, 25, is_piece ? VGA_COLOR_RED : VGA_COLOR_GREEN, true);
+            draw_available_move(possible_moves_pos[i][0], possible_moves_pos[i][1]);
         }
     }
 }
