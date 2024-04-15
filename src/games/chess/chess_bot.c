@@ -768,13 +768,33 @@ void chess_bot_experimental_depth(bool is_white, char board[8][8], int depth) {
             temp_board[j][i] = board[j][i];
         }
     }
+    move_and_points* moves = get_all_moves_points(is_white, board);
+    
+    for (int i = 0; i < 128; i++) {
+        move_and_points move = moves[i];
 
-    for (int i = 0; i < depth; i++) {
-        move_and_points* moves = get_all_moves_points(is_white, board);
+        if (move.from_x == move.to_x && move.from_y == move.to_y) {
+            break;
+        }
 
-        free(moves);
+        for (int j = 0; j < depth; j++) {
+            move_and_points* moves_two = get_all_moves_points(!is_white, temp_board);
+            
+            for (int k = 0; k < 128; k++) {
+                move_and_points move_two = moves_two[k];
+
+                if (move_two.from_x == move_two.to_x && move_two.from_y == move_two.to_y) {
+                    break;
+                }
+
+
+            }
+
+            free(moves_two);
+        }
     }
 
+    free(moves);
 
     for (int i = 0; i < 8; i++) { // y
         for (int j = 0; j < 8; j++) { // x
