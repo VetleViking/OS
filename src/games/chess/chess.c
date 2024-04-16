@@ -899,7 +899,8 @@ void chess_keyboard_handler(int c) {
         if (white_turn) {
             chess_bot(white_turn);
         } else {
-            chess_bot_experimental(white_turn, chess_board);
+            //chess_bot_experimental(white_turn, chess_board);
+            chess_bot_experimental_depth(white_turn, chess_board, 3);
         }
     }
 }
@@ -929,7 +930,9 @@ void enter_or_left_click() {
                 // for playing with bot
                 if (!white_turn) {
                     //chess_bot(white_turn);
-                    chess_bot_experimental(white_turn, chess_board);  
+                    //chess_bot_experimental(white_turn, chess_board);  
+                    
+                    chess_bot_experimental_depth(white_turn, chess_board, 3);
                 }
 
                 chess_print_board(chess_board);

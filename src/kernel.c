@@ -233,6 +233,42 @@ int atoi(const char *str) {
 }
 
 
+#define MEMORY_SIZE 1024
+
+typedef struct Block {
+    size_t size;
+    bool free;
+    struct Block* next;
+} Block;
+
+char memory[MEMORY_SIZE];
+Block* free_list = (Block*)memory;
+
+void initialize_memory() {
+    free_list->size = MEMORY_SIZE - sizeof(Block);
+    free_list->free = true;
+    free_list->next = NULL;
+}
+
+void* my_malloc(size_t size) {
+    Block* current = free_list;
+    while (current != NULL) {
+        if (current->free && current->size >= size) {
+            current->free = false;
+            return (void*)(current + 1);
+        }
+        current = current->next;
+    }
+    // No suitable block was found
+    return NULL;
+}
+
+void my_free(void* ptr) {
+    Block* block = (Block*)ptr - 1;
+    block->free = true;
+}
+
+
 void clear_screen() {
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -1190,6 +1226,7 @@ void kernel_main(void) {
 	timer_phase(100);
 	keyboard_install();
 	mouse_install();
+	initialize_memory();
 
 	// Prints the cat
 	terminal_writestring("   _____");

@@ -700,7 +700,7 @@ typedef struct {
 
 
 move_and_points* get_all_moves_points(bool is_white, char board[8][8]) {
-    move_and_points* moves_and_points_list = malloc(128 * sizeof(move_and_points));
+    move_and_points* moves_and_points_list = my_malloc(128 * sizeof(move_and_points));
 
     for (int i = 0; i < 10; i++) {
         test3_exp[i] = 0;
@@ -751,10 +751,9 @@ move_and_points* get_all_moves_points(bool is_white, char board[8][8]) {
 }
 
 
-
 move_and_points* best_move_points(bool is_white, char board[8][8]) {
     move_and_points* moves = get_all_moves_points(is_white, board);
-    move_and_points* best_move = malloc(sizeof(move_and_points));
+    move_and_points* best_move = my_malloc(sizeof(move_and_points));
 
     best_move->points = 0;
 
@@ -774,7 +773,7 @@ move_and_points* best_move_points(bool is_white, char board[8][8]) {
         }
     }
 
-    free(moves);
+    my_free(moves);
 
     return best_move;
 } 
@@ -824,7 +823,7 @@ void chess_bot_experimental_depth(bool is_white, char board[8][8], int depth) {
             points += move_white == is_white ? best_move_depth->points : -best_move_depth->points;
 
             if (best_move_depth != NULL) {
-                free(best_move_depth);            
+                my_free(best_move_depth);            
             }
         }
 
@@ -835,6 +834,10 @@ void chess_bot_experimental_depth(bool is_white, char board[8][8], int depth) {
             best_move[1][0] = move.to_x;
             best_move[1][1] = move.to_y;
             chosen_move = true;
+
+            for (int l = 0; l < 10; l++) {
+                test3_exp[l] = test2_exp[l];
+            }
         }
 
         for (int j = 0; j < 8; j++) {
@@ -845,7 +848,7 @@ void chess_bot_experimental_depth(bool is_white, char board[8][8], int depth) {
     }
 
     if (moves != NULL) {
-        free(moves);
+        my_free(moves);
     }
 
     // this is for testing, prints the points and the sources for the points of the best move

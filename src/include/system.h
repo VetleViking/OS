@@ -73,6 +73,8 @@ extern void outportb(unsigned short port, unsigned char value);
 extern __inline unsigned char inb (unsigned short int port);
 extern void add_main_loop_call(void (*func)());
 extern void remove_main_loop_call(void (*func)());
+extern void* my_malloc(size_t size);
+extern void my_free(void* ptr);
 
 
 /* Minesweeper */
@@ -103,10 +105,6 @@ extern bool in_chess;
 extern void chess_start();
 extern void chess_play();
 extern void chess_keyboard_handler(c);
-
-// Chess bot
-extern void chess_bot(bool is_white);
-
 
 /* Rock paper scissors */
 extern void rock_paper_scissors();

@@ -39,5 +39,7 @@ extern struct chess_piece_moves* find_piece(char piece);
 extern void piece_threatened_by(int x, int y, bool is_white, char board[8][8]);
 extern void piece_protected_by(int x, int y, bool is_white, char board[8][8]);
 extern void chess_bot_experimental(bool is_white, char board[8][8]);
+extern void chess_bot(bool is_white);
+extern void chess_bot_experimental_depth(bool is_white, char board[8][8], int depth);
 
 #endif
