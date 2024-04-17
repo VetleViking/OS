@@ -16,7 +16,6 @@
 
 int timer_ticks = 0;
 
-
 int chosen_color = 13;
 int chosen_bg_color = 0;
  
@@ -297,6 +296,7 @@ int game_round = 1;
 
 
 int times_rand_called = 0;
+
 int rand(int something) {
 	times_rand_called++;
 	int seed = something + timer_ticks + num_commands + at_command + game_round + terminal_row + terminal_column + times_rand_called + 1;
@@ -316,7 +316,6 @@ int rand(int something) {
 
 
 bool check_scroll = true;
-
 
 // Handles the game command, and calls the correct game
 void game_handler() {
