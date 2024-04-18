@@ -27,8 +27,7 @@
 
 int frame_buffer[320][200] = {0};
 
-unsigned char g_320x200x256[] =
-{
+unsigned char g_320x200x256[] = {
 /* MISC */
 	0x63,
 /* SEQ */
@@ -47,24 +46,25 @@ unsigned char g_320x200x256[] =
 	0x41, 0x00, 0x0F, 0x00,	0x00
 };
 
-unsigned char g_80x25_text[] ={
-	/* MISC */
+unsigned char g_80x25_text[] = {
+/* MISC */
 	0x67,
-	/* SEQ */
+/* SEQ */
 	0x03, 0x00, 0x03, 0x00, 0x02,
-	/* CRTC */
+/* CRTC */
 	0x5F, 0x4F, 0x50, 0x82, 0x55, 0x81, 0xBF, 0x1F,
-	0x00, 0x4F, 0x0D, 0x0E, 0x00, 0x00, 0x00, 0x00,
-	0x9C, 0x8E, 0x8F, 0x28, 0x1F, 0x96, 0xB9, 0xA3,
+	0x00, 0x4F, 0x0D, 0x0E, 0x00, 0x00, 0x00, 0x50,
+	0x9C, 0x0E, 0x8F, 0x28, 0x1F, 0x96, 0xB9, 0xA3,
 	0xFF,
-	/* GC */
-	0x00, 0x00, 0x00, 0x00, 0x10, 0x40, 0x05, 0x0F,
+/* GC */
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0E, 0x00,
 	0xFF,
-	/* AC */
+/* AC */
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x14, 0x07,
 	0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F,
 	0x0C, 0x00, 0x0F, 0x08, 0x00
 };
+
 
 void vga_enter() {
     terminal_writestring("Attempting to switch modes...");
@@ -146,59 +146,52 @@ unsigned short vga_get_pixel_color(int x, int y) {
 }
 
 // Copied code from osdev.org
-
-void write_regs(unsigned char *regs)
-{
+void write_regs(unsigned char *regs) {
 	unsigned i;
 
 	// write MISCELLANEOUS reg
-	ioport_out(VGA_MISC_WRITE, *regs);
+	outb(VGA_MISC_WRITE, *regs);
 	regs++;
 
 	// write SEQUENCER regs
-	for(i = 0; i < VGA_NUM_SEQ_REGS; i++)
-	{
-		ioport_out(VGA_SEQ_INDEX, i);
-		ioport_out(VGA_SEQ_DATA, *regs);
+	for (i = 0; i < VGA_NUM_SEQ_REGS; i++) {
+		outb(VGA_SEQ_INDEX, i);
+		outb(VGA_SEQ_DATA, *regs);
 		regs++;
 	}
 
 	// unlock CRTC registers
-	ioport_out(VGA_CRTC_INDEX, 0x03);
-	ioport_out(VGA_CRTC_DATA, ioport_in(VGA_CRTC_DATA) | 0x80);
-	ioport_out(VGA_CRTC_INDEX, 0x11);
-	ioport_out(VGA_CRTC_DATA, ioport_in(VGA_CRTC_DATA) & ~0x80);
+	outb(VGA_CRTC_INDEX, 0x03);
+	outb(VGA_CRTC_DATA, inb(VGA_CRTC_DATA) | 0x80);
+	outb(VGA_CRTC_INDEX, 0x11);
+	outb(VGA_CRTC_DATA, inb(VGA_CRTC_DATA) & ~0x80);
 
 	regs[0x03] |= 0x80;
 	regs[0x11] &= ~0x80;
 
 	// write CRTC regs
-	for(i = 0; i < VGA_NUM_CRTC_REGS; i++)
-	{
-		ioport_out(VGA_CRTC_INDEX, i);
-		ioport_out(VGA_CRTC_DATA, *regs);
+	for (i = 0; i < VGA_NUM_CRTC_REGS; i++) {
+		outb(VGA_CRTC_INDEX, i);
+		outb(VGA_CRTC_DATA, *regs);
 		regs++;
 	}
 
 	// write GRAPHICS CONTROLLER regs
-	for(i = 0; i < VGA_NUM_GC_REGS; i++)
-	{
-		ioport_out(VGA_GC_INDEX, i);
-		ioport_out(VGA_GC_DATA, *regs);
+	for (i = 0; i < VGA_NUM_GC_REGS; i++) {
+		outb(VGA_GC_INDEX, i);
+		outb(VGA_GC_DATA, *regs);
 		regs++;
 	}
 
 	// write ATTRIBUTE CONTROLLER regs
-	for(i = 0; i < VGA_NUM_AC_REGS; i++)
-	{
-		(void)ioport_in(VGA_INSTAT_READ);
-		ioport_out(VGA_AC_INDEX, i);
-		ioport_out(VGA_AC_WRITE, *regs);
+	for (i = 0; i < VGA_NUM_AC_REGS; i++) {
+		(void)inb(VGA_INSTAT_READ);
+		outb(VGA_AC_INDEX, i);
+		outb(VGA_AC_WRITE, *regs);
 		regs++;
 	}
-	
-	// lock 16-color, bool use_buffer palette and unblank display
-	(void)ioport_in(VGA_INSTAT_READ);
-	ioport_out(VGA_AC_INDEX, 0x20);
-}
 
+	// lock 16-color, bool use_buffer palette and unblank display
+	(void)inb(VGA_INSTAT_READ);
+	outb(VGA_AC_INDEX, 0x20);
+}

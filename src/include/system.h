@@ -140,6 +140,7 @@ extern char kbd_special_characters[256];
 
 /* VGA */
 extern void vga_enter();
+extern void vga_enter_640x480x16();
 extern void vga_exit();
 extern void draw_rectangle(int x, int y, int width, int height, unsigned short color, bool use_buffer);
 extern void draw_circle(int x, int y, int radius, unsigned short color, bool use_buffer);
@@ -199,7 +200,7 @@ extern int mouse_y;
 extern void mouse_install();
 extern void mouse_handler(struct regs *r);
 extern void add_mouse_handler(void (*handler)(int8_t mouse_byte[3]));
-extern void edit_mouse_handler(void (*handler)(int8_t mouse_byte[3]));
+extern void remove_mouse_handler(void (*handler)(int8_t mouse_byte[3]));
 extern void print_mouse(int x, int y);
 extern void remove_mouse(int x, int y);
 

@@ -1017,6 +1017,3 @@ void chess_start() {
     cursor_pos[1] = 7;
     chess_print_board(chess_board);
 }
-
-
-

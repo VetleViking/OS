@@ -1209,7 +1209,6 @@ void remove_main_loop_call(void (*func)()) {
 
 bool main_exit_flag = false;
 
-
 // The main function, called at the start of the kernel, calls all the other functions
 void kernel_main(void) {
 	gdt_install();

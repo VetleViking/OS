@@ -760,6 +760,14 @@ move_and_points* best_move_points(bool is_white, char board[8][8]) {
     for (int i = 0; i < 128; i++) {
         move_and_points move = moves[i];
 
+        draw_rectangle(0, 0, 60, 200, VGA_COLOR_BLACK, false);
+        print_whole_num(0, 0, move.points);
+        print_whole_num(0, 20, move.from_x);
+        print_whole_num(0, 40, move.from_y);
+        print_whole_num(0, 60, move.to_x);
+        print_whole_num(0, 80, move.to_y);
+        sleep(100);
+
         if (move.from_x == move.to_x && move.from_y == move.to_y) {
             break;
         }
