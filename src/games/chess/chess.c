@@ -999,6 +999,7 @@ void chess_play() {
     remove_main_loop_call(chess_play);
 }  
 
+
 void chess_start() {
     add_keyboard_handler(chess_keyboard_handler);
     add_main_loop_call(chess_play);
@@ -1017,3 +1018,5 @@ void chess_start() {
     cursor_pos[1] = 7;
     chess_print_board(chess_board);
 }
+
+
