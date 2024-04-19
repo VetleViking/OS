@@ -666,16 +666,18 @@ void chess_bot_experimental(bool is_white, char board[8][8]) {
     chosen_piece_pos[1] = best_move[0][1];
     chosen_piece = true;
     
-    draw_rectangle(0, 0, 60, 200, VGA_COLOR_BLACK, false);
+    
 
 
     // this is for testing, prints the points and the sources for the points of the best move
 
-    print_whole_num(0, 0, points_best_move);
+    // draw_rectangle(0, 0, 60, 200, VGA_COLOR_BLACK, false);
 
-    for (int i = 0; i < 10; i++) {
-        print_whole_num(0, 20 + (i * 20), test3_exp[i]);
-    }
+    // print_whole_num(0, 0, points_best_move);
+
+    // for (int i = 0; i < 10; i++) {
+    //     print_whole_num(0, 20 + (i * 20), test3_exp[i]);
+    // }
 
     // 0 total
     // 1 + (taking piece), 2 - (bots pieces threatened)
