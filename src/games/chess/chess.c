@@ -796,18 +796,18 @@ void chess_keyboard_handler(int c) {
         if (c == 75) { // left
             if (cursor_pos[0] > 4) {
                 remove_cursor();
-                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_LIGHT_RED, true);
+                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_LIGHT_RED, false);
                 cursor_pos[0] -= 3;
                 print_cursor();
-                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN, true);
+                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN, false);
             }
         } else if (c == 77) { // right
             if (cursor_pos[0] < 3) {
                 remove_cursor();
-                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_GREEN, true);
+                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_GREEN, false);
                 cursor_pos[0] += 3;
                 print_cursor();
-                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_LIGHT_RED, true);
+                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_LIGHT_RED, false);
             }
         } else if (c == 28) { // enter
         if (cursor_pos[0] == 2) {
