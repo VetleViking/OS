@@ -101,9 +101,51 @@ void bga_draw_circle(int x, int y, int radius, unsigned int color) {
 void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned int color) {
     for (int i = 0; i < 1920; i++) {
         for (int j = 0; j < 1080; j++) {
-            if ((i-x1)*(y2-y1) - (x2-x1)*(j-y1) > 0 && (i-x2)*(y3-y2) - (x3-x2)*(j-y2) > 0 && (i-x3)*(y1-y3) - (x1-x3)*(j-y3) > 0) {
+            if ((i-x1)*(y2-y1) - (x2-x1)*(j-y1) > 0 && 
+                (i-x2)*(y3-y2) - (x3-x2)*(j-y2) > 0 && 
+                (i-x3)*(y1-y3) - (x1-x3)*(j-y3) > 0) {
                 bga_plot_pixel(i,j,color);
             }
         }
     }
+}
+
+void bga_draw_trapezoid(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, unsigned int color) {
+    int topX1 = x1, topY1 = y1;
+    int topX2 = x2, topY2 = y2;
+    int bottomX1 = x4, bottomY1 = y4;
+    int bottomX2 = x3, bottomY2 = y3;
+    
+    // Sort the top and bottom edges by y-coordinate
+    if (topY1 > topY2) {
+        swap(&topX1, &topX2);
+        swap(&topY1, &topY2);
+    }
+    if (bottomY1 > bottomY2) {
+        swap(&bottomX1, &bottomX2);
+        swap(&bottomY1, &bottomY2);
+    }
+    
+    // Draw the trapezoid
+    for (int y = topY1; y <= bottomY1; y++) {
+        int startX = interpolate(topX1, topY1, bottomX1, bottomY1, y);
+        int endX = interpolate(topX2, topY2, bottomX2, bottomY2, y);
+        for (int x = startX; x <= endX; x++) {
+            if (x >= 0 && x < 1920 && y >= 0 && y < 1080) {
+                bga_plot_pixel(x, y, color);
+            }
+        }
+    }
+}
+
+// Helper function to swap two integers
+void swap(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+// Helper function to interpolate x-coordinate given y-coordinate
+int interpolate(int x1, int y1, int x2, int y2, int y) {
+    return x1 + (y - y1) * (x2 - x1) / (y2 - y1);
 }

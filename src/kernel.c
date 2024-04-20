@@ -788,6 +788,8 @@ void check_for_command() {
 		terminal_writestring(b);
 	} else if (strcmp(command, "mouse test") == 0) {
 		mouse_test();
+	} else if (strcmp(command, "3d test") == 0) {
+		enter_3d_test();
 	}
 
 	// if the command is not found in the
