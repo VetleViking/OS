@@ -796,18 +796,18 @@ void chess_keyboard_handler(int c) {
         if (c == 75) { // left
             if (cursor_pos[0] > 4) {
                 remove_cursor();
-                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_LIGHT_RED, true);
+                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_LIGHT_RED, false);
                 cursor_pos[0] -= 3;
                 print_cursor();
-                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN, true);
+                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN, false);
             }
         } else if (c == 77) { // right
             if (cursor_pos[0] < 3) {
                 remove_cursor();
-                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_GREEN, true);
+                draw_rectangle(60 + cursor_pos[0] * 25, cursor_pos[1] * 25, 25, 25, VGA_COLOR_GREEN, false);
                 cursor_pos[0] += 3;
                 print_cursor();
-                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_LIGHT_RED, true);
+                draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_LIGHT_RED, false);
             }
         } else if (c == 28) { // enter
         if (cursor_pos[0] == 2) {
@@ -893,14 +893,14 @@ void chess_keyboard_handler(int c) {
     } else if (c == 28) { // enter
         enter_or_left_click();
     } else if (c == 1) { // esc
-        winner = 1;
+        winner = 3;
         in_chess_game = false;
     } else if (c == 48) { // b
         if (white_turn) {
             chess_bot(white_turn);
         } else {
-            //chess_bot_experimental(white_turn, chess_board);
-            chess_bot_experimental_depth(white_turn, chess_board, 3);
+            chess_bot_experimental(white_turn, chess_board);
+            //chess_bot_experimental_depth(white_turn, chess_board, 3);
         }
     }
 }
@@ -930,9 +930,9 @@ void enter_or_left_click() {
                 // for playing with bot
                 if (!white_turn) {
                     //chess_bot(white_turn);
-                    //chess_bot_experimental(white_turn, chess_board);  
+                    chess_bot_experimental(white_turn, chess_board);  
                     
-                    chess_bot_experimental_depth(white_turn, chess_board, 3);
+                    //chess_bot_experimental_depth(white_turn, chess_board, 3);
                 }
 
                 chess_print_board(chess_board);
@@ -980,8 +980,7 @@ void chess_play() {
     print_cursor();
     draw_rectangle(63 + cursor_pos[0] * 25, 3 + cursor_pos[1] * 25, 19, 19, VGA_COLOR_GREEN, true);
 
-    draw_circle(50, 50, 5, VGA_COLOR_WHITE, true);
-    draw_triangle(60, 60, 45, 40, 30, 60, VGA_COLOR_WHITE, true);
+    vga_print_frame_buffer();
 
     while (in_chess) {
         sleep(100); // sleep for 0.1s
