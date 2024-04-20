@@ -149,6 +149,7 @@ extern void vga_clear_screen();
 extern void vga_plot_pixel(int x, int y, unsigned short color, bool use_buffer);
 extern unsigned short vga_get_pixel_color(int x, int y);
 extern void vga_print_frame_buffer();
+extern void draw_image(int x, int y, int width, int height, unsigned short *image, bool use_buffer);
 
 /* BGA */
 extern void bga_write_register(unsigned short IndexValue, unsigned short DataValue);

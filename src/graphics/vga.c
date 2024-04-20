@@ -145,6 +145,14 @@ unsigned short vga_get_pixel_color(int x, int y) {
     return VGA[offset];
 }
 
+void draw_image(int x, int y, int width, int height, unsigned short *image, bool use_buffer) {
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+			vga_plot_pixel(x+i, y+j, image[i+j*width], use_buffer);
+		}
+	}
+}
+
 // Copied code from osdev.org
 void write_regs(unsigned char *regs) {
 	unsigned i;
