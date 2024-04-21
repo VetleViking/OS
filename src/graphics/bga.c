@@ -126,6 +126,12 @@ void bga_draw_trapezoid(int x1, int y1, int x2, int y2, int x3, int y3, int x4, 
         swap(&bottomY1, &bottomY2);
     }
     
+    // Check if top and bottom edges are horizontal lines
+    if (topY1 == bottomY1 && topY2 == bottomY2) {
+        // Handle the case when the trapezoid is a horizontal line
+        return;
+    }
+    
     // Draw the trapezoid
     for (int y = topY1; y <= bottomY1; y++) {
         int startX = interpolate(topX1, topY1, bottomX1, bottomY1, y);
