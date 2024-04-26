@@ -99,12 +99,30 @@ void bga_draw_circle(int x, int y, int radius, unsigned int color) {
 }
 
 void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned int color) {
-    for (int i = 0; i < 1920; i++) {
-        for (int j = 0; j < 1080; j++) {
-            if ((i-x1)*(y2-y1) - (x2-x1)*(j-y1) > 0 && 
-                (i-x2)*(y3-y2) - (x3-x2)*(j-y2) > 0 && 
-                (i-x3)*(y1-y3) - (x1-x3)*(j-y3) > 0) {
-                bga_plot_pixel(i,j,color);
+    int minX = min(x1, min(x2, x3));
+    int minY = min(y1, min(y2, y3));
+    int maxX = max(x1, max(x2, x3));
+    int maxY = max(y1, max(y2, y3));
+
+    int edge1_x = y1 - y2;
+    int edge1_y = x2 - x1;
+    int edge2_x = y2 - y3;
+    int edge2_y = x3 - x2;
+    int edge3_x = y3 - y1;
+    int edge3_y = x1 - x3;
+
+    int c1 = edge1_x * x1 + edge1_y * y1;
+    int c2 = edge2_x * x2 + edge2_y * y2;
+    int c3 = edge3_x * x3 + edge3_y * y3;
+
+    for (int i = minX; i <= maxX; i++) {
+        for (int j = minY; j <= maxY; j++) {
+            int w1 = edge1_x * i + edge1_y * j - c1;
+            int w2 = edge2_x * i + edge2_y * j - c2;
+            int w3 = edge3_x * i + edge3_y * j - c3;
+
+            if (w1 >= 0 && w2 >= 0 && w3 >= 0) {
+                bga_plot_pixel(i, j, color);
             }
         }
     }

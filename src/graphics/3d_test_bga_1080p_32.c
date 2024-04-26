@@ -51,21 +51,23 @@ struct mat4x4
     float m[4][4];
 };
 
-struct triangle multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m)
+struct vec3d multiply_matrix_vector(struct vec3d *i, struct mat4x4 *m)
 {
-    o->x = i->x * m->m[0][0] + i->y * m->m[1][0] + i->z * m->m[2][0] + m->m[3][0];
-    o->y = i->x * m->m[0][1] + i->y * m->m[1][1] + i->z * m->m[2][1] + m->m[3][1];
-    o->z = i->x * m->m[0][2] + i->y * m->m[1][2] + i->z * m->m[2][2] + m->m[3][2];
+    struct vec3d o;
+
+    o.x = i->x * m->m[0][0] + i->y * m->m[1][0] + i->z * m->m[2][0] + m->m[3][0];
+    o.y = i->x * m->m[0][1] + i->y * m->m[1][1] + i->z * m->m[2][1] + m->m[3][1];
+    o.z = i->x * m->m[0][2] + i->y * m->m[1][2] + i->z * m->m[2][2] + m->m[3][2];
     float w = i->x * m->m[0][3] + i->y * m->m[1][3] + i->z * m->m[2][3] + m->m[3][3];
 
     if (w != 0.0)
     {
-        o->x /= w;
-        o->y /= w;
-        o->z /= w;
+        o.x /= w;
+        o.y /= w;
+        o.z /= w;
     }
 
-    return (struct triangle){*o};
+    return o;
 }
 
 void enter_3d_test() {
@@ -109,8 +111,12 @@ void enter_3d_test() {
     mat_proj.m[3][3] = 0.0;
 
     for (int i = 0; i < 12; i++) {
-        struct triangle triProjected = multiply_matrix_vector(&cube_mesh.tris[i][0].p[0], &cube_mesh.tris[i][0].p[0], &mat_proj);
+        struct triangle triProjected = {0};
+        
+        triProjected.p[0] = multiply_matrix_vector(&cube_mesh.tris[i][0].p[0], &mat_proj);
+        triProjected.p[1] = multiply_matrix_vector(&cube_mesh.tris[i][0].p[1], &mat_proj);
+        triProjected.p[2] = multiply_matrix_vector(&cube_mesh.tris[i][0].p[2], &mat_proj);
 
-
+        bga_draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, 0xff0000);
     }
 }
