@@ -5,6 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
+
 float sinf(float x) {
     float term = x, sum = x;
     int i;
@@ -112,10 +115,29 @@ void enter_3d_test() {
 
     for (int i = 0; i < 12; i++) {
         struct triangle triProjected = {0};
+        struct triangle triTranslated = {0};
+
+        // rotate
+        triTranslated.p[0] = cube_mesh.tris[i][0].p[0];
+        
         
         triProjected.p[0] = multiply_matrix_vector(&cube_mesh.tris[i][0].p[0], &mat_proj);
         triProjected.p[1] = multiply_matrix_vector(&cube_mesh.tris[i][0].p[1], &mat_proj);
         triProjected.p[2] = multiply_matrix_vector(&cube_mesh.tris[i][0].p[2], &mat_proj);
+
+
+
+        // scale into view
+        triProjected.p[0].x += 1.0; triProjected.p[0].y += 1.0;
+        triProjected.p[1].x += 1.0; triProjected.p[1].y += 1.0;
+        triProjected.p[2].x += 1.0; triProjected.p[2].y += 1.0;
+
+        triProjected.p[0].x *= 0.5 * SCREEN_WIDTH;
+        triProjected.p[0].y *= 0.5 * SCREEN_HEIGHT;
+        triProjected.p[1].x *= 0.5 * SCREEN_WIDTH;
+        triProjected.p[1].y *= 0.5 * SCREEN_HEIGHT;
+        triProjected.p[2].x *= 0.5 * SCREEN_WIDTH;
+        triProjected.p[2].y *= 0.5 * SCREEN_HEIGHT;
 
         bga_draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, 0xff0000);
     }

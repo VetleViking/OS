@@ -98,6 +98,14 @@ void bga_draw_circle(int x, int y, int radius, unsigned int color) {
     }
 }
 
+inline int min(int a, int b) {
+    return a < b ? a : b;
+}
+
+inline int max(int a, int b) {
+    return a > b ? a : b;
+}
+
 void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned int color) {
     int minX = min(x1, min(x2, x3));
     int minY = min(y1, min(y2, y3));
