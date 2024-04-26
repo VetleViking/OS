@@ -157,12 +157,13 @@ extern unsigned short bga_read_register(unsigned short IndexValue);
 extern int bga_is_available(void);
 extern void bga_set_video_mode(unsigned int Width, unsigned int Height, unsigned int BitDepth, int UseLinearFrameBuffer, int ClearVideoMemory);
 extern void bga_set_bank(unsigned short BankNumber);
-extern void bga_plot_pixel(int x, int y, unsigned int color);
+extern void bga_plot_pixel(int x, int y, unsigned int color, bool use_buffer);
 extern void bga_clear_screen();
 extern void bga_draw_rectangle(int x, int y, int width, int height, unsigned int color);
 extern void bga_draw_circle(int x, int y, int radius, unsigned int color);
-extern void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned int color);
+extern void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned int color, bool use_buffer);
 extern void bga_draw_trapezoid(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, unsigned int color);
+extern void bga_print_frame_buffer();
 
 /* 3D test */
 extern void enter_3d_test();

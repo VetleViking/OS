@@ -26,6 +26,8 @@
 #define BGA_VIDEO_MEMORY 0xFD000000
 int current_width = 0;
 
+int bga_frame_buffer[1920][1080] = {0};
+
 void outpw(unsigned short port, unsigned short value) {
     __asm__ __volatile__ ("outw %0, %1" : : "a"(value), "Nd"(port));
 }
@@ -66,11 +68,49 @@ void bga_set_bank(unsigned short BankNumber) {
     bga_write_register(VBE_DISPI_INDEX_BANK, BankNumber);
 }
 
-void bga_plot_pixel(int x, int y, unsigned int color) {
+void bga_plot_pixel(int x, int y, unsigned int color, bool use_buffer) {
     unsigned int* video_memory = (unsigned int*) BGA_VIDEO_MEMORY;
     unsigned int offset = y * current_width + x;
 
-    video_memory[offset] = color;
+    if (use_buffer) {
+        bga_frame_buffer[x][y] = color;
+    } else {
+        video_memory[offset] = color;
+    }
+}
+
+void bga_draw_line(int x1, int y1, int x2, int y2, unsigned int color, bool use_buffer) {
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+    int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+
+    if (dx < 0) dx1 = -1; else if (dx > 0) dx1 = 1;
+    if (dy < 0) dy1 = -1; else if (dy > 0) dy1 = 1;
+    if (dx < 0) dx2 = -1; else if (dx > 0) dx2 = 1;
+
+    int longest = dx < 0 ? -dx : dx;
+    int shortest = dy < 0 ? -dy : dy;
+
+    if (!(longest > shortest)) {
+        longest = dy < 0 ? -dy : dy;
+        shortest = dx < 0 ? -dx : dx;
+        if (dy < 0) dy2 = -1; else if (dy > 0) dy2 = 1;
+        dx2 = 0;            
+    }
+
+    int numerator = longest >> 1;
+    for (int i = 0; i <= longest; i++) {
+        bga_plot_pixel(x1, y1, color, use_buffer);
+        numerator += shortest;
+        if (!(numerator < longest)) {
+            numerator -= longest;
+            x1 += dx1;
+            y1 += dy1;
+        } else {
+            x1 += dx2;
+            y1 += dy2;
+        }
+    }
 }
 
 void bga_clear_screen() {
@@ -83,7 +123,7 @@ void bga_clear_screen() {
 void bga_draw_rectangle(int x, int y, int width, int height, unsigned int color) {
     for (int i = x; i < x + width; i++) {
         for (int j = y; j < y + height; j++) {
-            bga_plot_pixel(i, j, color);
+            bga_plot_pixel(i, j, color, false);
         }
     }
 }
@@ -92,7 +132,7 @@ void bga_draw_circle(int x, int y, int radius, unsigned int color) {
     for (int i = 0; i < 1920; i++) {
         for (int j = 0; j < 1080; j++) {
             if ((i-x)*(i-x) + (j-y)*(j-y) <= radius*radius) {
-                bga_plot_pixel(i,j,color);
+                bga_plot_pixel(i,j,color, false);
             }
         }
     }
@@ -106,34 +146,38 @@ inline int max(int a, int b) {
     return a > b ? a : b;
 }
 
-void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned int color) {
-    int minX = min(x1, min(x2, x3));
-    int minY = min(y1, min(y2, y3));
-    int maxX = max(x1, max(x2, x3));
-    int maxY = max(y1, max(y2, y3));
+void bga_draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned int color, bool use_buffer) {
+    bga_draw_line(x1, y1, x2, y2, color, use_buffer);
+    bga_draw_line(x2, y2, x3, y3, color, use_buffer);
+    bga_draw_line(x3, y3, x1, y1, color, use_buffer);
+    
+    // int minX = min(x1, min(x2, x3));
+    // int minY = min(y1, min(y2, y3));
+    // int maxX = max(x1, max(x2, x3));
+    // int maxY = max(y1, max(y2, y3));
 
-    int edge1_x = y1 - y2;
-    int edge1_y = x2 - x1;
-    int edge2_x = y2 - y3;
-    int edge2_y = x3 - x2;
-    int edge3_x = y3 - y1;
-    int edge3_y = x1 - x3;
+    // int edge1_x = y1 - y2;
+    // int edge1_y = x2 - x1;
+    // int edge2_x = y2 - y3;
+    // int edge2_y = x3 - x2;
+    // int edge3_x = y3 - y1;
+    // int edge3_y = x1 - x3;
 
-    int c1 = edge1_x * x1 + edge1_y * y1;
-    int c2 = edge2_x * x2 + edge2_y * y2;
-    int c3 = edge3_x * x3 + edge3_y * y3;
+    // int c1 = edge1_x * x1 + edge1_y * y1;
+    // int c2 = edge2_x * x2 + edge2_y * y2;
+    // int c3 = edge3_x * x3 + edge3_y * y3;
 
-    for (int i = minX; i <= maxX; i++) {
-        for (int j = minY; j <= maxY; j++) {
-            int w1 = edge1_x * i + edge1_y * j - c1;
-            int w2 = edge2_x * i + edge2_y * j - c2;
-            int w3 = edge3_x * i + edge3_y * j - c3;
+    // for (int i = minX; i <= maxX; i++) {
+    //     for (int j = minY; j <= maxY; j++) {
+    //         int w1 = edge1_x * i + edge1_y * j - c1;
+    //         int w2 = edge2_x * i + edge2_y * j - c2;
+    //         int w3 = edge3_x * i + edge3_y * j - c3;
 
-            if (w1 >= 0 && w2 >= 0 && w3 >= 0) {
-                bga_plot_pixel(i, j, color);
-            }
-        }
-    }
+    //         if (w1 >= 0 && w2 >= 0 && w3 >= 0) {
+    //             bga_plot_pixel(i, j, color, use_buffer);
+    //         }
+    //     }
+    // }
 }
 
 void bga_draw_trapezoid(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, unsigned int color) {
@@ -164,7 +208,7 @@ void bga_draw_trapezoid(int x1, int y1, int x2, int y2, int x3, int y3, int x4, 
         int endX = interpolate(topX2, topY2, bottomX2, bottomY2, y);
         for (int x = startX; x <= endX; x++) {
             if (x >= 0 && x < 1920 && y >= 0 && y < 1080) {
-                bga_plot_pixel(x, y, color);
+                bga_plot_pixel(x, y, color, false);
             }
         }
     }
@@ -180,4 +224,14 @@ void swap(int *a, int *b) {
 // Helper function to interpolate x-coordinate given y-coordinate
 int interpolate(int x1, int y1, int x2, int y2, int y) {
     return x1 + (y - y1) * (x2 - x1) / (y2 - y1);
+}
+
+void bga_print_frame_buffer() {
+    for (int i = 0; i < 1920; i++) {
+        for (int j = 0; j < 1080; j++) {
+            bga_plot_pixel(i, j, bga_frame_buffer[i][j], false);
+            
+            bga_frame_buffer[i][j] = 0;
+        }
+    }
 }
