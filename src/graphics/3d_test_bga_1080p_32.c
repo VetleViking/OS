@@ -75,6 +75,7 @@ void enter_3d_test() {
 
     int test = 0;
     while (true) {
+        // rotation
         struct mat4x4 matRotZ, matRotX = {0};
 
         float fTheta = 1.0f * (float)(test * 0.1f);
@@ -129,11 +130,13 @@ void enter_3d_test() {
         mat_proj.m[3][2] = (-fFar * fNear) / (fFar - fNear);
         mat_proj.m[2][3] = 1.0;
 
+        // draw triangles
         for (int i = 0; i < 12; i++) {
             struct triangle triProjected = {0};
             struct triangle triRotatedZ = {0};
             struct triangle triRotatedZX = {0};
 
+            // loop through each point in the triangle
             for (int j = 0; j < 3; j++) {
                 struct vec3d p = cube_mesh.tris[i].p[j];
 
@@ -156,8 +159,9 @@ void enter_3d_test() {
             bga_draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, 0xffffff, true);
         }
         bga_print_frame_buffer();
-        test++;
 
+        // for rotation
+        test++;
         if (test > 50) {
             test = 0;
         }
