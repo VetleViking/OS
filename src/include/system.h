@@ -216,5 +216,7 @@ extern void keyboard_interrupt_handler(struct regs *r);
 extern void add_keyboard_handler(void (*func)(unsigned char c));
 extern void remove_keyboard_handler(void (*func)(unsigned char c));	
 
+/* Doom */
+extern int DG_main(int argc, char **argv);
 
 #endif

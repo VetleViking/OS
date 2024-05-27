@@ -55,6 +55,18 @@ void keyboard_interrupt_handler(struct regs *r) {
 	
 }
 
+int getkey() {
+    if ((inb(0x64) & 1) == 0) {
+        return -1;
+    }
+
+    int keycode = inb(0x60);
+    if (keycode & 0x80) {
+        return keycode & 0x7F;
+    } else {
+        return keycode | 0x80;
+    }
+}
 void keyboard_install()
 {
 	irq_install_handler(1, keyboard_interrupt_handler);

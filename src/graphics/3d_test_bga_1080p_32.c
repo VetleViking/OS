@@ -8,35 +8,12 @@
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 
-float sinf(float x) {
-    float term = x, sum = x;
-    int i;
-    for (i = 1; i <= 10; i++) {
-        term *= -1 * x * x / ((2 * i + 1) * (2 * i));
-        sum += term;
-    }
-    return sum;
-}
-
-float cosf(float x) {
-    float term = 1, sum = 1;
-    int i;
-    for (i = 1; i <= 10; i++) {
-        term *= -1 * x * x / ((2 * i) * (2 * i - 1));
-        sum += term;
-    }
-    return sum;
-}
-
-float tanf(float x) {
-    return sinf(x) / cosf(x);
-}
+// #define SCREEN_WIDTH 320
+// #define SCREEN_HEIGHT 200
 
 struct vec3d
 {
-    float x;
-    float y;
-    float z;
+    float x, y, z;
 };
 
 struct triangle
@@ -54,6 +31,41 @@ struct mat4x4
     float m[4][4];
 };
 
+#define PI 3.14159265358979323846
+
+float sinf(float x) {
+    while (x > PI) x -= 2 * PI;
+    while (x < -PI) x += 2 * PI;
+
+    float term = x, sum = x;
+    int i;
+    for (i = 1; i <= 10; i++) {
+        term *= -1 * x * x / ((2 * i) * (2 * i + 1));
+        sum += term;
+    }
+    return sum;
+}
+
+float cosf(float x) {
+    while (x > PI) x -= 2 * PI;
+    while (x < -PI) x += 2 * PI;
+
+    float term = 1, sum = 1;
+    int i;
+    for (i = 1; i <= 10; i++) {
+        term *= -1 * x * x / ((2 * i - 1) * (2 * i));
+        sum += term;
+    }
+    return sum;
+}
+
+float tanf(float x) {
+    float cos_val = cosf(x);
+    if (cos_val == 0) {
+        return 0;
+    }
+    return sinf(x) / cos_val;
+}
 void multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m)
 {
 
@@ -72,14 +84,15 @@ void multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m)
 
 void enter_3d_test() {
     bga_set_video_mode(1920, 1080, 32, 1, 1);
+    // vga_enter();
 
-    int test = 0;
     while (true) {
         // rotation
         struct mat4x4 matRotZ, matRotX = {0};
 
         float fTheta = 1.0f * (float)(test * 0.1f);
 
+        // rotation Z
         matRotZ.m[0][0] = cosf(fTheta);
         matRotZ.m[0][1] = sinf(fTheta);
         matRotZ.m[1][0] = -sinf(fTheta);
@@ -87,6 +100,7 @@ void enter_3d_test() {
         matRotZ.m[2][2] = 1;
         matRotZ.m[3][3] = 1;
 
+        // rotation X
         matRotX.m[0][0] = 1;
         matRotX.m[1][1] = cosf(fTheta * 0.5);
         matRotX.m[1][2] = sinf(fTheta * 0.5);
@@ -116,11 +130,11 @@ void enter_3d_test() {
         }};
 
         // projection matrix
-        float fNear = 0.1;
-        float fFar = 1000.0;
-        float fFov = 90.0;
+        float fNear = 0.1f;
+        float fFar = 1000.0f;
+        float fFov = 90.0f;
         float fAspectRatio = (float)SCREEN_HEIGHT / (float)SCREEN_WIDTH;
-        float fFovRad = 1.0 / tanf(fFov * 0.5 / 180.0 * 3.14159);
+        float fFovRad = 1.0f / tanf(fFov * 0.5f / 180.0f * (float)PI);
 
         struct mat4x4 mat_proj = {0};
 
@@ -128,7 +142,7 @@ void enter_3d_test() {
         mat_proj.m[1][1] = fFovRad;
         mat_proj.m[2][2] = fFar / (fFar - fNear);
         mat_proj.m[3][2] = (-fFar * fNear) / (fFar - fNear);
-        mat_proj.m[2][3] = 1.0;
+        mat_proj.m[2][3] = 1.0f;
 
         // draw triangles
         for (int i = 0; i < 12; i++) {
@@ -144,8 +158,7 @@ void enter_3d_test() {
                 multiply_matrix_vector(&triRotatedZ.p[j], &triRotatedZX.p[j], &matRotX);
 
                 struct vec3d pTranslated = triRotatedZX.p[j];
-
-                pTranslated.z = triRotatedZX.p[j].z + 3.0;
+                pTranslated.z = triRotatedZX.p[j].z + 3.0f;
 
                 multiply_matrix_vector(&pTranslated, &triProjected.p[j], &mat_proj);
 
@@ -157,13 +170,11 @@ void enter_3d_test() {
             }
 
             bga_draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, 0xffffff, true);
+            // draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+
         }
         bga_print_frame_buffer();
-
-        // for rotation
-        test++;
-        if (test > 50) {
-            test = 0;
-        }
+        // vga_print_frame_buffer();
+        // sleep(5);
     }
 }

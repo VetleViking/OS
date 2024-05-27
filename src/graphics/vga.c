@@ -87,6 +87,42 @@ void vga_print_frame_buffer() {
 			if (frame_buffer[i][j] != vga_get_pixel_color(i, j)) {
 				vga_plot_pixel(i, j, frame_buffer[i][j], false);
 			}
+			
+			frame_buffer[i][j] = 0;
+		}
+	}
+}
+
+void draw_line(int x, int y, int x2, int y2, unsigned short color, bool use_buffer) {
+	int dx = x2 - x;
+	int dy = y2 - y;
+	int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+
+	if (dx < 0) dx1 = -1; else if (dx > 0) dx1 = 1;
+	if (dy < 0) dy1 = -1; else if (dy > 0) dy1 = 1;
+	if (dx < 0) dx2 = -1; else if (dx > 0) dx2 = 1;
+
+	int longest = dx < 0 ? -dx : dx;
+	int shortest = dy < 0 ? -dy : dy;
+
+	if (!(longest > shortest)) {
+		longest = dy < 0 ? -dy : dy;
+		shortest = dx < 0 ? -dx : dx;
+		if (dy < 0) dy2 = -1; else if (dy > 0) dy2 = 1;
+		dx2 = 0;            
+	}
+
+	int numerator = longest >> 1;
+	for (int i = 0; i <= longest; i++) {
+		vga_plot_pixel(x, y, color, use_buffer);
+		numerator += shortest;
+		if (!(numerator < longest)) {
+			numerator -= longest;
+			x += dx1;
+			y += dy1;
+		} else {
+			x += dx2;
+			y += dy2;
 		}
 	}
 }
@@ -110,13 +146,17 @@ void draw_circle(int x, int y, int radius, unsigned short color, bool use_buffer
 }
 
 void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer) {
-	for (int i = 0; i < 320; i++) {
-		for (int j = 0; j < 200; j++) {
-			if ((i-x1)*(y2-y1) - (x2-x1)*(j-y1) > 0 && (i-x2)*(y3-y2) - (x3-x2)*(j-y2) > 0 && (i-x3)*(y1-y3) - (x1-x3)*(j-y3) > 0) {
-				vga_plot_pixel(i,j,color, use_buffer);
-			}
-		}
-	}
+	draw_line(x1, y1, x2, y2, color, use_buffer);
+	draw_line(x2, y2, x3, y3, color, use_buffer);
+	draw_line(x3, y3, x1, y1, color, use_buffer);
+
+	// for (int i = 0; i < 320; i++) {
+	// 	for (int j = 0; j < 200; j++) {
+	// 		if ((i-x1)*(y2-y1) - (x2-x1)*(j-y1) > 0 && (i-x2)*(y3-y2) - (x3-x2)*(j-y2) > 0 && (i-x3)*(y1-y3) - (x1-x3)*(j-y3) > 0) {
+	// 			vga_plot_pixel(i,j,color, use_buffer);
+	// 		}
+	// 	}
+	// }
 }
 
 void vga_clear_screen() {
