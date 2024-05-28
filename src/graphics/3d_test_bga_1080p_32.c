@@ -86,6 +86,7 @@ void enter_3d_test() {
     bga_set_video_mode(1920, 1080, 32, 1, 1);
     // vga_enter();
 
+    int test = 0; // needed so that the compiler doesn't optimize the loop away
     while (true) {
         // rotation
         struct mat4x4 matRotZ, matRotX = {0};
@@ -176,5 +177,7 @@ void enter_3d_test() {
         bga_print_frame_buffer();
         // vga_print_frame_buffer();
         // sleep(5);
+
+        test++;
     }
 }

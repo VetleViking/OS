@@ -790,9 +790,7 @@ void check_for_command() {
 		mouse_test();
 	} else if (strcmp(command, "3d test") == 0) {
 		enter_3d_test();
-	} else if (strcmp(command, "doom test") == 0) {
-		DG_main(0, NULL);
-	}  
+	}
 
 	// if the command is not found in the
 	else {
