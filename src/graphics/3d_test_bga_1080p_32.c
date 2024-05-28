@@ -5,11 +5,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
+// #define SCREEN_WIDTH 1920
+// #define SCREEN_HEIGHT 1080
 
-// #define SCREEN_WIDTH 320
-// #define SCREEN_HEIGHT 200
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 200
 
 struct vec3d
 {
@@ -66,6 +66,26 @@ float tanf(float x) {
     }
     return sinf(x) / cos_val;
 }
+
+float sqrtf(float number) {
+    if (number < 0) {
+        return -1;
+    }
+    if (number == 0 || number == 1) {
+        return number;
+    }
+    
+    float x = number; 
+    float x_next = 0.5f * (x + number / x); 
+    
+    while (x - x_next > 1e-6 || x - x_next < -1e-6) {
+        x = x_next;
+        x_next = 0.5f * (x + number / x);
+    }
+    
+    return x_next;
+}
+
 void multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m)
 {
 
@@ -83,8 +103,8 @@ void multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m)
 }
 
 void enter_3d_test() {
-    bga_set_video_mode(1920, 1080, 32, 1, 1);
-    // vga_enter();
+    //bga_set_video_mode(1920, 1080, 32, 1, 1);
+    vga_enter();
 
     int test = 0; // needed so that the compiler doesn't optimize the loop away
     while (true) {
@@ -148,35 +168,68 @@ void enter_3d_test() {
         // draw triangles
         for (int i = 0; i < 12; i++) {
             struct triangle triProjected = {0};
+            struct triangle triTranslated = {0};
             struct triangle triRotatedZ = {0};
             struct triangle triRotatedZX = {0};
+            
+            struct vec3d normal = {0};
+            struct vec3d line1 = {0};
+            struct vec3d line2 = {0};
 
-            // loop through each point in the triangle
-            for (int j = 0; j < 3; j++) {
-                struct vec3d p = cube_mesh.tris[i].p[j];
 
-                multiply_matrix_vector(&p, &triRotatedZ.p[j], &matRotZ);
-                multiply_matrix_vector(&triRotatedZ.p[j], &triRotatedZX.p[j], &matRotX);
+            multiply_matrix_vector(&cube_mesh.tris[i].p[0], &triRotatedZ.p[0], &matRotZ);
+            multiply_matrix_vector(&cube_mesh.tris[i].p[1], &triRotatedZ.p[1], &matRotZ);
+            multiply_matrix_vector(&cube_mesh.tris[i].p[2], &triRotatedZ.p[2], &matRotZ);
 
-                struct vec3d pTranslated = triRotatedZX.p[j];
-                pTranslated.z = triRotatedZX.p[j].z + 3.0f;
+            multiply_matrix_vector(&triRotatedZ.p[0], &triRotatedZX.p[0], &matRotX);
+            multiply_matrix_vector(&triRotatedZ.p[1], &triRotatedZX.p[1], &matRotX);
+            multiply_matrix_vector(&triRotatedZ.p[2], &triRotatedZX.p[2], &matRotX);
 
-                multiply_matrix_vector(&pTranslated, &triProjected.p[j], &mat_proj);
+            triTranslated = triRotatedZX;
+            triTranslated.p[0].z = triRotatedZX.p[0].z + 3.0f;
+            triTranslated.p[1].z = triRotatedZX.p[1].z + 3.0f;
+            triTranslated.p[2].z = triRotatedZX.p[2].z + 3.0f;
 
-                triProjected.p[j].x /= triProjected.p[j].z;
-                triProjected.p[j].y /= triProjected.p[j].z;
+            struct vec3d normal = {0};
+            struct vec3d line1 = {0};
+            struct vec3d line2 = {0};
 
-                triProjected.p[j].x = (triProjected.p[j].x + 1) * (SCREEN_WIDTH / 2);
-                triProjected.p[j].y = (triProjected.p[j].y + 1) * (SCREEN_HEIGHT / 2);
-            }
+            line1.x = triTranslated.p[1].x - triTranslated.p[0].x;
+            line1.y = triTranslated.p[1].y - triTranslated.p[0].y;
+            line1.z = triTranslated.p[1].z - triTranslated.p[0].z;
 
-            bga_draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, 0xffffff, true);
-            // draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+            line2.x = triTranslated.p[2].x - triTranslated.p[0].x;
+            line2.y = triTranslated.p[2].y - triTranslated.p[0].y;
+            line2.z = triTranslated.p[2].z - triTranslated.p[0].z;
+
+            normal.x = line1.y * line2.z - line1.z * line2.y;
+            normal.y = line1.z * line2.x - line1.x * line2.z;
+            normal.z = line1.x * line2.y - line1.y * line2.x;
+
+            float l = sqrtf(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+
+            multiply_matrix_vector(&triTranslated.p[0], &triProjected.p[0], &mat_proj);
+            multiply_matrix_vector(&triTranslated.p[1], &triProjected.p[1], &mat_proj);
+            multiply_matrix_vector(&triTranslated.p[2], &triProjected.p[2], &mat_proj);
+
+            triProjected.p[0].x += 1.0f; triProjected.p[0].y += 1.0f;
+			triProjected.p[1].x += 1.0f; triProjected.p[1].y += 1.0f;
+			triProjected.p[2].x += 1.0f; triProjected.p[2].y += 1.0f;
+			triProjected.p[0].x *= 0.5f * SCREEN_WIDTH;
+			triProjected.p[0].y *= 0.5f * SCREEN_HEIGHT;
+			triProjected.p[1].x *= 0.5f * SCREEN_WIDTH;
+			triProjected.p[1].y *= 0.5f * SCREEN_HEIGHT;
+			triProjected.p[2].x *= 0.5f * SCREEN_WIDTH;
+			triProjected.p[2].y *= 0.5f * SCREEN_HEIGHT;
+            
+
+            //bga_draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, 0xffffff, true);
+            draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
 
         }
-        bga_print_frame_buffer();
-        // vga_print_frame_buffer();
-        // sleep(5);
+        //bga_print_frame_buffer();
+        vga_print_frame_buffer();
+        sleep(5);
 
         test++;
     }
