@@ -145,6 +145,7 @@ extern void vga_exit();
 extern void draw_rectangle(int x, int y, int width, int height, unsigned short color, bool use_buffer);
 extern void draw_circle(int x, int y, int radius, unsigned short color, bool use_buffer);
 extern void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer);
+extern void draw_triangle_fill(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer);
 extern void vga_clear_screen();
 extern void vga_plot_pixel(int x, int y, unsigned short color, bool use_buffer);
 extern unsigned short vga_get_pixel_color(int x, int y);

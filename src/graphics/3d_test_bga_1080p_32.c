@@ -33,13 +33,32 @@ struct mat4x4
 
 #define PI 3.14159265358979323846
 
+float fabsf(float x) {
+    return (x < 0) ? -x : x;
+}
+
+int isnan(float number) {
+    uint32_t bits = *((uint32_t*)&number);
+    uint32_t exponent = (bits >> 23) & 0xFF;
+    uint32_t fraction = bits & 0x7FFFFF;
+    
+    return (exponent == 0xFF && fraction != 0);
+}
+
+int isinf(float number) {
+    uint32_t bits = *((uint32_t*)&number);
+    uint32_t exponent = (bits >> 23) & 0xFF;
+    uint32_t fraction = bits & 0x7FFFFF;
+    
+    return (exponent == 0xFF && fraction == 0);
+}
+
 float sinf(float x) {
     while (x > PI) x -= 2 * PI;
     while (x < -PI) x += 2 * PI;
 
     float term = x, sum = x;
-    int i;
-    for (i = 1; i <= 10; i++) {
+    for (int i = 1; i <= 15; i++) { 
         term *= -1 * x * x / ((2 * i) * (2 * i + 1));
         sum += term;
     }
@@ -51,8 +70,7 @@ float cosf(float x) {
     while (x < -PI) x += 2 * PI;
 
     float term = 1, sum = 1;
-    int i;
-    for (i = 1; i <= 10; i++) {
+    for (int i = 1; i <= 15; i++) {  
         term *= -1 * x * x / ((2 * i - 1) * (2 * i));
         sum += term;
     }
@@ -62,27 +80,34 @@ float cosf(float x) {
 float tanf(float x) {
     float cos_val = cosf(x);
     if (cos_val == 0) {
-        return 0;
+        return 1e6; 
     }
     return sinf(x) / cos_val;
 }
 
 float sqrtf(float number) {
     if (number < 0) {
-        return -1;
+        return -1;  
     }
-    if (number == 0 || number == 1) {
+    if (isnan(number) || isinf(number)) {
         return number;
     }
-    
-    float x = number; 
-    float x_next = 0.5f * (x + number / x); 
-    
-    while (x - x_next > 1e-6 || x - x_next < -1e-6) {
+    if (number == 0 || number == 1) {
+        return number;  
+    }
+
+    float x = number;
+    float x_next = 0.5f * (x + number / x);
+    const float tolerance = 1e-6f;
+    const int max_iterations = 50;
+
+    int iterations = 0;
+    while (fabsf(x - x_next) > tolerance && iterations < max_iterations) {
         x = x_next;
         x_next = 0.5f * (x + number / x);
+        iterations++;
     }
-    
+
     return x_next;
 }
 
@@ -109,7 +134,8 @@ void enter_3d_test() {
     int test = 0; // needed so that the compiler doesn't optimize the loop away
     while (true) {
         // rotation
-        struct mat4x4 matRotZ, matRotX = {0};
+        struct mat4x4 matRotZ = {0};
+        struct mat4x4 matRotX = {0};
 
         float fTheta = 1.0f * (float)(test * 0.1f);
 
@@ -157,7 +183,7 @@ void enter_3d_test() {
         float fAspectRatio = (float)SCREEN_HEIGHT / (float)SCREEN_WIDTH;
         float fFovRad = 1.0f / tanf(fFov * 0.5f / 180.0f * (float)PI);
 
-        struct mat4x4 mat_proj = {0};
+        struct mat4x4 mat_proj = {0.0f};
 
         mat_proj.m[0][0] = fAspectRatio * fFovRad;
         mat_proj.m[1][1] = fFovRad;
@@ -171,11 +197,6 @@ void enter_3d_test() {
             struct triangle triTranslated = {0};
             struct triangle triRotatedZ = {0};
             struct triangle triRotatedZX = {0};
-            
-            struct vec3d normal = {0};
-            struct vec3d line1 = {0};
-            struct vec3d line2 = {0};
-
 
             multiply_matrix_vector(&cube_mesh.tris[i].p[0], &triRotatedZ.p[0], &matRotZ);
             multiply_matrix_vector(&cube_mesh.tris[i].p[1], &triRotatedZ.p[1], &matRotZ);
@@ -190,46 +211,52 @@ void enter_3d_test() {
             triTranslated.p[1].z = triRotatedZX.p[1].z + 3.0f;
             triTranslated.p[2].z = triRotatedZX.p[2].z + 3.0f;
 
-            struct vec3d normal = {0};
-            struct vec3d line1 = {0};
-            struct vec3d line2 = {0};
+            // struct vec3d normal = {0.0f};
+            // struct vec3d line1 = {0.0f};
+            // struct vec3d line2 = {0.0f};
 
-            line1.x = triTranslated.p[1].x - triTranslated.p[0].x;
-            line1.y = triTranslated.p[1].y - triTranslated.p[0].y;
-            line1.z = triTranslated.p[1].z - triTranslated.p[0].z;
+            // line1.x = triTranslated.p[1].x - triTranslated.p[0].x;
+            // line1.y = triTranslated.p[1].y - triTranslated.p[0].y;
+            // line1.z = triTranslated.p[1].z - triTranslated.p[0].z;
 
-            line2.x = triTranslated.p[2].x - triTranslated.p[0].x;
-            line2.y = triTranslated.p[2].y - triTranslated.p[0].y;
-            line2.z = triTranslated.p[2].z - triTranslated.p[0].z;
+            // line2.x = triTranslated.p[2].x - triTranslated.p[0].x;
+            // line2.y = triTranslated.p[2].y - triTranslated.p[0].y;
+            // line2.z = triTranslated.p[2].z - triTranslated.p[0].z;
 
-            normal.x = line1.y * line2.z - line1.z * line2.y;
-            normal.y = line1.z * line2.x - line1.x * line2.z;
-            normal.z = line1.x * line2.y - line1.y * line2.x;
+            // normal.x = line1.y * line2.z - line1.z * line2.y;
+            // normal.y = line1.z * line2.x - line1.x * line2.z;
+            // normal.z = line1.x * line2.y - line1.y * line2.x;
 
-            float l = sqrtf(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+            // // Normalize the normal vector
+            // float l = sqrtf(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+            // normal.x /= l;
+            // normal.y /= l;
+            // normal.z /= l;
 
-            multiply_matrix_vector(&triTranslated.p[0], &triProjected.p[0], &mat_proj);
-            multiply_matrix_vector(&triTranslated.p[1], &triProjected.p[1], &mat_proj);
-            multiply_matrix_vector(&triTranslated.p[2], &triProjected.p[2], &mat_proj);
+            // struct vec3d vCamera = {0.0f, 0.0f, 0.0f};
 
-            triProjected.p[0].x += 1.0f; triProjected.p[0].y += 1.0f;
-			triProjected.p[1].x += 1.0f; triProjected.p[1].y += 1.0f;
-			triProjected.p[2].x += 1.0f; triProjected.p[2].y += 1.0f;
-			triProjected.p[0].x *= 0.5f * SCREEN_WIDTH;
-			triProjected.p[0].y *= 0.5f * SCREEN_HEIGHT;
-			triProjected.p[1].x *= 0.5f * SCREEN_WIDTH;
-			triProjected.p[1].y *= 0.5f * SCREEN_HEIGHT;
-			triProjected.p[2].x *= 0.5f * SCREEN_WIDTH;
-			triProjected.p[2].y *= 0.5f * SCREEN_HEIGHT;
-            
+            // if (normal.x * (triTranslated.p[0].x - vCamera.x) + normal.y * (triTranslated.p[0].y - vCamera.y) + normal.z * (triTranslated.p[0].z - vCamera.z) < 0.0f) {
+                multiply_matrix_vector(&triTranslated.p[0], &triProjected.p[0], &mat_proj);
+                multiply_matrix_vector(&triTranslated.p[1], &triProjected.p[1], &mat_proj);
+                multiply_matrix_vector(&triTranslated.p[2], &triProjected.p[2], &mat_proj);
 
-            //bga_draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, 0xffffff, true);
-            draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+                triProjected.p[0].x += 1.0f; triProjected.p[0].y += 1.0f;
+                triProjected.p[1].x += 1.0f; triProjected.p[1].y += 1.0f;
+                triProjected.p[2].x += 1.0f; triProjected.p[2].y += 1.0f;
+                triProjected.p[0].x *= 0.5f * SCREEN_WIDTH;
+                triProjected.p[0].y *= 0.5f * SCREEN_HEIGHT;
+                triProjected.p[1].x *= 0.5f * SCREEN_WIDTH;
+                triProjected.p[1].y *= 0.5f * SCREEN_HEIGHT;
+                triProjected.p[2].x *= 0.5f * SCREEN_WIDTH;
+                triProjected.p[2].y *= 0.5f * SCREEN_HEIGHT;
 
+                // Draw the triangle
+                draw_triangle_fill(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+            //}
         }
         //bga_print_frame_buffer();
         vga_print_frame_buffer();
-        sleep(5);
+        sleep(20);
 
         test++;
     }

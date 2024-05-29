@@ -159,6 +159,73 @@ void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned shor
 	// }
 }
 
+void swap_vga(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void fill_flat_bottom_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer) {
+    float invslope1 = (float)(x2 - x1) / (float)(y2 - y1);
+    float invslope2 = (float)(x3 - x1) / (float)(y3 - y1);
+
+    float curx1 = x1;
+    float curx2 = x1;
+
+    for (int scanlineY = y1; scanlineY <= y2; scanlineY++) {
+        int xs = (int)(curx1 + 0.5f);
+        int xe = (int)(curx2 + 0.5f);
+        for (int x = xs; x <= xe; x++) {
+            vga_plot_pixel(x, scanlineY, color, use_buffer);
+        }
+        curx1 += invslope1;
+        curx2 += invslope2;
+    }
+}
+
+void fill_flat_top_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer) {
+    float invslope1 = (float)(x3 - x1) / (float)(y3 - y1);
+    float invslope2 = (float)(x3 - x2) / (float)(y3 - y2);
+
+    float curx1 = x3;
+    float curx2 = x3;
+
+    for (int scanlineY = y3; scanlineY > y1; scanlineY--) {
+        int xs = (int)(curx1 + 0.5f);
+        int xe = (int)(curx2 + 0.5f);
+        for (int x = xs; x <= xe; x++) {
+            vga_plot_pixel(x, scanlineY, color, use_buffer);
+        }
+        curx1 -= invslope1;
+        curx2 -= invslope2;
+    }
+}
+
+void draw_triangle_fill(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer) {
+    if (y2 < y1) {
+        swap(&x1, &x2);
+        swap(&y1, &y2);
+    }
+    if (y3 < y1) {
+        swap(&x1, &x3);
+        swap(&y1, &y3);
+    }
+    if (y3 < y2) {
+        swap(&x2, &x3);
+        swap(&y2, &y3);
+    }
+
+    if (y2 == y3) {
+        fill_flat_bottom_triangle(x1, y1, x2, y2, x3, y3, color, use_buffer);
+    } else if (y1 == y2) {
+        fill_flat_top_triangle(x1, y1, x2, y2, x3, y3, color, use_buffer);
+    } else {
+        int x4 = x1 + (x3 - x1) * (y2 - y1) / (y3 - y1);
+        fill_flat_bottom_triangle(x1, y1, x2, y2, x4, y2, color, use_buffer);
+        fill_flat_top_triangle(x2, y2, x4, y2, x3, y3, color, use_buffer);
+    }
+}
+
 void vga_clear_screen() {
     for (int i = 0; i < 320; i++) {
         for (int j = 0; j < 200; j++) {
