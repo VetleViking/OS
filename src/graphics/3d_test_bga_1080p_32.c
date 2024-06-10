@@ -80,39 +80,161 @@ float cosf(float x) {
 float tanf(float x) {
     float cos_val = cosf(x);
     if (cos_val == 0) {
-        return 1e6; 
+        return (float)1e6; 
     }
     return sinf(x) / cos_val;
 }
 
-float sqrtf(float number) {
-    if (number < 0) {
-        return -1;  
-    }
-    if (isnan(number) || isinf(number)) {
-        return number;
-    }
-    if (number == 0 || number == 1) {
-        return number;  
-    }
+typedef union {
+    float f;
+    unsigned int i;
+} float_cast;
 
-    float x = number;
-    float x_next = 0.5f * (x + number / x);
-    const float tolerance = 1e-6f;
-    const int max_iterations = 50;
-
-    int iterations = 0;
-    while (fabsf(x - x_next) > tolerance && iterations < max_iterations) {
-        x = x_next;
-        x_next = 0.5f * (x + number / x);
-        iterations++;
-    }
-
-    return x_next;
+unsigned int __HI(float x) {
+    float_cast fc;
+    fc.f = x;
+    return fc.i;
 }
 
-void multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m)
-{
+void __setHI(float *x, unsigned int hi) {
+    float_cast fc;
+    fc.f = *x;
+    fc.i = hi;
+    *x = fc.f;
+}
+
+float sqrtf(float x) {
+    float z;
+    int sign = 0x80000000;
+    unsigned int r, t1, s1, ix1, q1;
+    int ix0, s0, q, m, t, i;
+    float one = 1.0f, tiny = 1.0e-30f;
+
+    ix0 = __HI(x); 
+
+    if((ix0 & 0x7f800000) == 0x7f800000) {            
+        return x*x + x;
+    } 
+
+    if(ix0 <= 0) {
+        if((ix0 & (~sign)) == 0) return x;
+        else if(ix0 < 0)
+            return (x - x) / (x - x);
+    }
+
+    m = (ix0 >> 23);
+    if(m == 0) { 
+        while((ix0 & 0x00800000) == 0) {
+            ix0 <<= 1;
+            m -= 1;
+        }
+        m += 1;
+    }
+    m -= 127; 
+    ix0 = (ix0 & 0x007fffff) | 0x00800000;
+    if(m & 1) {
+        ix0 += ix0;
+    }
+    m >>= 1; 
+
+    ix0 += ix0;
+    q = s0 = 0;  
+    r = 0x01000000;  
+
+    while(r != 0) {
+        t = s0 + r; 
+        if(t <= ix0) { 
+            s0 = t + r; 
+            ix0 -= t; 
+            q += r; 
+        } 
+        ix0 += ix0;
+        r >>= 1;
+    }
+
+    if(ix0 != 0) {
+        z = one - tiny; 
+        if (z >= one) {
+            z = one + tiny;
+            if (q == 0x00ffffff) { q = 0; q += 1; }
+            else if (z > one) {
+                if (q == 0x00fffffe) q += 1;
+                q += 2; 
+            } else
+                q += (q & 1);
+        }
+    }
+    ix0 = (q >> 1) + 0x3f000000;
+    if((q & 1) == 1) ix0 += sign;
+    ix0 += (m << 23);
+    __setHI(&z, ix0);
+    return z;
+}
+
+void reverse(char *str, int length) {
+    int start = 0;
+    int end = length - 1;
+    while (start < end) {
+        char temp = str[start];
+        str[start] = str[end];
+        str[end] = temp;
+        start++;
+        end--;
+    }
+}
+
+int intToStr(int x, char str[], int d) {
+    int i = 0;
+    while (x) {
+        str[i++] = (x % 10) + '0';
+        x = x / 10;
+    }
+
+    while (i < d)
+        str[i++] = '0';
+
+    reverse(str, i);
+    str[i] = '\0';
+    return i;
+}
+
+void floatToString(float n, char *res, int afterpoint) {
+    int sign = 1;
+    if (n < 0) {
+        sign = -1;
+        n = -n;
+    }
+
+    int ipart = (int)n;
+    float fpart = n - (float)ipart;
+
+    int i = intToStr(ipart, res, 0); // Handle integer part
+
+    if (sign == -1) {
+        // If negative, insert minus sign at the beginning
+        for (int j = i; j > 0; j--) {
+            res[j] = res[j - 1];
+        }
+        res[0] = '-';
+        i++;
+    }
+
+    if (afterpoint != 0) {
+        res[i] = '.';
+        i++;
+
+        for (int j = 0; j < afterpoint; j++) {
+            fpart *= 10;
+            int digit = (int)fpart;
+            res[i++] = '0' + digit;
+            fpart -= digit;
+        }
+    }
+
+    res[i] = '\0';
+}
+
+void multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m) {
 
     o->x = i->x * m->m[0][0] + i->y * m->m[1][0] + i->z * m->m[2][0] + m->m[3][0];
     o->y = i->x * m->m[0][1] + i->y * m->m[1][1] + i->z * m->m[2][1] + m->m[3][1];
@@ -129,7 +251,69 @@ void multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m)
 
 void enter_3d_test() {
     //bga_set_video_mode(1920, 1080, 32, 1, 1);
-    vga_enter();
+    // vga_enter();
+
+
+    char buffer[100];
+
+    // terminal_writestring("float test:");
+    // newline();
+    // float float_test = 0.123456789;
+    // floatToString(float_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float float_test2 = -1.123456789;
+    // floatToString(float_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // terminal_writestring("sqrt test:");
+    // newline();
+    // float sqrt_test = sqrtf(2.0f); // should be 1.4142135
+    // floatToString(sqrt_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float sqrt_test2 = sqrtf(3.0f); // should be 1.7320508
+    // floatToString(sqrt_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // terminal_writestring("sin test:");
+    // newline();
+    // float sin_test = sinf(PI / 2); // should be 1.0
+    // floatToString(sin_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float sin_test2 = sinf(PI); // should be 0.0
+    // floatToString(sin_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // terminal_writestring("cos test:");
+    // newline();
+    // float cos_test = cosf(PI); // should be -1.0
+    // floatToString(cos_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float cos_test2 = cosf(PI / 2); // should be 0.0
+    // floatToString(cos_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // terminal_writestring("tan test:");
+    // newline();
+    // float tan_test = tanf(PI / 4); // should be 1.0
+    // floatToString(tan_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float tan_test2 = tanf(PI / 2); // should be inf
+    // floatToString(tan_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+
+    // sleep(500);
+
+
+    // return;
+
+ 
+
 
     int test = 0; // needed so that the compiler doesn't optimize the loop away
     while (true) {
@@ -211,31 +395,110 @@ void enter_3d_test() {
             triTranslated.p[1].z = triRotatedZX.p[1].z + 3.0f;
             triTranslated.p[2].z = triRotatedZX.p[2].z + 3.0f;
 
-            // struct vec3d normal = {0.0f};
-            // struct vec3d line1 = {0.0f};
-            // struct vec3d line2 = {0.0f};
+            struct vec3d normal = {0.0f};
+            struct vec3d line1 = {0.0f};
+            struct vec3d line2 = {0.0f};
 
-            // line1.x = triTranslated.p[1].x - triTranslated.p[0].x;
-            // line1.y = triTranslated.p[1].y - triTranslated.p[0].y;
-            // line1.z = triTranslated.p[1].z - triTranslated.p[0].z;
+            line1.x = triTranslated.p[1].x - triTranslated.p[0].x;
+            line1.y = triTranslated.p[1].y - triTranslated.p[0].y;
+            line1.z = triTranslated.p[1].z - triTranslated.p[0].z;
 
-            // line2.x = triTranslated.p[2].x - triTranslated.p[0].x;
-            // line2.y = triTranslated.p[2].y - triTranslated.p[0].y;
-            // line2.z = triTranslated.p[2].z - triTranslated.p[0].z;
+            line2.x = triTranslated.p[2].x - triTranslated.p[0].x;
+            line2.y = triTranslated.p[2].y - triTranslated.p[0].y;
+            line2.z = triTranslated.p[2].z - triTranslated.p[0].z;
 
-            // normal.x = line1.y * line2.z - line1.z * line2.y;
-            // normal.y = line1.z * line2.x - line1.x * line2.z;
-            // normal.z = line1.x * line2.y - line1.y * line2.x;
+            normal.x = line1.y * line2.z - line1.z * line2.y;
+            normal.y = line1.z * line2.x - line1.x * line2.z;
+            normal.z = line1.x * line2.y - line1.y * line2.x;
 
-            // // Normalize the normal vector
-            // float l = sqrtf(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
-            // normal.x /= l;
-            // normal.y /= l;
-            // normal.z /= l;
+            // terminal_writestring("lines:");
+            // newline();
+            // floatToString(line1.x, buffer, 20);
+            // terminal_writestring("line1.x: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line1.y, buffer, 20);
+            // terminal_writestring("line1.y: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line1.z, buffer, 20);
+            // terminal_writestring("line1.z: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line2.x, buffer, 20);
+            // terminal_writestring("line2.x: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line2.y, buffer, 20);
+            // terminal_writestring("line2.y: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line2.z, buffer, 20);
+            // terminal_writestring("line2.z: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // sleep(500);
+            // terminal_writestring("normals:");
 
-            // struct vec3d vCamera = {0.0f, 0.0f, 0.0f};
+            // floatToString(normal.x, buffer, 20);
+            // terminal_writestring("normal.x: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(normal.y, buffer, 20);
+            // terminal_writestring("normal.y: ");
+            // terminal_writestring(buffer);                
+            // newline();
+            // floatToString(normal.z, buffer, 20);
+            // terminal_writestring("normal.z: ");
+            // terminal_writestring(buffer);
+            // newline();
 
-            // if (normal.x * (triTranslated.p[0].x - vCamera.x) + normal.y * (triTranslated.p[0].y - vCamera.y) + normal.z * (triTranslated.p[0].z - vCamera.z) < 0.0f) {
+            
+        
+
+            // Normalize the normal vector
+            float l = sqrtf((normal.x * normal.x) + (normal.y * normal.y) + (normal.z * normal.z));
+            normal.x /= l;
+            normal.y /= l;
+            normal.z /= l;
+            
+            // floatToString(l, buffer, 20);            
+            // terminal_writestring(buffer);
+            // newline();
+
+            struct vec3d vCamera = {0.0f, 0.0f, 0.0f};
+
+            if (test > 90) {
+                terminal_writestring("testThings:");
+                float testThing1 = normal.x * (triTranslated.p[0].x - vCamera.x);
+                float testThing2 = normal.y * (triTranslated.p[0].y - vCamera.y);
+                float testThing3 = normal.z * (triTranslated.p[0].z - vCamera.z);
+                floatToString(testThing1, buffer, 10);
+                terminal_writestring(buffer);
+                newline();
+                floatToString(testThing2, buffer, 10);
+                terminal_writestring(buffer);
+                newline();
+                floatToString(testThing3, buffer, 10);
+                terminal_writestring(buffer);
+                newline();
+                if (testThing1 + testThing2 + testThing3 < 0.0f) {
+                    terminal_writestring("will be drawn");
+                    newline();
+                } else {
+                    terminal_writestring("will not be drawn");
+                    newline();
+                }
+
+                print_float(0, 20, testThing1);
+                print_float(0, 40, testThing2);
+                print_float(0, 60, testThing3);
+                sleep(500);
+            }
+
+            // sleep(100);
+
+            if ((normal.x * (triTranslated.p[0].x - vCamera.x)) + (normal.y * (triTranslated.p[0].y - vCamera.y)) + (normal.z * (triTranslated.p[0].z - vCamera.z)) < 0.0f) {
                 multiply_matrix_vector(&triTranslated.p[0], &triProjected.p[0], &mat_proj);
                 multiply_matrix_vector(&triTranslated.p[1], &triProjected.p[1], &mat_proj);
                 multiply_matrix_vector(&triTranslated.p[2], &triProjected.p[2], &mat_proj);
@@ -250,14 +513,141 @@ void enter_3d_test() {
                 triProjected.p[2].x *= 0.5f * SCREEN_WIDTH;
                 triProjected.p[2].y *= 0.5f * SCREEN_HEIGHT;
 
+                
+
                 // Draw the triangle
-                draw_triangle_fill(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
-            //}
+                // draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+                //vga_plot_pixel(triProjected.p[0].x, triProjected.p[0].y, VGA_COLOR_WHITE, true);
+                //vga_plot_pixel(triProjected.p[1].x, triProjected.p[1].y, VGA_COLOR_WHITE, true);
+                //vga_plot_pixel(triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+            }
         }
         //bga_print_frame_buffer();
-        vga_print_frame_buffer();
-        sleep(20);
+
+        // print_int(0, 0, test);
+
+        // vga_print_frame_buffer();
+        // sleep(20);
 
         test++;
     }
+}
+
+void print_int(int x, int y, int number) {
+    char p[10];
+    itoa(number, p, 10);
+
+    for (int i = 0; i < 10; i++) {
+        if (p[i] == '\0') {
+            break; 
+        } else if (p[i] == '-') {
+            draw_rectangle(x + (i * 10), y, 10, 20, VGA_COLOR_BLACK, false);
+            draw_rectangle(x + (i * 10), y + 8, 9, 2, VGA_COLOR_WHITE, false);
+        } else {
+            print_num(x + (i * 10), y, p[i] - '0');
+        }
+    }
+}
+
+void print_float(int x, int y, float number) {
+    char p[30]; 
+    floatToString(number, p, 10);
+
+    
+    bool decimalFound = false;
+    for (int i = 0; i < 20; i++) {
+        if (p[i] == '.') {
+            decimalFound = true;
+            i++;
+            continue;
+        }
+
+        if (p[i] == '-') {
+            draw_rectangle(x + (i * 10), y, 10, 20, VGA_COLOR_BLACK, true);
+            draw_rectangle(x + (i * 10), y + 8, 9, 2, VGA_COLOR_WHITE, true);
+        } else {
+            print_num_float(x + (i * 10), y, p[i] - '0', true);
+        }
+
+        if (decimalFound) {
+            draw_rectangle(x + (i * 10), y + 16, 2, 2, VGA_COLOR_WHITE, true);
+        }
+
+    }
+}
+
+void print_num_float(int x, int y, int number) {
+    bool use_buffer = true;
+
+    draw_rectangle(x, y, 10, 20, VGA_COLOR_BLACK, use_buffer);
+
+    switch (number) {
+        case 0:
+            draw_rectangle(x, y, 9, 18, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x + 2, y + 2, 5, 14, VGA_COLOR_BLACK, use_buffer);            
+            break;
+
+        case 1:
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE, use_buffer);            
+            break;
+
+        case 2:
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x + 7, y, 2, 10, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 9, 2, 9, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            break;
+
+        case 3:
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE, use_buffer);
+            break;
+
+        case 4: 
+            draw_rectangle(x, y, 2, 9, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            break;
+
+        case 5:
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y, 2, 9, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x + 7, y + 9, 2, 9, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            break;
+
+        case 6:
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y, 2, 18, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x + 7, y + 9, 2, 9, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            break;
+
+        case 7:
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE, use_buffer);
+            break;
+
+        case 8:
+            draw_rectangle(x, y, 9, 18, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x + 2, y + 2, 5, 14, VGA_COLOR_BLACK, use_buffer); 
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            break;
+
+        case 9:
+            draw_rectangle(x, y, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x + 7, y, 2, 18, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 8, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y, 2, 9, VGA_COLOR_WHITE, use_buffer);
+            draw_rectangle(x, y + 16, 9, 2, VGA_COLOR_WHITE, use_buffer);
+            break;
+        default:
+            draw_rectangle(x, y, 9, 18, VGA_COLOR_RED, use_buffer);
+            break;
+    };
 }
