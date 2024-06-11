@@ -251,69 +251,7 @@ void multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m) 
 
 void enter_3d_test() {
     //bga_set_video_mode(1920, 1080, 32, 1, 1);
-    // vga_enter();
-
-
-    char buffer[100];
-
-    // terminal_writestring("float test:");
-    // newline();
-    // float float_test = 0.123456789;
-    // floatToString(float_test, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-    // float float_test2 = -1.123456789;
-    // floatToString(float_test2, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-    // terminal_writestring("sqrt test:");
-    // newline();
-    // float sqrt_test = sqrtf(2.0f); // should be 1.4142135
-    // floatToString(sqrt_test, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-    // float sqrt_test2 = sqrtf(3.0f); // should be 1.7320508
-    // floatToString(sqrt_test2, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-    // terminal_writestring("sin test:");
-    // newline();
-    // float sin_test = sinf(PI / 2); // should be 1.0
-    // floatToString(sin_test, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-    // float sin_test2 = sinf(PI); // should be 0.0
-    // floatToString(sin_test2, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-    // terminal_writestring("cos test:");
-    // newline();
-    // float cos_test = cosf(PI); // should be -1.0
-    // floatToString(cos_test, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-    // float cos_test2 = cosf(PI / 2); // should be 0.0
-    // floatToString(cos_test2, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-    // terminal_writestring("tan test:");
-    // newline();
-    // float tan_test = tanf(PI / 4); // should be 1.0
-    // floatToString(tan_test, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-    // float tan_test2 = tanf(PI / 2); // should be inf
-    // floatToString(tan_test2, buffer, 20);
-    // terminal_writestring(buffer);
-    // newline();
-
-    // sleep(500);
-
-
-    // return;
-
- 
-
+    vga_enter();
 
     int test = 0; // needed so that the compiler doesn't optimize the loop away
     while (true) {
@@ -406,97 +344,18 @@ void enter_3d_test() {
             line2.x = triTranslated.p[2].x - triTranslated.p[0].x;
             line2.y = triTranslated.p[2].y - triTranslated.p[0].y;
             line2.z = triTranslated.p[2].z - triTranslated.p[0].z;
-
-            normal.x = line1.y * line2.z - line1.z * line2.y;
-            normal.y = line1.z * line2.x - line1.x * line2.z;
-            normal.z = line1.x * line2.y - line1.y * line2.x;
-
-            // terminal_writestring("lines:");
-            // newline();
-            // floatToString(line1.x, buffer, 20);
-            // terminal_writestring("line1.x: ");
-            // terminal_writestring(buffer);
-            // newline();
-            // floatToString(line1.y, buffer, 20);
-            // terminal_writestring("line1.y: ");
-            // terminal_writestring(buffer);
-            // newline();
-            // floatToString(line1.z, buffer, 20);
-            // terminal_writestring("line1.z: ");
-            // terminal_writestring(buffer);
-            // newline();
-            // floatToString(line2.x, buffer, 20);
-            // terminal_writestring("line2.x: ");
-            // terminal_writestring(buffer);
-            // newline();
-            // floatToString(line2.y, buffer, 20);
-            // terminal_writestring("line2.y: ");
-            // terminal_writestring(buffer);
-            // newline();
-            // floatToString(line2.z, buffer, 20);
-            // terminal_writestring("line2.z: ");
-            // terminal_writestring(buffer);
-            // newline();
-            // sleep(500);
-            // terminal_writestring("normals:");
-
-            // floatToString(normal.x, buffer, 20);
-            // terminal_writestring("normal.x: ");
-            // terminal_writestring(buffer);
-            // newline();
-            // floatToString(normal.y, buffer, 20);
-            // terminal_writestring("normal.y: ");
-            // terminal_writestring(buffer);                
-            // newline();
-            // floatToString(normal.z, buffer, 20);
-            // terminal_writestring("normal.z: ");
-            // terminal_writestring(buffer);
-            // newline();
-
-            
-        
+          
+            normal.x = (line1.y * line2.z) - (line1.z * line2.y);
+            normal.y = (line1.z * line2.x) - (line1.x * line2.z);
+            normal.z = (line1.x * line2.y) - (line1.y * line2.x);
 
             // Normalize the normal vector
             float l = sqrtf((normal.x * normal.x) + (normal.y * normal.y) + (normal.z * normal.z));
             normal.x /= l;
             normal.y /= l;
             normal.z /= l;
-            
-            // floatToString(l, buffer, 20);            
-            // terminal_writestring(buffer);
-            // newline();
 
             struct vec3d vCamera = {0.0f, 0.0f, 0.0f};
-
-            if (test > 90) {
-                terminal_writestring("testThings:");
-                float testThing1 = normal.x * (triTranslated.p[0].x - vCamera.x);
-                float testThing2 = normal.y * (triTranslated.p[0].y - vCamera.y);
-                float testThing3 = normal.z * (triTranslated.p[0].z - vCamera.z);
-                floatToString(testThing1, buffer, 10);
-                terminal_writestring(buffer);
-                newline();
-                floatToString(testThing2, buffer, 10);
-                terminal_writestring(buffer);
-                newline();
-                floatToString(testThing3, buffer, 10);
-                terminal_writestring(buffer);
-                newline();
-                if (testThing1 + testThing2 + testThing3 < 0.0f) {
-                    terminal_writestring("will be drawn");
-                    newline();
-                } else {
-                    terminal_writestring("will not be drawn");
-                    newline();
-                }
-
-                print_float(0, 20, testThing1);
-                print_float(0, 40, testThing2);
-                print_float(0, 60, testThing3);
-                sleep(500);
-            }
-
-            // sleep(100);
 
             if ((normal.x * (triTranslated.p[0].x - vCamera.x)) + (normal.y * (triTranslated.p[0].y - vCamera.y)) + (normal.z * (triTranslated.p[0].z - vCamera.z)) < 0.0f) {
                 multiply_matrix_vector(&triTranslated.p[0], &triProjected.p[0], &mat_proj);
@@ -513,10 +372,8 @@ void enter_3d_test() {
                 triProjected.p[2].x *= 0.5f * SCREEN_WIDTH;
                 triProjected.p[2].y *= 0.5f * SCREEN_HEIGHT;
 
-                
-
                 // Draw the triangle
-                // draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+                draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
                 //vga_plot_pixel(triProjected.p[0].x, triProjected.p[0].y, VGA_COLOR_WHITE, true);
                 //vga_plot_pixel(triProjected.p[1].x, triProjected.p[1].y, VGA_COLOR_WHITE, true);
                 //vga_plot_pixel(triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
@@ -526,8 +383,8 @@ void enter_3d_test() {
 
         // print_int(0, 0, test);
 
-        // vga_print_frame_buffer();
-        // sleep(20);
+        vga_print_frame_buffer();
+        sleep(20);
 
         test++;
     }

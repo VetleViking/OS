@@ -2,6 +2,8 @@
     "files.associations": {
         "system.h": "c",
         "stdbool.h": "c",
-        "chess_pieces.h": "c"
+        "chess_pieces.h": "c",
+        "cstdlib": "c",
+        "xlocinfo": "c"
     }
 }

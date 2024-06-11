@@ -167,3 +167,142 @@ void enter_3d_test() {
 
     draw_view();
 }
+
+
+            // terminal_writestring("lines:");
+            // newline();
+            // floatToString(line1.x, buffer, 20);
+            // terminal_writestring("line1.x: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line1.y, buffer, 20);
+            // terminal_writestring("line1.y: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line1.z, buffer, 20);
+            // terminal_writestring("line1.z: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line2.x, buffer, 20);
+            // terminal_writestring("line2.x: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line2.y, buffer, 20);
+            // terminal_writestring("line2.y: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line2.z, buffer, 20);
+            // terminal_writestring("line2.z: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // sleep(500);
+            // terminal_writestring("normals:");
+
+            // floatToString(normal.x, buffer, 20);
+            // terminal_writestring("normal.x: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(normal.y, buffer, 20);
+            // terminal_writestring("normal.y: ");
+            // terminal_writestring(buffer);                
+            // newline();
+            // floatToString(normal.z, buffer, 20);
+            // terminal_writestring("normal.z: ");
+            // terminal_writestring(buffer);
+            // newline();
+
+            // if (test > 90) {
+            //     terminal_writestring("testThings:");
+            //     newline();
+            //     float testThing1 = normal.x * (triTranslated.p[0].x - vCamera.x);
+            //     float testThing2 = normal.y * (triTranslated.p[0].y - vCamera.y);
+            //     float testThing3 = normal.z * (triTranslated.p[0].z - vCamera.z);
+            //     floatToString(testThing1, buffer, 10);
+            //     terminal_writestring(buffer);
+            //     newline();
+            //     floatToString(testThing2, buffer, 10);
+            //     terminal_writestring(buffer);
+            //     newline();
+            //     floatToString(testThing3, buffer, 10);
+            //     terminal_writestring(buffer);
+            //     newline();
+            //     if (testThing1 + testThing2 + testThing3 < 0.0f) {
+            //         terminal_writestring("will be drawn");
+            //         newline();
+            //     } else {
+            //         terminal_writestring("will not be drawn");
+            //         newline();
+            //     }
+
+            //     print_float(0, 20, testThing1);
+            //     print_float(0, 40, testThing2);
+            //     print_float(0, 60, testThing3);
+            //     sleep(500);
+            // }
+
+            // sleep(100);
+
+                        
+            // floatToString(l, buffer, 20);            
+            // terminal_writestring(buffer);
+            // newline();
+
+
+
+                char buffer[100];
+
+    // terminal_writestring("float test:");
+    // newline();
+    // float float_test = 0.123456789;
+    // floatToString(float_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float float_test2 = -1.123456789;
+    // floatToString(float_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // terminal_writestring("sqrt test:");
+    // newline();
+    // float sqrt_test = sqrtf(2.0f); // should be 1.4142135
+    // floatToString(sqrt_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float sqrt_test2 = sqrtf(3.0f); // should be 1.7320508
+    // floatToString(sqrt_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // terminal_writestring("sin test:");
+    // newline();
+    // float sin_test = sinf(PI / 2); // should be 1.0
+    // floatToString(sin_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float sin_test2 = sinf(PI); // should be 0.0
+    // floatToString(sin_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // terminal_writestring("cos test:");
+    // newline();
+    // float cos_test = cosf(PI); // should be -1.0
+    // floatToString(cos_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float cos_test2 = cosf(PI / 2); // should be 0.0
+    // floatToString(cos_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // terminal_writestring("tan test:");
+    // newline();
+    // float tan_test = tanf(PI / 4); // should be 1.0
+    // floatToString(tan_test, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+    // float tan_test2 = tanf(PI / 2); // should be inf
+    // floatToString(tan_test2, buffer, 20);
+    // terminal_writestring(buffer);
+    // newline();
+
+    // sleep(500);
+
+
+    // return;
