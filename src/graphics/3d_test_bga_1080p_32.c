@@ -251,15 +251,23 @@ void multiply_matrix_vector(struct vec3d *i, struct vec3d *o, struct mat4x4 *m) 
 
 void enter_3d_test() {
     //bga_set_video_mode(1920, 1080, 32, 1, 1);
-    vga_enter();
+    // vga_enter();
+
+    char buffer[100];
 
     int test = 0; // needed so that the compiler doesn't optimize the loop away
+    int total_drawn = 0;
     while (true) {
         // rotation
         struct mat4x4 matRotZ = {0};
         struct mat4x4 matRotX = {0};
 
         float fTheta = 1.0f * (float)(test * 0.1f);
+
+        floatToString(fTheta, buffer, 10);
+        terminal_writestring(buffer); // supposed to be 0 for first and 0.1 for second
+        newline();
+
 
         // rotation Z
         matRotZ.m[0][0] = cosf(fTheta);
@@ -269,6 +277,23 @@ void enter_3d_test() {
         matRotZ.m[2][2] = 1;
         matRotZ.m[3][3] = 1;
 
+        floatToString(matRotZ.m[0][0], buffer, 20);
+        terminal_writestring("matRotZ.m[0][0]: ");
+        terminal_writestring(buffer);
+        newline();
+        floatToString(matRotZ.m[0][1], buffer, 20);
+        terminal_writestring("matRotZ.m[0][1]: ");
+        terminal_writestring(buffer);
+        newline();
+        floatToString(matRotZ.m[1][0], buffer, 20);
+        terminal_writestring("matRotZ.m[1][0]: ");
+        terminal_writestring(buffer);
+        newline();
+        floatToString(matRotZ.m[1][1], buffer, 20);
+        terminal_writestring("matRotZ.m[1][1]: ");
+        terminal_writestring(buffer);
+        newline();
+
         // rotation X
         matRotX.m[0][0] = 1;
         matRotX.m[1][1] = cosf(fTheta * 0.5);
@@ -276,6 +301,28 @@ void enter_3d_test() {
         matRotX.m[2][1] = -sinf(fTheta * 0.5);
         matRotX.m[2][2] = cosf(fTheta * 0.5);
         matRotX.m[3][3] = 1;
+
+        floatToString(matRotX.m[0][0], buffer, 20);
+        terminal_writestring("matRotX.m[0][0]: ");
+        terminal_writestring(buffer);
+        newline();
+        floatToString(matRotX.m[1][1], buffer, 20);
+        terminal_writestring("matRotX.m[1][1]: ");
+        terminal_writestring(buffer);
+        newline();
+        floatToString(matRotX.m[1][2], buffer, 20);
+        terminal_writestring("matRotX.m[1][2]: ");
+        terminal_writestring(buffer);
+        newline();
+        floatToString(matRotX.m[2][1], buffer, 20);
+        terminal_writestring("matRotX.m[2][1]: ");
+        terminal_writestring(buffer);
+        newline();
+        floatToString(matRotX.m[2][2], buffer, 20);
+        terminal_writestring("matRotX.m[2][2]: ");
+        terminal_writestring(buffer);
+        newline();
+        sleep(1000);
 
         struct mesh cube_mesh = {{
             // south
@@ -333,6 +380,44 @@ void enter_3d_test() {
             triTranslated.p[1].z = triRotatedZX.p[1].z + 3.0f;
             triTranslated.p[2].z = triRotatedZX.p[2].z + 3.0f;
 
+            floatToString(triRotatedZX.p[0].x, buffer, 20);
+            terminal_writestring("triRotatedZX.p[0].x: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triRotatedZX.p[0].y, buffer, 20);
+            terminal_writestring("triRotatedZX.p[0].y: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triRotatedZX.p[0].z, buffer, 20);
+            terminal_writestring("triRotatedZX.p[0].z: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triRotatedZX.p[1].x, buffer, 20);
+            terminal_writestring("triRotatedZX.p[1].x: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triRotatedZX.p[1].y, buffer, 20);
+            terminal_writestring("triRotatedZX.p[1].y: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triRotatedZX.p[1].z, buffer, 20);
+            terminal_writestring("triRotatedZX.p[1].z: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triRotatedZX.p[2].x, buffer, 20);
+            terminal_writestring("triRotatedZX.p[2].x: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triRotatedZX.p[2].y, buffer, 20);
+            terminal_writestring("triRotatedZX.p[2].y: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triRotatedZX.p[2].z, buffer, 20);
+            terminal_writestring("triRotatedZX.p[2].z: ");
+            terminal_writestring(buffer);
+            newline();
+            sleep(1000);
+
             struct vec3d normal = {0.0f};
             struct vec3d line1 = {0.0f};
             struct vec3d line2 = {0.0f};
@@ -355,6 +440,61 @@ void enter_3d_test() {
             normal.y /= l;
             normal.z /= l;
 
+            // terminal_writestring("lines:");
+            // newline();
+            // floatToString(line1.x, buffer, 20);
+            // terminal_writestring("line1.x: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line1.y, buffer, 20);
+            // terminal_writestring("line1.y: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line1.z, buffer, 20);
+            // terminal_writestring("line1.z: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line2.x, buffer, 20);
+            // terminal_writestring("line2.x: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line2.y, buffer, 20);
+            // terminal_writestring("line2.y: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // floatToString(line2.z, buffer, 20);
+            // terminal_writestring("line2.z: ");
+            // terminal_writestring(buffer);
+            // newline();
+            // terminal_writestring("normals:");
+
+            floatToString(normal.x, buffer, 20);
+            terminal_writestring("normal.x: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(normal.y, buffer, 20);
+            terminal_writestring("normal.y: ");
+            terminal_writestring(buffer);                
+            newline();
+            floatToString(normal.z, buffer, 20);
+            terminal_writestring("normal.z: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triTranslated.p[0].x, buffer, 20);
+            terminal_writestring("triTranslated.p[0].x: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triTranslated.p[0].y, buffer, 20);
+            terminal_writestring("triTranslated.p[0].y: ");
+            terminal_writestring(buffer);
+            newline();
+            floatToString(triTranslated.p[0].z, buffer, 20);
+            terminal_writestring("triTranslated.p[0].z: ");
+            terminal_writestring(buffer);
+            newline();
+
+            sleep(200);
+
             struct vec3d vCamera = {0.0f, 0.0f, 0.0f};
 
             if ((normal.x * (triTranslated.p[0].x - vCamera.x)) + (normal.y * (triTranslated.p[0].y - vCamera.y)) + (normal.z * (triTranslated.p[0].z - vCamera.z)) < 0.0f) {
@@ -372,8 +512,10 @@ void enter_3d_test() {
                 triProjected.p[2].x *= 0.5f * SCREEN_WIDTH;
                 triProjected.p[2].y *= 0.5f * SCREEN_HEIGHT;
 
+                total_drawn++;
+
                 // Draw the triangle
-                draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+                // draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
                 //vga_plot_pixel(triProjected.p[0].x, triProjected.p[0].y, VGA_COLOR_WHITE, true);
                 //vga_plot_pixel(triProjected.p[1].x, triProjected.p[1].y, VGA_COLOR_WHITE, true);
                 //vga_plot_pixel(triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
@@ -381,10 +523,11 @@ void enter_3d_test() {
         }
         //bga_print_frame_buffer();
 
-        // print_int(0, 0, test);
+        // print_int(0, 0, total_drawn);
+        // total_drawn = 0;
 
-        vga_print_frame_buffer();
-        sleep(20);
+        // vga_print_frame_buffer();
+        sleep(1000);
 
         test++;
     }
