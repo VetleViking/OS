@@ -159,70 +159,41 @@ void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned shor
 	// }
 }
 
-void swap_vga(int *a, int *b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
+inline int min(int a, int b) {
+    return a < b ? a : b;
 }
 
-void fill_flat_bottom_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer) {
-    float invslope1 = (float)(x2 - x1) / (float)(y2 - y1);
-    float invslope2 = (float)(x3 - x1) / (float)(y3 - y1);
-
-    float curx1 = x1;
-    float curx2 = x1;
-
-    for (int scanlineY = y1; scanlineY <= y2; scanlineY++) {
-        int xs = (int)(curx1 + 0.5f);
-        int xe = (int)(curx2 + 0.5f);
-        for (int x = xs; x <= xe; x++) {
-            vga_plot_pixel(x, scanlineY, color, use_buffer);
-        }
-        curx1 += invslope1;
-        curx2 += invslope2;
-    }
-}
-
-void fill_flat_top_triangle(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer) {
-    float invslope1 = (float)(x3 - x1) / (float)(y3 - y1);
-    float invslope2 = (float)(x3 - x2) / (float)(y3 - y2);
-
-    float curx1 = x3;
-    float curx2 = x3;
-
-    for (int scanlineY = y3; scanlineY > y1; scanlineY--) {
-        int xs = (int)(curx1 + 0.5f);
-        int xe = (int)(curx2 + 0.5f);
-        for (int x = xs; x <= xe; x++) {
-            vga_plot_pixel(x, scanlineY, color, use_buffer);
-        }
-        curx1 -= invslope1;
-        curx2 -= invslope2;
-    }
+inline int max(int a, int b) {
+    return a > b ? a : b;
 }
 
 void draw_triangle_fill(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer) {
-    if (y2 < y1) {
-        swap(&x1, &x2);
-        swap(&y1, &y2);
-    }
-    if (y3 < y1) {
-        swap(&x1, &x3);
-        swap(&y1, &y3);
-    }
-    if (y3 < y2) {
-        swap(&x2, &x3);
-        swap(&y2, &y3);
-    }
+    int minX = min(x1, min(x2, x3));
+    int minY = min(y1, min(y2, y3));
+    int maxX = max(x1, max(x2, x3));
+    int maxY = max(y1, max(y2, y3));
 
-    if (y2 == y3) {
-        fill_flat_bottom_triangle(x1, y1, x2, y2, x3, y3, color, use_buffer);
-    } else if (y1 == y2) {
-        fill_flat_top_triangle(x1, y1, x2, y2, x3, y3, color, use_buffer);
-    } else {
-        int x4 = x1 + (x3 - x1) * (y2 - y1) / (y3 - y1);
-        fill_flat_bottom_triangle(x1, y1, x2, y2, x4, y2, color, use_buffer);
-        fill_flat_top_triangle(x2, y2, x4, y2, x3, y3, color, use_buffer);
+    int edge1_x = y1 - y2;
+    int edge1_y = x2 - x1;
+    int edge2_x = y2 - y3;
+    int edge2_y = x3 - x2;
+    int edge3_x = y3 - y1;
+    int edge3_y = x1 - x3;
+
+    int c1 = edge1_x * x1 + edge1_y * y1;
+    int c2 = edge2_x * x2 + edge2_y * y2;
+    int c3 = edge3_x * x3 + edge3_y * y3;
+
+    for (int i = minX; i <= maxX; i++) {
+        for (int j = minY; j <= maxY; j++) {
+            int w1 = edge1_x * i + edge1_y * j - c1;
+            int w2 = edge2_x * i + edge2_y * j - c2;
+            int w3 = edge3_x * i + edge3_y * j - c3;
+
+            if (w1 >= 0 && w2 >= 0 && w3 >= 0) {
+                vga_plot_pixel(i, j, color, use_buffer);
+            }
+        }
     }
 }
 
