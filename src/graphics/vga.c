@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 200
+
 #define VGA_ADDRESS 0xA0000
 
 #define VGA_AC_INDEX 0x3C0
@@ -168,10 +171,10 @@ inline int max(int a, int b) {
 }
 
 void draw_triangle_fill(int x1, int y1, int x2, int y2, int x3, int y3, unsigned short color, bool use_buffer) {
-    int minX = min(x1, min(x2, x3));
-    int minY = min(y1, min(y2, y3));
-    int maxX = max(x1, max(x2, x3));
-    int maxY = max(y1, max(y2, y3));
+    int minX = max(0, min(x1, min(x2, x3)));
+    int minY = max(0, min(y1, min(y2, y3)));
+    int maxX = min(SCREEN_WIDTH - 1, max(x1, max(x2, x3)));
+    int maxY = min(SCREEN_HEIGHT - 1, max(y1, max(y2, y3)));
 
     int edge1_x = y1 - y2;
     int edge1_y = x2 - x1;
@@ -184,18 +187,21 @@ void draw_triangle_fill(int x1, int y1, int x2, int y2, int x3, int y3, unsigned
     int c2 = edge2_x * x2 + edge2_y * y2;
     int c3 = edge3_x * x3 + edge3_y * y3;
 
-    for (int i = minX; i <= maxX; i++) {
-        for (int j = minY; j <= maxY; j++) {
+    int area_sign = (edge1_x * (x3 - x2) + edge1_y * (y3 - y2)) > 0 ? 1 : -1;
+
+    for (int j = minY; j <= maxY; j++) {
+        for (int i = minX; i <= maxX; i++) {
             int w1 = edge1_x * i + edge1_y * j - c1;
             int w2 = edge2_x * i + edge2_y * j - c2;
             int w3 = edge3_x * i + edge3_y * j - c3;
 
-            if (w1 >= 0 && w2 >= 0 && w3 >= 0) {
+            if ((w1 * area_sign >= 0) && (w2 * area_sign >= 0) && (w3 * area_sign >= 0)) {
                 vga_plot_pixel(i, j, color, use_buffer);
             }
         }
     }
 }
+
 
 void vga_clear_screen() {
     for (int i = 0; i < 320; i++) {
