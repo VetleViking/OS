@@ -356,7 +356,7 @@ void enter_3d_test() {
             // normal.y /= l;
             // normal.z /= l;
 
-            struct vec3d vCamera = {0.0f, 0.0f, 0.0f};
+            // struct vec3d vCamera = {0.0f, 0.0f, 0.0f};
 
             // if ((normal.x * (triTranslated.p[0].x - vCamera.x)) + (normal.y * (triTranslated.p[0].y - vCamera.y)) + (normal.z * (triTranslated.p[0].z - vCamera.z)) < 0.0f) {
            
@@ -377,8 +377,8 @@ void enter_3d_test() {
             total_drawn++;
 
             // Draw the triangle
-            draw_triangle_fill(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
-            // draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+            // draw_triangle_fill(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
+            draw_triangle(triProjected.p[0].x, triProjected.p[0].y, triProjected.p[1].x, triProjected.p[1].y, triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
             // vga_plot_pixel(triProjected.p[0].x, triProjected.p[0].y, VGA_COLOR_WHITE, true);
             // vga_plot_pixel(triProjected.p[1].x, triProjected.p[1].y, VGA_COLOR_WHITE, true);
             // vga_plot_pixel(triProjected.p[2].x, triProjected.p[2].y, VGA_COLOR_WHITE, true);
@@ -387,11 +387,11 @@ void enter_3d_test() {
         }
         //bga_print_frame_buffer();
 
-        print_int(0, 0, test);
+        // print_int(0, 0, test);
         total_drawn = 0;
 
         vga_print_frame_buffer();
-        // sleep(20);
+        sleep(20);
 
         test++;
     }
