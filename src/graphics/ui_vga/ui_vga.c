@@ -176,6 +176,8 @@ void ui_vga_init() {
     add_mouse_handler(ui_mouse_handler);
 
     add_box(10, 10, 100, 100, true, true, box_handler, true);
+    add_box(120, 10, 50, 50, true, true, box_handler, true);
+    add_box(230, 10, 70, 70, true, true, box_handler, true);
 
     vga_print_frame_buffer();
 }
