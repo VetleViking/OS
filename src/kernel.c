@@ -790,6 +790,8 @@ void check_for_command() {
 		mouse_test();
 	} else if (strcmp(command, "3d test") == 0) {
 		enter_3d_test();
+	} else if (strcmp(command, "ui test") == 0) {
+		ui_vga_init();
 	}
 
 	// if the command is not found in the

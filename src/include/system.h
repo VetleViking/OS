@@ -152,6 +152,10 @@ extern unsigned short vga_get_pixel_color(int x, int y);
 extern void vga_print_frame_buffer();
 extern void draw_image(int x, int y, int width, int height, unsigned short *image, bool use_buffer);
 
+/* VGA UI */
+extern void ui_vga_init();
+
+
 /* BGA */
 extern void bga_write_register(unsigned short IndexValue, unsigned short DataValue);
 extern unsigned short bga_read_register(unsigned short IndexValue);
