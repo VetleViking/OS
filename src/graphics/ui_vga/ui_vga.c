@@ -53,7 +53,7 @@ void box_close_handler(bool left_click, int clickable_box_index, int box_index) 
         }
         num_clickable_boxes -= 2;
 
-        for (int i = box_index - 1; i < num_boxes - 1; i++) {
+        for (int i = box_index; i < num_boxes - 1; i++) {
             boxes[i] = boxes[i+1];
         }
         num_boxes--;
