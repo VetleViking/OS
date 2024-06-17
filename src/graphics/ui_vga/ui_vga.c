@@ -51,7 +51,7 @@ void box_close_handler(bool left_click, int clickable_box_index, int box_index) 
         for (int i = clickable_box_index - 1; i < num_clickable_boxes - 2; i++) {
             clickable_boxes[i] = clickable_boxes[i+2];
         }
-        num_clickable_boxes--;
+        num_clickable_boxes -= 2;
 
         for (int i = box_index - 1; i < num_boxes - 1; i++) {
             boxes[i] = boxes[i+1];
@@ -114,6 +114,8 @@ void refresh_ui() {
         box b = boxes[i];
         draw_box(b.x, b.y, b.width, b.height, b.closeable);
     }
+
+    vga_print_frame_buffer();
 }
 
 void draw_box(int x, int y, int width, int height, bool closeable) {
