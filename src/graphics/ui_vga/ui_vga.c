@@ -75,6 +75,23 @@ void add_box(int x, int y, int width, int height, bool clickable, bool draggable
         clickable_boxes[num_clickable_boxes] = box;
         num_clickable_boxes++;
     }
+    
+    if (closeable) {
+        clickable_box box;
+        box.x = x + width - 10;
+        box.y = y;
+        box.width = 10;
+        box.height = 10;
+        box.handler.func = box_close_handler;
+        box.box_index = num_boxes;
+
+        clickable_boxes[num_clickable_boxes] = box;
+        num_clickable_boxes++;
+    }
+    
+    if (draggable) {
+        // TODO
+    }
 
     box b;
     b.x = x;
@@ -92,21 +109,9 @@ void add_box(int x, int y, int width, int height, bool clickable, bool draggable
     draw_box(x, y, width, height, closeable);
 
 
-    if (draggable) {
-        // TODO
-    }
+    
 
-    if (closeable) {
-        clickable_box box;
-        box.x = x + width - 10;
-        box.y = y;
-        box.width = 10;
-        box.height = 10;
-        box.handler.func = box_close_handler;
-
-        clickable_boxes[num_clickable_boxes] = box;
-        num_clickable_boxes++;
-    }
+    
 }
 
 void refresh_ui() {
