@@ -36,6 +36,7 @@ typedef struct {
     int box_index;
     int mouse_last_x;
     int mouse_last_y;
+    bool dragging;
 } draggable_box;
 
 box boxes[100] = {0};
@@ -55,7 +56,7 @@ void box_handler(bool left_click, int box_index) {
     box b = boxes[box_index];
     
     if (left_click) {
-        draw_rectangle(b.x, b.y + 10, b.width, b.height - 10, VGA_COLOR_RED, false);
+        draw_rectangle(b.x, b.y, b.width, b.height, VGA_COLOR_RED, false);
     }
 }
 
@@ -85,9 +86,8 @@ void box_drag_handler(bool left_click, int draggable_box_index) {
     if (left_click && !last_left_click_ui) {
         draggable_boxes[draggable_box_index].mouse_last_x = mouse_x;
         draggable_boxes[draggable_box_index].mouse_last_y = mouse_y;
-    }
-
-    if (left_click && last_left_click_ui) {
+        draggable_boxes[draggable_box_index].dragging = true;
+    } else if (left_click && last_left_click_ui && draggable_boxes[draggable_box_index].dragging) {
         int x_diff = mouse_x - draggable_boxes[draggable_box_index].mouse_last_x;
         int y_diff = mouse_y - draggable_boxes[draggable_box_index].mouse_last_y;
 
@@ -124,7 +124,7 @@ void add_box(int x, int y, int width, int height, bool clickable, bool draggable
     if (closeable) {
         closeable_box c_box;
         c_box.x = x + width - 10;
-        c_box.y = y + 10;
+        c_box.y = y - 10;
         c_box.width = 10;
         c_box.height = 10;
         c_box.handler.func = box_close_handler;
@@ -137,7 +137,7 @@ void add_box(int x, int y, int width, int height, bool clickable, bool draggable
     if (draggable) {
         draggable_box d_box;
         d_box.x = x;
-        d_box.y = y + 10;
+        d_box.y = y - 10;
         d_box.width = width;
         d_box.height = 10;
         d_box.handler.func = box_drag_handler;
@@ -162,10 +162,10 @@ void refresh_ui() {
 
 void draw_box(int x, int y, int width, int height, bool closeable) {
     draw_rectangle(x, y, width, height, VGA_COLOR_WHITE, true);
-    draw_rectangle(x, y, width, 10, VGA_COLOR_LIGHT_GREY, true);
+    draw_rectangle(x, y - 10, width, 10, VGA_COLOR_LIGHT_GREY, true);
 
     if (closeable) {
-        draw_rectangle(x + width - 10, y, 10, 10, VGA_COLOR_RED, true);
+        draw_rectangle(x + width - 10, y - 10, 10, 10, VGA_COLOR_RED, true);
     }
 }
 
@@ -205,14 +205,26 @@ void ui_mouse_handler(int8_t mouse_byte[3]) {
         }
     }
 
-    if (mouse_byte[0] & 0x01) { // left click
-        for (int i = 0; i < num_draggable_boxes; i++) { // draggable boxes should only be called on left click
+            for (int i = 0; i < num_draggable_boxes; i++) { // draggable boxes should only be called on left click
             draggable_box d_box = draggable_boxes[i];
 
-            if (mouse_x >= d_box.x && mouse_x <= d_box.x + d_box.width && mouse_y >= d_box.y && mouse_y <= d_box.y + d_box.height) {
-                d_box.handler.func(true, i);
+            if (mouse_byte[0] & 0x01) {    
+                if (mouse_x >= d_box.x && mouse_x <= d_box.x + d_box.width && mouse_y >= d_box.y && mouse_y <= d_box.y + d_box.height) {
+                    d_box.handler.func(true, i);
+                } else if (d_box.dragging) {
+                    d_box.handler.func(true, i);
+                }
+            }
+            
+            if (d_box.dragging && !(mouse_byte[0] & 0x01)) {
+                d_box.dragging = false;
+
+                draggable_boxes[i] = d_box;
             }
         }
+
+    if (mouse_byte[0] & 0x01) { // left click
+
 
         last_left_click_ui = true;
     } else {
