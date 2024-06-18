@@ -36,6 +36,7 @@ typedef struct {
     int box_index;
     int mouse_last_x;
     int mouse_last_y;
+    bool dragging;
 } draggable_box;
 
 box boxes[100] = {0};
@@ -63,7 +64,7 @@ void box_close_handler(bool left_click, int closeable_box_index) {
     closeable_box c_box = closeable_boxes[closeable_box_index];
     int box_index = c_box.box_index;
 
-    if (left_click) {
+    if (left_click && !last_left_click_ui) {
         for (int i = closeable_box_index; i < num_closeable_boxes - 1; i++) {
             closeable_boxes[i] = closeable_boxes[i + 1];
         }
@@ -205,14 +206,24 @@ void ui_mouse_handler(int8_t mouse_byte[3]) {
         }
     }
 
-    if (mouse_byte[0] & 0x01) { // left click
-        for (int i = 0; i < num_draggable_boxes; i++) { // draggable boxes should only be called on left click
-            draggable_box d_box = draggable_boxes[i];
+    for (int i = 0; i < num_draggable_boxes; i++) { // draggable boxes should only be called on left click
+        draggable_box d_box = draggable_boxes[i];
+
+        if (mouse_byte[0] & 0x01) {
+            if (d_box.dragging) {
+                d_box.handler.func(true, i);
+            }
 
             if (mouse_x >= d_box.x && mouse_x <= d_box.x + d_box.width && mouse_y >= d_box.y && mouse_y <= d_box.y + d_box.height) {
                 d_box.handler.func(true, i);
             }
+        } else if (d_box.dragging) { // if the mouse is not clicked, but the box is being dragged, stop dragging
+            d_box.dragging = false;
         }
+    }
+
+    if (mouse_byte[0] & 0x01) { // left click
+        
 
         last_left_click_ui = true;
     } else {
