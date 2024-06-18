@@ -1,21 +1,11 @@
-#include <system.h> 
-
+#include <system.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 typedef struct {
-    void (*func)(bool left_click, int clickable_box_index, int box_index);
+    void (*func)(bool left_click, int box_index);
 } click_handler_t;
-
-typedef struct {
-    int x;
-    int y;
-    int width;
-    int height;
-    click_handler_t handler;
-    int box_index;
-} clickable_box;
 
 typedef struct {
     int x;
@@ -28,33 +18,59 @@ typedef struct {
     click_handler_t handler;
 } box;
 
-clickable_box clickable_boxes[100] = {0};
-int num_clickable_boxes = 0;
+typedef struct {
+    int x;
+    int y;
+    int width;
+    int height;
+    click_handler_t handler;
+    int box_index;
+} closeable_box;
+
+typedef struct {
+    int x;
+    int y;
+    int width;
+    int height;
+    click_handler_t handler;
+    int box_index;
+    int mouse_last_x;
+    int mouse_last_y;
+} draggable_box;
 
 box boxes[100] = {0};
 int num_boxes = 0;
 
+closeable_box closeable_boxes[100] = {0};
+int num_closeable_boxes = 0;
+
+draggable_box draggable_boxes[100] = {0};
+int num_draggable_boxes = 0;
+
 int ui_default[320][200] = {0};
 
-void box_handler(bool left_click, int clickable_box_index, int box_index) {
-    clickable_box box = clickable_boxes[clickable_box_index];
-    
-    if (left_click) {
-        draw_rectangle(box.x, box.y + 10, box.width, box.height - 10, VGA_COLOR_RED, false);
-    }
-};
+bool last_left_click_ui = false;
 
-void box_close_handler(bool left_click, int clickable_box_index, int box_index) {
-    clickable_box box = clickable_boxes[clickable_box_index];
+void box_handler(bool left_click, int box_index) {
+    box b = boxes[box_index];
     
     if (left_click) {
-        for (int i = clickable_box_index - 1; i < num_clickable_boxes - 2; i++) {
-            clickable_boxes[i] = clickable_boxes[i+2];
+        draw_rectangle(b.x, b.y + 10, b.width, b.height - 10, VGA_COLOR_RED, false);
+    }
+}
+
+void box_close_handler(bool left_click, int closeable_box_index) {
+    closeable_box c_box = closeable_boxes[closeable_box_index];
+    int box_index = c_box.box_index;
+
+    if (left_click) {
+        for (int i = closeable_box_index; i < num_closeable_boxes - 1; i++) {
+            closeable_boxes[i] = closeable_boxes[i + 1];
         }
-        num_clickable_boxes -= 2;
+        num_closeable_boxes--;
 
         for (int i = box_index; i < num_boxes - 1; i++) {
-            boxes[i] = boxes[i+1];
+            boxes[i] = boxes[i + 1];
         }
         num_boxes--;
     }
@@ -62,37 +78,37 @@ void box_close_handler(bool left_click, int clickable_box_index, int box_index) 
     refresh_ui();
 }
 
-void add_box(int x, int y, int width, int height, bool clickable, bool draggable, void (*func)(bool left_click, int clickable_box_index, int box_index), bool closeable) {
-    if (clickable) {
-        clickable_box box;
-        box.x = x;
-        box.y = y;
-        box.width = width;
-        box.height = height;
-        box.handler.func = func;
-        box.box_index = num_boxes;
+void box_drag_handler(bool left_click, int draggable_box_index) {
+    draggable_box d_box = draggable_boxes[draggable_box_index];
+    int box_index = d_box.box_index;
 
-        clickable_boxes[num_clickable_boxes] = box;
-        num_clickable_boxes++;
-    }
-    
-    if (closeable) {
-        clickable_box box;
-        box.x = x + width - 10;
-        box.y = y;
-        box.width = 10;
-        box.height = 10;
-        box.handler.func = box_close_handler;
-        box.box_index = num_boxes;
-
-        clickable_boxes[num_clickable_boxes] = box;
-        num_clickable_boxes++;
-    }
-    
-    if (draggable) {
-        // TODO
+    if (left_click && !last_left_click_ui) {
+        draggable_boxes[draggable_box_index].mouse_last_x = mouse_x;
+        draggable_boxes[draggable_box_index].mouse_last_y = mouse_y;
     }
 
+    if (left_click && last_left_click_ui) {
+        int x_diff = mouse_x - draggable_boxes[draggable_box_index].mouse_last_x;
+        int y_diff = mouse_y - draggable_boxes[draggable_box_index].mouse_last_y;
+
+        boxes[box_index].x += x_diff;
+        boxes[box_index].y += y_diff;
+
+        closeable_boxes[box_index].x += x_diff;
+        closeable_boxes[box_index].y += y_diff;
+
+        draggable_boxes[draggable_box_index].x += x_diff;
+        draggable_boxes[draggable_box_index].y += y_diff;
+
+        draggable_boxes[draggable_box_index].mouse_last_x = mouse_x;
+        draggable_boxes[draggable_box_index].mouse_last_y = mouse_y;
+
+        refresh_ui();
+    }
+}
+
+
+void add_box(int x, int y, int width, int height, bool clickable, bool draggable, void (*func)(bool left_click, int box_index), bool closeable) {
     box b;
     b.x = x;
     b.y = y;
@@ -104,14 +120,35 @@ void add_box(int x, int y, int width, int height, bool clickable, bool draggable
     b.handler.func = func;
 
     boxes[num_boxes] = b;
+
+    if (closeable) {
+        closeable_box c_box;
+        c_box.x = x + width - 10;
+        c_box.y = y;
+        c_box.width = 10;
+        c_box.height = 10;
+        c_box.handler.func = box_close_handler;
+        c_box.box_index = num_boxes;
+
+        closeable_boxes[num_closeable_boxes] = c_box;
+        num_closeable_boxes++;
+    }
+
+    if (draggable) {
+        draggable_box d_box;
+        d_box.x = x;
+        d_box.y = y;
+        d_box.width = width;
+        d_box.height = 10;
+        d_box.handler.func = box_drag_handler;
+        d_box.box_index = num_boxes;
+
+        draggable_boxes[num_draggable_boxes] = d_box;
+        num_draggable_boxes++;
+    }
+
     num_boxes++;
-   
     draw_box(x, y, width, height, closeable);
-
-
-    
-
-    
 }
 
 void refresh_ui() {
@@ -132,8 +169,6 @@ void draw_box(int x, int y, int width, int height, bool closeable) {
     }
 }
 
-bool last_left_click_ui = false;
-
 void ui_mouse_handler(int8_t mouse_byte[3]) {
     remove_mouse(mouse_x, mouse_y);
 
@@ -153,18 +188,32 @@ void ui_mouse_handler(int8_t mouse_byte[3]) {
     }
 
     if (mouse_byte[0] & 0x01 || mouse_byte[0] & 0x02) {
-        for (int i = 0; i < num_clickable_boxes; i++) {
-            clickable_box box = clickable_boxes[i];
+        for (int i = 0; i < num_boxes; i++) {
+            box b = boxes[i];
 
-            if (mouse_x >= box.x && mouse_x <= box.x + box.width && mouse_y >= box.y && mouse_y <= box.y + box.height) {
-                box.handler.func(mouse_byte[0] & 0x01, i, box.box_index);
+            if (b.clickable && mouse_x >= b.x && mouse_x <= b.x + b.width && mouse_y >= b.y && mouse_y <= b.y + b.height) {
+                b.handler.func(mouse_byte[0] & 0x01, i);
+            }
+        }
+
+        for (int i = 0; i < num_closeable_boxes; i++) {
+            closeable_box c_box = closeable_boxes[i];
+
+            if (mouse_x >= c_box.x && mouse_x <= c_box.x + c_box.width && mouse_y >= c_box.y && mouse_y <= c_box.y + c_box.height) {
+                c_box.handler.func(mouse_byte[0] & 0x01, i);
             }
         }
     }
 
     if (mouse_byte[0] & 0x01) { // left click
-            if (!last_left_click_ui) { // start of click
+        for (int i = 0; i < num_draggable_boxes; i++) { // draggable boxes should only be called on left click
+            draggable_box d_box = draggable_boxes[i];
+
+            if (mouse_x >= d_box.x && mouse_x <= d_box.x + d_box.width && mouse_y >= d_box.y && mouse_y <= d_box.y + d_box.height) {
+                d_box.handler.func(true, i);
             }
+        }
+
         last_left_click_ui = true;
     } else {
         last_left_click_ui = false;

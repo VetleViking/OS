@@ -43,7 +43,6 @@ int mouse_img[176] = {
 
 int under_mouse[176] = {0};
 
-
 typedef struct {
     void (*func)(int8_t mouse_byte[3]);
 } mouse_handler_t;
