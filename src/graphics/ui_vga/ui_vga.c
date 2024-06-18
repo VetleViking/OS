@@ -36,7 +36,6 @@ typedef struct {
     int box_index;
     int mouse_last_x;
     int mouse_last_y;
-    bool dragging;
 } draggable_box;
 
 box boxes[100] = {0};
@@ -206,24 +205,14 @@ void ui_mouse_handler(int8_t mouse_byte[3]) {
         }
     }
 
-    for (int i = 0; i < num_draggable_boxes; i++) { // draggable boxes should only be called on left click
-        draggable_box d_box = draggable_boxes[i];
-
-        if (mouse_byte[0] & 0x01) {
-            if (d_box.dragging) {
-                d_box.handler.func(true, i);
-            }
+    if (mouse_byte[0] & 0x01) { // left click
+        for (int i = 0; i < num_draggable_boxes; i++) { // draggable boxes should only be called on left click
+            draggable_box d_box = draggable_boxes[i];
 
             if (mouse_x >= d_box.x && mouse_x <= d_box.x + d_box.width && mouse_y >= d_box.y && mouse_y <= d_box.y + d_box.height) {
                 d_box.handler.func(true, i);
             }
-        } else if (d_box.dragging) { // if the mouse is not clicked, but the box is being dragged, stop dragging
-            d_box.dragging = false;
         }
-    }
-
-    if (mouse_byte[0] & 0x01) { // left click
-        
 
         last_left_click_ui = true;
     } else {
