@@ -124,7 +124,7 @@ void add_box(int x, int y, int width, int height, bool clickable, bool draggable
     if (closeable) {
         closeable_box c_box;
         c_box.x = x + width - 10;
-        c_box.y = y;
+        c_box.y = y + 10;
         c_box.width = 10;
         c_box.height = 10;
         c_box.handler.func = box_close_handler;
@@ -137,7 +137,7 @@ void add_box(int x, int y, int width, int height, bool clickable, bool draggable
     if (draggable) {
         draggable_box d_box;
         d_box.x = x;
-        d_box.y = y;
+        d_box.y = y + 10;
         d_box.width = width;
         d_box.height = 10;
         d_box.handler.func = box_drag_handler;
