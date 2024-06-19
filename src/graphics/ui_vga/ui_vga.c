@@ -51,6 +51,15 @@ int ui_default[320][200] = {0};
 
 bool last_left_click_ui = false;
 
+void box_handler2(bool left_click, int box_index) {
+    box b = boxes[box_index];
+    
+    if (left_click) {
+        add_box(b.x + 50, b.y + 50, 50, 50, true, true, box_handler, true);
+        refresh_ui();
+    }
+}
+
 void box_handler(bool left_click, int box_index) {
     box b = boxes[box_index];
     
@@ -232,6 +241,7 @@ void ui_vga_init() {
     add_box(10, 10, 100, 100, true, true, box_handler, true);
     add_box(120, 10, 50, 50, true, true, box_handler, true);
     add_box(230, 10, 70, 70, true, true, box_handler, true);
+    add_box(10, 120, 30, 30, true, true, box_handler2, true);
 
     vga_print_frame_buffer();
 }
