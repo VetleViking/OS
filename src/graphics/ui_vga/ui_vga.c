@@ -52,20 +52,20 @@ int ui_default[320][200] = {0};
 
 bool last_left_click_ui = false;
 
+void box_handler(bool left_click, int box_index) {
+    box b = boxes[box_index];
+    
+    if (left_click) {
+        draw_rectangle(b.x, b.y, b.width, b.height, VGA_COLOR_RED, false);
+    }
+}
+
 void box_handler2(bool left_click, int box_index) {
     box b = boxes[box_index];
     
     if (left_click) {
         add_box(b.x + 50, b.y + 50, 50, 50, true, true, box_handler, true);
         refresh_ui();
-    }
-}
-
-void box_handler(bool left_click, int box_index) {
-    box b = boxes[box_index];
-    
-    if (left_click) {
-        draw_rectangle(b.x, b.y, b.width, b.height, VGA_COLOR_RED, false);
     }
 }
 
