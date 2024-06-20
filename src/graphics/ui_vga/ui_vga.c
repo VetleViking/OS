@@ -16,6 +16,7 @@ typedef struct {
     bool draggable;
     bool closeable;
     click_handler_t handler;
+    int graphics[320][200];
 } box;
 
 typedef struct {
@@ -52,6 +53,7 @@ int ui_default[320][200] = {0};
 
 bool last_left_click_ui = false;
 
+
 void box_handler2(bool left_click, int box_index) {
     box b = boxes[box_index];
     
@@ -65,7 +67,21 @@ void box_handler(bool left_click, int box_index) {
     box b = boxes[box_index];
     
     if (left_click) {
-        draw_rectangle(b.x, b.y, b.width, b.height, VGA_COLOR_RED, false);
+        for (int i = 0; i < b.width; i++) {
+            for (int j = 0; j < b.height; j++) {
+                boxes[box_index].graphics[i][j] = VGA_COLOR_RED;
+            }
+        }
+    }
+}
+
+void add_graphics(int box_index, int graphics[320][200]) {
+    box b = boxes[box_index];
+
+    for (int i = 0; i < b.width; i++) {
+        for (int j = 0; j < b.height; j++) {
+            boxes[box_index].graphics[i][j] = graphics[i][j];
+        }
     }
 }
 
@@ -127,6 +143,11 @@ void add_box(int x, int y, int width, int height, bool clickable, bool draggable
     b.draggable = draggable;
     b.closeable = closeable;
     b.handler.func = func;
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            b.graphics[i][j] = VGA_COLOR_WHITE;
+        }
+    }
 
     boxes[num_boxes] = b;
 
@@ -170,7 +191,12 @@ void refresh_ui() {
 }
 
 void draw_box(int x, int y, int width, int height, bool closeable) {
-    draw_rectangle(x, y, width, height, VGA_COLOR_WHITE, true);
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            vga_plot_pixel(x + i, y + j, boxes[num_boxes - 1].graphics[i][j], true);
+        }
+    }
+
     draw_rectangle(x, y - 10, width, 10, VGA_COLOR_LIGHT_GREY, true);
 
     if (closeable) {

@@ -154,6 +154,7 @@ extern void draw_image(int x, int y, int width, int height, unsigned short *imag
 
 /* VGA UI */
 extern void ui_vga_init();
+extern void add_box(int x, int y, int width, int height, bool clickable, bool draggable, void (*func)(bool left_click, int box_index), bool closeable);
 
 
 /* BGA */
