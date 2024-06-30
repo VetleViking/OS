@@ -363,6 +363,10 @@ void game_handler() {
 		pong_start();
 	} else if (strcmp(game, "chess") == 0) {
 		chess_start();
+	} else if (strcmp(game, "snake") == 0) {
+		// implementing later
+	} else if (strcmp(game, "mario") == 0) {
+		super_mario_start();
 	}
 
 
@@ -776,8 +780,6 @@ void check_for_command() {
 				
 				sleep(100);
 			}
-			
-
 		} else {
 			terminal_writestring("BGA is not available");
 		}

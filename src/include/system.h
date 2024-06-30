@@ -114,6 +114,13 @@ extern void rock_paper_scissors();
 extern void tic_tac_toe();
 
 
+/* Super mario */
+extern bool in_super_mario;
+
+extern void super_mario_start();
+extern void super_mario_play();
+
+
 /* Text editor */
 extern bool in_text_editor;
 extern char text_editor_text[22][77];
