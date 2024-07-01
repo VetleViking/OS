@@ -126,6 +126,7 @@ extern bool in_text_editor;
 extern char text_editor_text[22][77];
 
 extern void text_editor();
+extern void text_editor_keyboard_handler(unsigned char c);
 
 
 /* Execute text */

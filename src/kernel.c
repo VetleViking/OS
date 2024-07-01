@@ -825,8 +825,12 @@ void end_check_for_command() {
 void terminal_putchar(unsigned char c) {
 	should_print = true;
 
-	if (is_writing_command || in_text_editor) {
+	if (is_writing_command) {
 		keyboard_handler(c);
+	}
+
+	if (in_text_editor) {
+		text_editor_keyboard_handler(c);
 	}
 
 	if (is_writing_command && strlen(command) >= MAX_COMMAND_LENGTH) {
