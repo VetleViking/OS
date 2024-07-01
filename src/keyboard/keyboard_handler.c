@@ -22,61 +22,46 @@ void keyboard_handler(unsigned char c) {
 		}
 	} else if (c == 28) { // enter
 		if (in_text_editor) { // continue here
+			if (terminal_row == 24) {
+				should_print = false;
+				return;
+			}
+
 			int len = strlen(text_editor_text[terminal_row - 3]);
-			
-			char new_text[22][77];
+			int at = terminal_column - 3;
 
-			for (int i = 0; i < terminal_row - 3; i++) {
+			char buffer[80];
+
+			for (int i = at; i < 77; i++) {
+				buffer[i] = text_editor_text[terminal_row][i];
+				text_editor_text[terminal_row][i] = 0;
+			}
+
+			for (int i = 0; i < 77; i++) {
+				text_editor_text[terminal_row + 1][i] = buffer[i];
+			}
+
+			for (int i = 24; i > terminal_row + 2; i--) {
 				for (int j = 0; j < 77; j++) {
-					new_text[i][j] = text_editor_text[i][j];
+					text_editor_text[i][j] = text_editor_text[i - 1][j];
 				}
 			}
-
-			new_text[terminal_row - 3][terminal_column - 3] = '\0';
-
-			for (int i = terminal_column - 3; i < len; i++) {
-				new_text[terminal_row - 3][i - terminal_row + 3] = text_editor_text[terminal_row - 3][i];
-			}
-
-			for (int i = terminal_row - 2; i < 22; i++) {
-				for (int j = 0; j < 77; j++) {
-					new_text[i][j] = text_editor_text[i - 1][j];
-				}
-			}
-
-			for (int i = 0; i < 22; i++) {
-				int len = strlen(new_text[i]);
-
-				for (int j = 0; j < 77; j++) {
-					text_editor_text[i][j] = new_text[i][j];
-				}
-			}
-
-			int prev_row = terminal_row;
 
 			in_text_editor = false;
-			terminal_row = 3;
+
+			terminal_row++;
+
 			terminal_column = 3;
-
-			for (int i = 0; i < 22; i++) {
-				int len = strlen(text_editor_text[i]);
-				terminal_writestring(text_editor_text[i]);
-				
-				for (int j = len + 3; j < 80; j++) {
-					terminal_putentryat(' ', terminal_color, j, terminal_row);
-				}
-
-				if (i < 21) {
-					terminal_column = 3;
-					terminal_row++;
-				}
-			}
 			
-			in_text_editor = true;
-			terminal_column = 3;
+			for (int i = terminal_row - 1; i < 24; i++) {
+				terminal_writestring(text_editor_text[i]);
+				terminal_row++;
+			}
 
-			terminal_row = prev_row + 1 > 24 ? 24 : prev_row + 1;
-			terminal_column = 3;
+			in_text_editor = true;
+
+
+			
 			
 		} else if (!is_writing_command) {
 			newline();
@@ -313,5 +298,4 @@ void keyboard_handler(unsigned char c) {
 		return;
 	}
 	should_print = false; // if any of the above is true, then it should not print
-	return;
 }
