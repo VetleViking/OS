@@ -49,18 +49,28 @@ typedef struct {
     int x;
     int y;
     int sprite;
-    int direction;
+    bool reverse;
     bool moving;
+    int move_anim_ticks; 
 } super_mario_struct;
 
-super_mario_struct super_mario = {0, 0, 0, 0, 0};
+super_mario_struct super_mario = {0, 0, 0, false, false, 0};
 
 int mario_frame_buffer[640][480];
 bool print_frame = false;
 
+void super_mario_draw_frame_buffer() {
+    for (int i = 0; i < 640; i++) {
+        for (int j = 0; j < 480; j++) {
+            bga_plot_pixel(i, j, mario_frame_buffer[i][j], false);
+            mario_frame_buffer[i][j] = 0;
+        }
+    }
+}
+
 // function to draw a sprite
 // sprite is the index of the sprite in the positions array, 0 to 7
-void super_mario_draw_sprite(bool use_frame_buffer) {
+void super_mario_draw_sprite(bool use_frame_buffer, bool reverse) {
     int width = 16;
     int height = 16;
 
@@ -75,11 +85,19 @@ void super_mario_draw_sprite(bool use_frame_buffer) {
             if (use_frame_buffer) {
                 for (int l = 0; l < 4; l++) {
                     for (int m = 0; m < 4; m++) {
-                        mario_frame_buffer[x + j * 4 + l][y + k * 4 + m] = color;
+                        if (reverse) {
+                            mario_frame_buffer[(width - x) + j * 4 + l][y + k * 4 + m] = color;
+                        } else {
+                            mario_frame_buffer[x + j * 4 + l][y + k * 4 + m] = color;
+                        }
                     }
                 }
             } else {
-                bga_draw_rectangle(x + j * 4, y + k * 4, 4, 4, color);
+                if (reverse) {
+                    bga_draw_rectangle((width - x) + j * 4, y + k * 4, 4, 4, color);
+                } else {
+                    bga_draw_rectangle(x + j * 4, y + k * 4, 4, 4, color);
+                }
             }
         }
     }
@@ -89,7 +107,9 @@ void super_mario_keyboard_handler(c) {
     if (c == 75) { // left
         
     } else if (c == 77) { // right
+        super_mario.reverse = false;
         super_mario.moving = true;
+        print_frame = true;
     } else if (c == 72) { // up
 
 	} else if (c == 80) { // down
@@ -108,9 +128,24 @@ void super_mario_play() {
         sleep(3); // sleep for 0.03s (arund 30fps)
         if (print_frame) {
             if (super_mario.moving) {
-                
+                super_mario.x += 2;
+
+                if (super_mario.move_anim_ticks < 4) {
+                    super_mario.sprite = 1;
+                } else if (super_mario.move_anim_ticks < 8) {
+                    super_mario.sprite = 2;
+                } else if (super_mario.move_anim_ticks < 12) {
+                    super_mario.sprite = 3;
+                } else {
+                    super_mario.move_anim_ticks = 0;
+                }
+
+                super_mario.move_anim_ticks++;
+
+                super_mario_draw_sprite(true, super_mario.reverse);
             }
 
+            super_mario_draw_frame_buffer();
             print_frame = false;
         }
     }
@@ -124,5 +159,5 @@ void super_mario_start() {
 
     bga_set_video_mode(640, 480, 32, 1, 1);
 
-    super_mario_draw_sprite(false);
+    super_mario_draw_sprite(false, false);
 }
