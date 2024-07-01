@@ -731,11 +731,17 @@ void check_for_command() {
 	} else if (strcmp(command, "gamelist") == 0) {
 		terminal_writestring("Games:");
 		newline();
-		terminal_writestring("rock paper scissors - RPS");
+		terminal_writestring("rock paper scissors / RPS");
 		newline();
-		terminal_writestring("tic tac toe - TTT");
+		terminal_writestring("tic tac toe / TTT");
 		newline();
-		terminal_writestring("minesweeper - MS params: -w[num] (width), -h[num] (height), -m[num] (mines)");
+		terminal_writestring("(Not currently working) minesweeper / MS. Params: -w[num] (width), -h[num] (height), -m[num] (mines)");
+		newline();
+		terminal_writestring("game of life / GOL");
+		newline();
+		terminal_writestring("pong");
+		newline();
+		terminal_writestring("chess");
 	} else if (strcmp(command, "uptime") == 0) {
 		uptime_command();
 	} else if (strcmp(command, "animation") == 0) {
