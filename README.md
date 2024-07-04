@@ -1,23 +1,23 @@
 # OS
-Trying to make an os, because it looks fun, and i want to learn more about C and ASM.
+Trying to make an OS, because it looks fun, and i want to learn more about C and ASM.
 
 
 ## Running the OS
-You can download the latest version i think is production ready from the releases, which you can just run in any vm that takes .iso files. 
+You can download the latest version i think is production ready from the releases, which you can just run in any VM that takes .iso files. 
 
 ## Compiling the OS
-If you want to try the absolute lastest i am working on or mess around and edit the os yourself, you can compile this yourself. I can give a quick tutorial on how to do that. 
+If you want to try the absolute lastest i am working on or mess around and edit the os yourself, you can compile this yourself. I can give a quick tutorial on different ways to do that. 
 
 ### Compiling with Docker (recommended)
-First, download [Docker Desktop](https://www.docker.com/products/docker-desktop/). Then, open an terminal in the root dir of the os, and run the command 
+First, download [Docker Desktop](https://www.docker.com/products/docker-desktop/). Then, open an terminal in the root dir of the OS repo, and run the command 
 ```bash
 docker build -t osdev-env .
 ```
-This will take a while, becuase it is downloading all the compilers and stuff. After that is done, run the command 
+This will take a while, becuase it is downloading all the compilers and dependencies to the docker image, so that it takes less time later. After that is done, run the command 
 ```bash
 docker run -it --rm -v /[Path to repository]/OS:/workspace osdev-env
 ```
-Now you are in a terminal inside the container, and you can run 
+Now, you are in a terminal inside the container, and you can run 
 ```bash
 make
 ```
@@ -26,7 +26,7 @@ This will produce the error
 gtk initialization failed
 make: *** [makefile:6: startQemu] Error 1
 ```
-Which just means it cant initialize the VM, which is correct since this is inside a docker container. Now, you have an updated iso file, which you can use in a VM to run the OS.
+Which just means it cant initialize the VM, which is correct since this is inside a docker container, which just has an terminal. Now, you have an updated iso file, which you can use in your VM of choice to run the OS.
 
 ### Compiling with WSL
 You have to start with downloading the necessary tools, NASM, QEMU, GCC, GRUB and WSL (Windows subsystem for Linux), because all of this is much easier with the linux terminal.
