@@ -49,9 +49,6 @@ compileKernel: compileBoot
 	cd src && i386-elf-gcc -c mouse/mouse.c -o mouse.o -std=gnu99 -ffreestanding -O2 -w -I include	
 	cd src && i386-elf-gcc -c graphics/3d_test_bga_1080p_32.c -o 3d_test_bga_1080p_32.o -std=gnu99 -ffreestanding -O2 -w -I include	
 	cd src && i386-elf-gcc -c graphics/ui_vga/ui_vga.c -o ui_vga.o -std=gnu99 -ffreestanding -O2 -w -I include	
-	cd src && i386-elf-gcc -c games/super_mario.c -o super_mario.o -std=gnu99 -ffreestanding -O2 -w -I include	
-	
-
 
 	cd src && nasm -f elf32 kernel_asm.asm -o kernel_asm.o
 
