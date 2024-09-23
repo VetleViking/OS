@@ -114,6 +114,11 @@ extern void rock_paper_scissors();
 extern void tic_tac_toe();
 
 
+/* Doom */
+extern void doom_start();
+extern void doom_play();
+
+
 /* Text editor */
 extern bool in_text_editor;
 extern char text_editor_text[22][77];

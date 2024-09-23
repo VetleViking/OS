@@ -365,6 +365,8 @@ void game_handler() {
 		chess_start();
 	} else if (strcmp(game, "snake") == 0) {
 		// implementing later
+	} else if (strcmp(game, "doom") == 0) {
+		doom_start();
 	}
 
 	else {

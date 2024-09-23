@@ -9653,16 +9653,20 @@ void IdentifyVersion(void)
     doom_strcpy(doom2fwad, doomwaddir);
     doom_concat(doom2fwad, "/doom2f.wad");
 
+    //return; // here error
+
 #if !defined(DOOM_WIN32)
-    home = doom_getenv("HOME");
-    if (!home)
-        I_Error("Error: Please set $HOME to your home directory");
+    //home = doom_getenv("HOME");
+    //if (!home)
+        //I_Error("Error: Please set $HOME to your home directory");
 #else
     home = ".";
 #endif
     //doom_sprintf(basedefault, "%s/.doomrc", home);
     doom_strcpy(basedefault, home);
     doom_concat(basedefault, "/.doomrc");
+
+
 
     if (M_CheckParm("-shdev"))
     {
@@ -9704,6 +9708,7 @@ void IdentifyVersion(void)
         doom_strcpy(basedefault, DEVDATA"default.cfg");
         return;
     }
+
 
     void* f;
     if (f = doom_open(doom2fwad, "rb"))
@@ -9863,6 +9868,9 @@ void D_DoomMain(void)
 
     IdentifyVersion();
 
+    return;
+
+
     modifiedgame = false;
 
     nomonsters = M_CheckParm("-nomonsters");
@@ -9954,6 +9962,8 @@ void D_DoomMain(void)
             break;
     }
 
+
+
     //doom_print("%s\n", title);
     doom_print(title);
     doom_print("\n");
@@ -9992,6 +10002,7 @@ void D_DoomMain(void)
         sidemove[0] = sidemove[0] * scale / 100;
         sidemove[1] = sidemove[1] * scale / 100;
     }
+
 
     // add any files specified on the command line with -file wadfile
     // to the wad list
