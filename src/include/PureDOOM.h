@@ -9653,12 +9653,16 @@ void IdentifyVersion(void)
     doom_strcpy(doom2fwad, doomwaddir);
     doom_concat(doom2fwad, "/doom2f.wad");
 
-    //return; // here error
+    // WORKING HERE
 
+    //doom_print("abcdefghijklmnopqrstuvwxyz1234567890");
+
+    //return;
 #if !defined(DOOM_WIN32)
-    //home = doom_getenv("HOME");
-    //if (!home)
-        //I_Error("Error: Please set $HOME to your home directory");
+    home = doom_getenv("HOME");
+    if (!home)
+        I_Error("Error: Please set $HOME to your home directory");
+        //return;
 #else
     home = ".";
 #endif
